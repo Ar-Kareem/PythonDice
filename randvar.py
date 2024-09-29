@@ -8,7 +8,7 @@ import utils
 
 class RV:
   def __init__(self, vals: Sequence[float], probs: Sequence[int]):
-    self.vals, self.probs = RV.sort_and_group(vals, probs)
+    self.vals, self.probs = RV._sort_and_group(vals, probs)
     assert all(isinstance(p, int) and p >= 0 for p in self.probs), 'probs must be non-negative integers'
     assert len(self.vals) == len(self.probs), 'vals and probs must be the same length'
     gcd = math.gcd(*self.probs)
@@ -21,7 +21,7 @@ class RV:
     self._source_die = self
 
   @staticmethod
-  def sort_and_group(vals, probs: Sequence[int]):
+  def _sort_and_group(vals, probs: Sequence[int]):
     zipped = sorted(zip(vals, probs), reverse=True)
     newzipped: list[tuple[float, int]] = []
     for i in range(len(zipped)-1, -1, -1):
@@ -32,11 +32,6 @@ class RV:
     vals = tuple(v[0] for v in newzipped)
     probs = tuple(v[1] for v in newzipped)
     return vals, probs
-
-  @staticmethod
-  def from_dict(d: dict):
-    k, v = zip(*d.items())
-    return RV(k, v)
 
   def set_source(self, roll, die):
     self._source_roll = roll
@@ -62,7 +57,7 @@ class RV:
     for roll in all_rolls_and_probs:
       vals.append(tuple(sorted((v for v, _ in roll))))
       probs.append(math.prod(p for _, p in roll))
-    return RV.sort_and_group(vals, probs)
+    return RV._sort_and_group(vals, probs)
 
   def _get_expanded_possible_rolls(self) -> tuple[tuple[tuple[float, ...]|float, ...], tuple[int, ...]]:
     N, D = self._source_roll, self._source_die  # N rolls of D
@@ -74,9 +69,9 @@ class RV:
       vals.append(Seq(sorted(roll)))
       counts = {v: roll.count(v) for v in roll}
       probs.append(utils.factorial(N) // math.prod(utils.factorial(c) for c in counts.values()))
-    return RV.sort_and_group(vals, probs)
+    return RV._sort_and_group(vals, probs)
 
-  def convolve(self, other, operation):
+  def _convolve(self, other, operation):
     if isinstance(other, Seq):
       other = other.sum()
     if not isinstance(other, RV):
@@ -84,53 +79,53 @@ class RV:
     new_vals = tuple(operation(v1, v2) for v1 in self.vals for v2 in other.vals)
     new_probs = tuple(p1*p2 for p1 in self.probs for p2 in other.probs)
     return RV(new_vals, new_probs)
-  def rconvolve(self, other, operation):
+  def _rconvolve(self, other, operation):
     assert not isinstance(other, RV)
     if isinstance(other, Seq):
       other = other.sum()
     return RV([operation(other, v) for v in self.vals], self.probs)
 
   def __add__(self, other):
-    return self.convolve(other, operator.add)
+    return self._convolve(other, operator.add)
   def __radd__(self, other):
-    return self.rconvolve(other, operator.add)
+    return self._rconvolve(other, operator.add)
   def __sub__(self, other):
-    return self.convolve(other, operator.sub)
+    return self._convolve(other, operator.sub)
   def __rsub__(self, other):
-    return self.rconvolve(other, operator.sub)
+    return self._rconvolve(other, operator.sub)
   def __mul__(self, other):
-    return self.convolve(other, operator.mul)
+    return self._convolve(other, operator.mul)
   def __rmul__(self, other):
-    return self.rconvolve(other, operator.mul)
+    return self._rconvolve(other, operator.mul)
   def __floordiv__(self, other):
-    return self.convolve(other, operator.floordiv)
+    return self._convolve(other, operator.floordiv)
   def __rfloordiv__(self, other):
-    return self.rconvolve(other, operator.floordiv)
+    return self._rconvolve(other, operator.floordiv)
   def __truediv__(self, other):
-    return self.convolve(other, operator.truediv)
+    return self._convolve(other, operator.truediv)
   def __rtruediv__(self, other):
-    return self.rconvolve(other, operator.truediv)
+    return self._rconvolve(other, operator.truediv)
   def __pow__(self, other):
-    return self.convolve(other, operator.pow)
+    return self._convolve(other, operator.pow)
   def __rpow__(self, other):
-    return self.rconvolve(other, operator.pow)
+    return self._rconvolve(other, operator.pow)
   def __mod__(self, other):
-    return self.convolve(other, operator.mod)
+    return self._convolve(other, operator.mod)
   def __rmod__(self, other):
-    return self.rconvolve(other, operator.mod)
+    return self._rconvolve(other, operator.mod)
 
   def __eq__(self, other):
-    return self.convolve(other, lambda x, y: 1 if x == y else 0)
+    return self._convolve(other, lambda x, y: 1 if x == y else 0)
   def __ne__(self, other):
-    return self.convolve(other, lambda x, y: 1 if x != y else 0)
+    return self._convolve(other, lambda x, y: 1 if x != y else 0)
   def __lt__(self, other):
-    return self.convolve(other, lambda x, y: 1 if x < y else 0)
+    return self._convolve(other, lambda x, y: 1 if x < y else 0)
   def __le__(self, other):
-    return self.convolve(other, lambda x, y: 1 if x <= y else 0)
+    return self._convolve(other, lambda x, y: 1 if x <= y else 0)
   def __gt__(self, other):
-    return self.convolve(other, lambda x, y: 1 if x > y else 0)
+    return self._convolve(other, lambda x, y: 1 if x > y else 0)
   def __ge__(self, other):
-    return self.convolve(other, lambda x, y: 1 if x >= y else 0)
+    return self._convolve(other, lambda x, y: 1 if x >= y else 0)
 
   def __bool__(self):
     assert all(v in (0, 1) for v in self.vals)
@@ -223,44 +218,44 @@ class Seq(Iterable):
     return operator.mod(other, self.sum())
 
   def __eq__(self, other):
-    return self.compare_to(other, operator.eq)
+    return self._compare_to(other, operator.eq)
   def __ne__(self, other):
-    return self.compare_to(other, operator.ne)
+    return self._compare_to(other, operator.ne)
   def __lt__(self, other):
-    return self.compare_to(other, operator.lt)
+    return self._compare_to(other, operator.lt)
   def __le__(self, other):
-    return self.compare_to(other, operator.le)
+    return self._compare_to(other, operator.le)
   def __gt__(self, other):
-    return self.compare_to(other, operator.gt)
+    return self._compare_to(other, operator.gt)
   def __ge__(self, other):
-    return self.compare_to(other, operator.ge)
+    return self._compare_to(other, operator.ge)
 
-  def compare_to(self, other, operation):
+  def _compare_to(self, other, operation):
     if isinstance(other, RV):
       return operation(self.sum(), other)
     if isinstance(other, Iterable):
       if not isinstance(other, Seq):  # convert to Seq if not already
         other = Seq(*other)
       if operation == operator.ne: # special case for NE, since it is ∃ as opposed to ∀ like the others
-        return not self.compare_to(other, operator.eq)
+        return not self._compare_to(other, operator.eq)
       return all(operation(x, y) for x, y in zip_longest(self.seq, other, fillvalue=float('-inf')))
     # if other is a number
     return sum(1 for x in self.seq if operation(x, other))
 
 def cast_dice_to_seq():
-    def decorator(func):
-        def wrapper(**kwargs):
-            spec = inspect.getfullargspec(func).annotations  # dict of arg_name: arg_type
-            seq_params = (k for k, v in spec.items() if v == Seq)
-            # only do first for now
-            seq_param = next(seq_params, None)
-            if seq_param is None:
-                return func(**kwargs)
-            dice = kwargs.pop(seq_param)
-            allrolls, probs = dice._get_expanded_possible_rolls()
-            return RV([func(**{**kwargs, seq_param: roll}) for roll in allrolls], probs)
-        return wrapper
-    return decorator
+  def decorator(func):
+    def wrapper(**kwargs):
+      spec = inspect.getfullargspec(func).annotations  # dict of arg_name: arg_type
+      seq_params = (k for k, v in spec.items() if v == Seq)
+      kwargs_to_do = {k: v for k, v in kwargs.items() if k in seq_params and isinstance(v, RV)}
+      if not kwargs_to_do:
+        return func(**kwargs)
+      # only do first for now
+      seq_param, dice = kwargs_to_do.popitem()
+      allrolls, probs = dice._get_expanded_possible_rolls()
+      return RV([func(**{**kwargs, seq_param: roll}) for roll in allrolls], probs)
+    return wrapper
+  return decorator
 
 def dice(n):
   if isinstance(n, int):
