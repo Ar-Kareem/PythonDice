@@ -9,3 +9,9 @@ def flatten(items):
                 yield sub_x
         else:
             yield x
+
+_memoized = {}
+def factorial(n):
+    if n not in _memoized:
+        _memoized[n] = n * factorial(n-1) if n > 1 else 1
+    return _memoized[n]

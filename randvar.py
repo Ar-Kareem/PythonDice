@@ -1,11 +1,27 @@
 import operator
 import math
 from typing import Sequence, Iterable
+from itertools import zip_longest, product, combinations_with_replacement
+import inspect
+
 import utils
-from itertools import zip_longest
 
 class RV:
   def __init__(self, vals: Sequence[float], probs: Sequence[int]):
+    self.vals, self.probs = RV.sort_and_group(vals, probs)
+    assert all(isinstance(p, int) and p >= 0 for p in self.probs), 'probs must be non-negative integers'
+    assert len(self.vals) == len(self.probs), 'vals and probs must be the same length'
+    gcd = math.gcd(*self.probs)
+    if gcd > 1:  # simplify probs
+      self.probs = tuple(p//gcd for p in self.probs)
+    self.sum_probs = sum(self.probs)
+
+    # by default, 1 roll of current RV
+    self._source_roll = 1
+    self._source_die = self
+
+  @staticmethod
+  def sort_and_group(vals, probs: Sequence[int]):
     zipped = sorted(zip(vals, probs), reverse=True)
     newzipped: list[tuple[float, int]] = []
     for i in range(len(zipped)-1, -1, -1):
@@ -13,17 +29,23 @@ class RV:
         zipped[i-1] = (zipped[i-1][0], zipped[i-1][1]+zipped[i][1])
       else:
         newzipped.append(zipped[i])
-    self.vals = tuple(v[0] for v in newzipped)
-    self.probs = tuple(v[1] for v in newzipped)
-    assert all(isinstance(p, int) and p >= 0 for p in self.probs), 'probs must be non-negative integers'
-    gcd = math.gcd(*self.probs)
-    self.probs = tuple(p//gcd for p in self.probs)
+    vals = tuple(v[0] for v in newzipped)
+    probs = tuple(v[1] for v in newzipped)
+    return vals, probs
+
+  @staticmethod
+  def from_dict(d: dict):
+    k, v = zip(*d.items())
+    return RV(k, v)
+
+  def set_source(self, roll, die):
+    self._source_roll = roll
+    self._source_die = die
 
   def mean(self):
-    sum_p = sum(self.probs)
-    if sum_p == 0:
+    if self.sum_probs == 0:
       return None
-    return sum(v*p for v, p in zip(self.vals, self.probs)) / sum_p
+    return sum(v*p for v, p in zip(self.vals, self.probs)) / self.sum_probs
   def std(self):
     mean = self.mean()
     mean_X2 = RV(tuple(v**2 for v in self.vals), self.probs).mean()
@@ -31,6 +53,31 @@ class RV:
       return None
     var = mean_X2 - mean**2
     return math.sqrt(var)
+
+  def _get_expanded_possible_rolls_LEGACY_SLOW(self) -> tuple[tuple[tuple[float, ...]|float, ...], tuple[int, ...]]:
+    N, D = self._source_roll, self._source_die  # N rolls of D
+    all_rolls_and_probs = tuple(product(zip(D.vals, D.probs), repeat=N))
+    print('.')
+    vals = []
+    probs = []
+    for roll in all_rolls_and_probs:
+      vals.append(tuple(sorted((v for v, _ in roll))))
+      probs.append(math.prod(p for _, p in roll))
+    return RV.sort_and_group(vals, probs)
+
+  def _get_expanded_possible_rolls(self) -> tuple[tuple[tuple[float, ...]|float, ...], tuple[int, ...]]:
+    N, D = self._source_roll, self._source_die  # N rolls of D
+    vals = sorted(D.vals, reverse=True)
+    all_rolls_and_probs = tuple(combinations_with_replacement(vals, N))
+    print('.')
+    vals = []
+    probs = []
+    for roll in all_rolls_and_probs:
+      vals.append(Seq(sorted(roll)))
+      counts = {v: roll.count(v) for v in roll}
+      probs.append(utils.factorial(N) // math.prod(utils.factorial(c) for c in counts.values()))
+    return RV.sort_and_group(vals, probs)
+
   def convolve(self, other, operation):
     if isinstance(other, Seq):
       other = other.sum()
@@ -109,11 +156,11 @@ class RV:
   def __repr__(self):
     sum_p = sum(self.probs)
     mean = self.mean()
-    mean = round(mean, 1) if mean is not None else None
+    mean = round(mean, 2) if mean is not None else None
     std = self.std()
-    std = round(std, 1) if std is not None else None
+    std = round(std, 2) if std is not None else None
     result = f'mean: {mean} std: {std}\n'
-    result += '\n'.join(f"{v}: {round(100*p/sum_p, 1)}" for v, p in zip(self.vals, self.probs))
+    result += '\n'.join(f"{v}: {round(100*p/sum_p, 2)}" for v, p in zip(self.vals, self.probs))
     return result
 
 class Seq(Iterable):
@@ -197,6 +244,20 @@ class Seq(Iterable):
     # if other is a number
     return sum(1 for x in self.seq if operation(x, other))
 
+def cast_dice_to_seq():
+    def decorator(func):
+        def wrapper(**kwargs):
+            spec = inspect.getfullargspec(func).annotations  # dict of arg_name: arg_type
+            seq_params = (k for k, v in spec.items() if v == Seq)
+            # only do first for now
+            seq_param = next(seq_params, None)
+            if seq_param is None:
+                return func(**kwargs)
+            dice = kwargs.pop(seq_param)
+            allrolls, probs = dice._get_expanded_possible_rolls_NEW()
+            return RV([func(**{**kwargs, seq_param: roll}) for roll in allrolls], probs)
+        return wrapper
+    return decorator
 
 def dice(n):
   if isinstance(n, int):
@@ -209,7 +270,7 @@ def dice(n):
     return RV(n.seq, [1]*len(n))
   raise ValueError(f'cant get dice from {type(n)}')
 
-def roll(n: int, d):
+def roll(n: int, d, in_recursion=False):
   if not isinstance(d, RV):
     d = dice(d)
   assert n >= 0
@@ -217,10 +278,12 @@ def roll(n: int, d):
     return dice(0)
   if n == 1:
     return d
-  half = roll(n//2, d)
+  half = roll(n//2, d, in_recursion=True)
   full = half+half
   if n%2 == 1:
     full = full + d
+  if not in_recursion:
+    full.set_source(n, d)
   return full
 
 def d(s):
