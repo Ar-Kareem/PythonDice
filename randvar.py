@@ -156,6 +156,10 @@ class RV:
     result += '\n'.join(f"{v}: {round(100*p/sum_p, 2)}" for v, p in zip(self.vals, self.probs))
     return result
 
+  @staticmethod
+  def dices_are_equal(d1, d2):
+    return d1.vals == d2.vals and d1.probs == d2.probs
+
 class Seq(Iterable):
   def __init__(self, *source):
     n = list(utils.flatten(source))
@@ -244,16 +248,36 @@ class Seq(Iterable):
 
 def cast_dice_to_seq():
   def decorator(func):
-    def wrapper(**kwargs):
-      spec = inspect.getfullargspec(func).annotations  # dict of arg_name: arg_type
-      seq_params = (k for k, v in spec.items() if v == Seq)
+    def wrapper(*args, **kwargs):
+      fullspec = inspect.getfullargspec(func)
+      arg_names = fullspec.args  # list of arg names
+      seq_params = (k for k, v in fullspec.annotations.items() if v == Seq)  # list of arg names that have typehint Seq
+      args_to_do = {i: v for i, v in enumerate(args) if (i < len(arg_names)) and (arg_names[i] in seq_params) and isinstance(v, RV)}
       kwargs_to_do = {k: v for k, v in kwargs.items() if k in seq_params and isinstance(v, RV)}
-      if not kwargs_to_do:
-        return func(**kwargs)
-      # only do first for now
-      seq_param, dice = kwargs_to_do.popitem()
-      allrolls, probs = dice._get_expanded_possible_rolls()
-      return RV([func(**{**kwargs, seq_param: roll}) for roll in allrolls], probs)
+      combined = {**args_to_do, **kwargs_to_do}
+      if not combined:
+        return func(*args, **kwargs)
+      var_name, all_rolls_and_probs = zip(*((k, v._get_expanded_possible_rolls()) for k, v in combined.items()))
+      # all_rolls_and_probs is a list of tuples, each tuple is (rolls, probs) for a variable
+      # weave each variable's rolls and probs together, new tuple is (roll, prob) for each possible roll
+      all_rolls_and_probs = ((zip(r, p)) for r, p in all_rolls_and_probs)
+      # FINALLY take product of all possible rolls
+      all_rolls_and_probs = product(*all_rolls_and_probs)
+
+      new_args, new_kwargs = list(args), dict(kwargs)
+      res_vals, res_probs = [], []
+      for rolls_and_prob in all_rolls_and_probs:
+        rolls = tuple(r for r, _ in rolls_and_prob)
+        prob = math.prod(p for _, p in rolls_and_prob)
+        # will update args and kwargs with each possible roll using var_name
+        for k, v in zip(var_name, rolls):
+          if isinstance(k, str):
+            new_kwargs[k] = v
+          else:
+            new_args[k] = v
+        res_vals.append(func(*new_args, **new_kwargs))
+        res_probs.append(prob)
+      return RV(res_vals, res_probs)
     return wrapper
   return decorator
 
