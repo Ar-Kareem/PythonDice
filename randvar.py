@@ -2,6 +2,7 @@ import operator
 import math
 from typing import Sequence, Iterable
 import utils
+from itertools import zip_longest
 
 class RV:
   def __init__(self, vals: Sequence[float], probs: Sequence[int]):
@@ -162,19 +163,28 @@ class Seq(Iterable):
     return operator.mod(self.sum(), other)
   def __rmod__(self, other):
     return operator.mod(other, self.sum())
-  def __eq__(self, other):
-    return operator.eq(self.sum(), other)
-  def __ne__(self, other):
-    return operator.ne(self.sum(), other)
-  def __lt__(self, other):
-    return operator.lt(self.sum(), other)
-  def __le__(self, other):
-    return operator.le(self.sum(), other)
-  def __gt__(self, other):
-    return operator.gt(self.sum(), other)
-  def __ge__(self, other):
-    return operator.ge(self.sum(), other)
 
+  def __eq__(self, other):
+    return self.compare_to(other, operator.eq)
+  def __ne__(self, other):
+    return not (self == other)
+  def __lt__(self, other):
+    return self.compare_to(other, operator.lt)
+  def __le__(self, other):
+    return self.compare_to(other, operator.le)
+  def __gt__(self, other):
+    return self.compare_to(other, operator.gt)
+  def __ge__(self, other):
+    return self.compare_to(other, operator.ge)
+
+  def compare_to(self, other, operation):
+    if isinstance(other, RV):
+      return operation(self.sum(), other)
+    if isinstance(other, Seq):
+      return all(operation(x, y) for x, y in zip_longest(self.seq, other, fillvalue=float('-inf')))
+    if isinstance(other, Iterable):
+      return self.compare_to(Seq(other), operation)
+    return operation(self.sum(), other)
 
 
 def dice(n):
