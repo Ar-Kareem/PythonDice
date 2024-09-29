@@ -187,6 +187,11 @@ class Seq(Iterable):
     if not isinstance(other, Seq):
       other = Seq(other)
     return sum(other[i] for i in self.seq)
+  def __rmatmul__(self, other):
+    # access in my indices
+    if not isinstance(other, Seq):
+      other = Seq(other)
+    return sum(self[i] for i in other.seq)
 
   def __add__(self, other):
     return operator.add(self.sum(), other)
