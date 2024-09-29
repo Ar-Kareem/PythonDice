@@ -44,9 +44,55 @@ class RV:
         return self.convolve(other, operator.mul)
     def __rmul__(self, other):
         return self.rconvolve(other, operator.mul)
+    def __floordiv__(self, other):
+        return self.convolve(other, operator.floordiv)
+    def __rfloordiv__(self, other):
+        return self.rconvolve(other, operator.floordiv)
+    def __truediv__(self, other):
+        return self.convolve(other, operator.truediv)
+    def __rtruediv__(self, other):
+        return self.rconvolve(other, operator.truediv)
+    def __pow__(self, other):
+        return self.convolve(other, operator.pow)
+    def __rpow__(self, other):
+        return self.rconvolve(other, operator.pow)
+    def __mod__(self, other):
+        return self.convolve(other, operator.mod)
+    def __rmod__(self, other):
+        return self.rconvolve(other, operator.mod)
+    
+    def __eq__(self, other):
+        return self.convolve(other, lambda x, y: 1 if x == y else 0)
+    def __ne__(self, other):
+        return self.convolve(other, lambda x, y: 1 if x != y else 0)
+    def __lt__(self, other):
+        return self.convolve(other, lambda x, y: 1 if x < y else 0)
+    def __le__(self, other):
+        return self.convolve(other, lambda x, y: 1 if x <= y else 0)
+    def __gt__(self, other):
+        return self.convolve(other, lambda x, y: 1 if x > y else 0)
+    def __ge__(self, other):
+        return self.convolve(other, lambda x, y: 1 if x >= y else 0)
+    
+    def __bool__(self):
+        assert all(v in (0, 1) for v in self.vals)
+        return len(self.vals) == 1 and self.vals[0] == 1
+    
+    def __pos__(self):
+        return self
     def __neg__(self):
         return 0 - self
-
+    def __abs__(self):
+        return RV(tuple(abs(v) for v in self.vals), self.probs)
+    def __round__(self, n=0):
+        return RV(tuple(round(v, n) for v in self.vals), self.probs)
+    def __floor__(self):
+        return RV(tuple(math.floor(v) for v in self.vals), self.probs)
+    def __ceil__(self):
+        return RV(tuple(math.ceil(v) for v in self.vals), self.probs)
+    def __trunc__(self):
+        return RV(tuple(math.trunc(v) for v in self.vals), self.probs)
+    
     def __repr__(self):
         sum_p = sum(self.probs)
         result = f'mean: {self.mean():.2f} std: {self.std():.2f} \n'
@@ -61,6 +107,7 @@ def dice(n):
     if isinstance(n, Sequence):
         return RV(n, [1]*len(n))
     raise ValueError(f'cant get dice from {type(n)}')
+
 def roll(n: int, d):
     if not isinstance(d, RV):
         d = dice(d)
@@ -74,6 +121,7 @@ def roll(n: int, d):
     if n%2 == 1:
         full = full + d
     return full
+
 def d(s):
     # s is "ndm", example: "4d6"
     n, m = s.split('d')
