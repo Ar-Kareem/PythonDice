@@ -175,7 +175,7 @@ class Seq(Iterable):
   def __eq__(self, other):
     return self.compare_to(other, operator.eq)
   def __ne__(self, other):
-    return not (self == other)
+    return self.compare_to(other, operator.ne)
   def __lt__(self, other):
     return self.compare_to(other, operator.lt)
   def __le__(self, other):
@@ -188,11 +188,14 @@ class Seq(Iterable):
   def compare_to(self, other, operation):
     if isinstance(other, RV):
       return operation(self.sum(), other)
-    if isinstance(other, Seq):
-      return all(operation(x, y) for x, y in zip_longest(self.seq, other, fillvalue=float('-inf')))
     if isinstance(other, Iterable):
-      return self.compare_to(Seq(other), operation)
-    return operation(self.sum(), other)
+      if not isinstance(other, Seq):  # convert to Seq if not already
+        other = Seq(*other)
+      if operation == operator.ne: # special case for NE, since it is ∃ as opposed to ∀ like the others
+        return not self.compare_to(other, operator.eq)
+      return all(operation(x, y) for x, y in zip_longest(self.seq, other, fillvalue=float('-inf')))
+    # if other is a number
+    return sum(1 for x in self.seq if operation(x, other))
 
 
 def dice(n):
