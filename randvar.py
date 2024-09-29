@@ -57,7 +57,6 @@ class RV:
   def _get_expanded_possible_rolls_LEGACY_SLOW(self) -> tuple[tuple[tuple[float, ...]|float, ...], tuple[int, ...]]:
     N, D = self._source_roll, self._source_die  # N rolls of D
     all_rolls_and_probs = tuple(product(zip(D.vals, D.probs), repeat=N))
-    print('.')
     vals = []
     probs = []
     for roll in all_rolls_and_probs:
@@ -69,7 +68,6 @@ class RV:
     N, D = self._source_roll, self._source_die  # N rolls of D
     vals = sorted(D.vals, reverse=True)
     all_rolls_and_probs = tuple(combinations_with_replacement(vals, N))
-    print('.')
     vals = []
     probs = []
     for roll in all_rolls_and_probs:
@@ -254,7 +252,7 @@ def cast_dice_to_seq():
             if seq_param is None:
                 return func(**kwargs)
             dice = kwargs.pop(seq_param)
-            allrolls, probs = dice._get_expanded_possible_rolls_NEW()
+            allrolls, probs = dice._get_expanded_possible_rolls()
             return RV([func(**{**kwargs, seq_param: roll}) for roll in allrolls], probs)
         return wrapper
     return decorator
