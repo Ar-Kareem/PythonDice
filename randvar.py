@@ -27,6 +27,8 @@ class RV:
     var = mean_X2 - mean**2
     return math.sqrt(var)
   def convolve(self, other, operation):
+    if isinstance(other, Seq):
+      other = other.sum()
     if not isinstance(other, RV):
       return RV([operation(v, other) for v in self.vals], self.probs)
     new_vals = tuple(operation(v1, v2) for v1 in self.vals for v2 in other.vals)
@@ -34,6 +36,8 @@ class RV:
     return RV(new_vals, new_probs)
   def rconvolve(self, other, operation):
     assert not isinstance(other, RV)
+    if isinstance(other, Seq):
+      other = other.sum()
     return RV([operation(other, v) for v in self.vals], self.probs)
 
   def __add__(self, other):
@@ -109,6 +113,13 @@ class Seq(Iterable):
     n = [x for x in n if not isinstance(x, RV)] + [v for x in n if isinstance(x, RV) for v in x.vals]  # expand RVs
     self.seq = n
     self._one_indexed = 1  # 1 is True, 0 is False
+    self._sum = None
+
+  def sum(self):
+    if self._sum is None:
+      self._sum = sum(self.seq)
+    return self._sum
+
   def __repr__(self):
     return str(self.seq)
   def __iter__(self):
@@ -122,7 +133,49 @@ class Seq(Iterable):
     if not isinstance(other, Seq):
       other = Seq(other)
     return sum(other[i] for i in self.seq)
-  
+
+  def __add__(self, other):
+    return operator.add(self.sum(), other)
+  def __radd__(self, other):
+    return operator.add(other, self.sum())
+  def __sub__(self, other):
+    return operator.sub(self.sum(), other)
+  def __rsub__(self, other):
+    return operator.sub(other, self.sum())
+  def __mul__(self, other):
+    return operator.mul(self.sum(), other)
+  def __rmul__(self, other):
+    return operator.mul(other, self.sum())
+  def __floordiv__(self, other):
+    return operator.floordiv(self.sum(), other)
+  def __rfloordiv__(self, other):
+    return operator.floordiv(other, self.sum())
+  def __truediv__(self, other):
+    return operator.truediv(self.sum(), other)
+  def __rtruediv__(self, other):
+    return operator.truediv(other, self.sum())
+  def __pow__(self, other):
+    return operator.pow(self.sum(), other)
+  def __rpow__(self, other):
+    return operator.pow(other, self.sum())
+  def __mod__(self, other):
+    return operator.mod(self.sum(), other)
+  def __rmod__(self, other):
+    return operator.mod(other, self.sum())
+  def __eq__(self, other):
+    return operator.eq(self.sum(), other)
+  def __ne__(self, other):
+    return operator.ne(self.sum(), other)
+  def __lt__(self, other):
+    return operator.lt(self.sum(), other)
+  def __le__(self, other):
+    return operator.le(self.sum(), other)
+  def __gt__(self, other):
+    return operator.gt(self.sum(), other)
+  def __ge__(self, other):
+    return operator.ge(self.sum(), other)
+
+
 
 def dice(n):
   if isinstance(n, int):
