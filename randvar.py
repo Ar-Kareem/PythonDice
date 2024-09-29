@@ -21,10 +21,14 @@ class RV:
 
   def mean(self):
     sum_p = sum(self.probs)
+    if sum_p == 0:
+      return None
     return sum(v*p for v, p in zip(self.vals, self.probs)) / sum_p
   def std(self):
     mean = self.mean()
     mean_X2 = RV(tuple(v**2 for v in self.vals), self.probs).mean()
+    if mean is None or mean_X2 is None:
+      return None
     var = mean_X2 - mean**2
     return math.sqrt(var)
   def convolve(self, other, operation):
@@ -104,8 +108,12 @@ class RV:
 
   def __repr__(self):
     sum_p = sum(self.probs)
-    result = f'mean: {self.mean():.2f} std: {self.std():.2f} \n'
-    result += '\n'.join(f"{v}: {round(100*p/sum_p, 2)}" for v, p in zip(self.vals, self.probs))
+    mean = self.mean()
+    mean = round(mean, 1) if mean is not None else None
+    std = self.std()
+    std = round(std, 1) if std is not None else None
+    result = f'mean: {mean} std: {std}\n'
+    result += '\n'.join(f"{v}: {round(100*p/sum_p, 1)}" for v, p in zip(self.vals, self.probs))
     return result
 
 class Seq(Iterable):
