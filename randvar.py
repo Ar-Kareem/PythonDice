@@ -103,6 +103,26 @@ class RV:
     result += '\n'.join(f"{v}: {round(100*p/sum_p, 2)}" for v, p in zip(self.vals, self.probs))
     return result
 
+class Seq(Iterable):
+  def __init__(self, *source):
+    n = list(utils.flatten(source))
+    n = [x for x in n if not isinstance(x, RV)] + [v for x in n if isinstance(x, RV) for v in x.vals]  # expand RVs
+    self.seq = n
+    self._one_indexed = 1  # 1 is True, 0 is False
+  def __repr__(self):
+    return str(self.seq)
+  def __iter__(self):
+    return iter(self.seq)
+  def __len__(self):
+    return len(self.seq)
+  def __getitem__(self, i):
+    return self.seq[i-self._one_indexed] if 0 <= i-self._one_indexed < len(self.seq) else 0
+  def  __matmul__(self, other):
+    # access at indices in other
+    if not isinstance(other, Seq):
+      other = Seq(other)
+    return sum(other[i] for i in self.seq)
+  
 
 def dice(n):
   if isinstance(n, int):
@@ -110,9 +130,9 @@ def dice(n):
       return RV([0], [1])
     return RV(list(range(1, n+1)), [1]*n)
   if isinstance(n, Iterable):
-    n = list(utils.flatten(n))
-    n = [x for x in n if not isinstance(x, RV)] + [v for x in n if isinstance(x, RV) for v in x.vals]
-    return RV(n, [1]*len(n))
+    if not isinstance(n, Seq):
+      n = Seq(*n)
+    return RV(n.seq, [1]*len(n))
   raise ValueError(f'cant get dice from {type(n)}')
 
 def roll(n: int, d):
