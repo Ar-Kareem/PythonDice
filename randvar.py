@@ -61,12 +61,11 @@ class RV:
 
   def _get_expanded_possible_rolls(self) -> tuple[tuple[tuple[float, ...]|float, ...], tuple[int, ...]]:
     N, D = self._source_roll, self._source_die  # N rolls of D
-    vals = sorted(D.vals, reverse=True)
-    all_rolls_and_probs = tuple(combinations_with_replacement(vals, N))
+    all_rolls_and_probs = tuple(combinations_with_replacement(D.vals, N))
     vals = []
     probs = []
     for roll in all_rolls_and_probs:
-      vals.append(Seq(sorted(roll)))
+      vals.append(Seq(sorted(roll, reverse=True)))
       counts = {v: roll.count(v) for v in roll}
       probs.append(utils.factorial(N) // math.prod(utils.factorial(c) for c in counts.values()))
     return RV._sort_and_group(vals, probs)
@@ -84,6 +83,15 @@ class RV:
     if isinstance(other, Seq):
       other = other.sum()
     return RV([operation(other, v) for v in self.vals], self.probs)
+
+  def  __rmatmul__(self, other):
+    # ( other @ self )
+    if not isinstance(other, Seq):
+      other = Seq(other)
+    @cast_dice_to_seq()
+    def _inner_func(seq: Seq):
+      return sum(seq[i] for i in other)
+    return _inner_func(self)
 
   def __add__(self, other):
     return self._convolve(other, operator.add)
@@ -182,12 +190,14 @@ class Seq(Iterable):
   def __getitem__(self, i):
     return self.seq[i-self._one_indexed] if 0 <= i-self._one_indexed < len(self.seq) else 0
   def  __matmul__(self, other):
-    # access at indices in other
+    if isinstance(other, RV):  # if other is an RV then it takes priority
+      return other.__rmatmul__(self)
+    # access at indices in other ( self @ other )
     if not isinstance(other, Seq):
       other = Seq(other)
     return sum(other[i] for i in self.seq)
   def __rmatmul__(self, other):
-    # access in my indices
+    # access in my indices ( other @ self )
     if not isinstance(other, Seq):
       other = Seq(other)
     return sum(self[i] for i in other.seq)
