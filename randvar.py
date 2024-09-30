@@ -286,10 +286,13 @@ def cast_dice_to_seq():
           else:
             new_args[k] = v
         val = func(*new_args, **new_kwargs)
-        val = val.sum() if isinstance(val, Seq) else val
+        if isinstance(val, Seq):
+          val = val.sum()
+        if not isinstance(val, RV):
+          val = RV([val], [1])
         res_vals.append(val)
         res_probs.append(prob)
-      return RV(res_vals, res_probs)
+      return _combine_rvs_to_one(rvs=res_vals, weights=res_probs)
     return wrapper
   return decorator
 
@@ -310,18 +313,23 @@ def roll(n: int|Seq|RV, d: int|Seq|RV) -> RV:
     result.set_source(n.sum(), d)
     return result
   if isinstance(n, RV):
-    results = [(roll(int(v), d), p) for v, p in zip(n.vals, n.probs)]
-    prob_sums = tuple(sum(r.probs) for r, p in results)
-    PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
-    # combine all possibilities into one RV
-    res_vals = tuple(list(r.vals) for r, p in results)
-    res_probs = tuple([x*p*(PROD//prob_sums[i]) for x in r.probs] for i, (r, p) in enumerate(results))
-    result = RV(sum(res_vals, []), sum(res_probs, []))
+    dies = tuple(roll(int(v), d) for v in n.vals)
+    result = _combine_rvs_to_one(rvs=dies, weights=n.probs)
     result.set_source(1, d)
     return result
   if not isinstance(d, RV):
     d = dice(d)
   return _roll_int_rv(n, d)
+
+def _combine_rvs_to_one(rvs: tuple[RV, ...], weights: tuple[int, ...]) -> RV:
+    assert len(rvs) == len(weights)
+    prob_sums = tuple(sum(r.probs) for r in rvs)
+    PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
+    # combine all possibilities into one RV
+    res_vals = tuple(list(r.vals) for r in rvs)
+    res_probs = tuple([x*weight*(PROD//prob_sum) for x in rv.probs] for weight, prob_sum, rv in zip(weights, prob_sums, rvs))
+    result = RV(sum(res_vals, []), sum(res_probs, []))
+    return result
 
 _MEMOIZED = {}
 def _roll_int_rv(n: int, d: RV) -> RV:
