@@ -164,6 +164,10 @@ class RV:
 
   @staticmethod
   def dices_are_equal(d1, d2):
+    if isinstance(d1, int) or isinstance(d1, Iterable):
+      d1 = dice([d1])
+    if isinstance(d2, int) or isinstance(d2, Iterable):
+      d2 = dice([d2])
     return d1.vals == d2.vals and d1.probs == d2.probs
 
 class Seq(Iterable):
@@ -267,7 +271,8 @@ def cast_dice_to_seq():
       combined = {**args_to_do, **kwargs_to_do}
       if not combined:
         return func(*args, **kwargs)
-      var_name, all_rolls_and_probs = zip(*((k, v._get_expanded_possible_rolls()) for k, v in combined.items()))
+      var_name = tuple(combined.keys())
+      all_rolls_and_probs = tuple(combined[k]._get_expanded_possible_rolls() for k in var_name)
       # all_rolls_and_probs is a list of tuples, each tuple is (rolls, probs) for a variable
       # weave each variable's rolls and probs together, new tuple is (roll, prob) for each possible roll
       all_rolls_and_probs = ((zip(r, p)) for r, p in all_rolls_and_probs)
@@ -285,7 +290,7 @@ def cast_dice_to_seq():
             new_kwargs[k] = v
           else:
             new_args[k] = v
-        val = func(*new_args, **new_kwargs)
+        val = func(*new_args, **new_kwargs)  # result of one function call
         if isinstance(val, Seq):
           val = val.sum()
         if not isinstance(val, RV):
@@ -369,7 +374,7 @@ def output(rv: RV|Iterable|int, named=None, show_pdf=True, blocks_width=80, prin
   result += f'{mean} ± {std}'
   if show_pdf:
     for v, p in zip(rv.vals, rv.probs):
-      result += '\n' + f"{v}: {100*p/sum_p:.2f}  " + ('█'*round(p/sum_p * blocks_width))
+      result += '\n' + f"{v:.2g}: {100*p/sum_p:.2f}  " + ('█'*round(p/sum_p * blocks_width))
     result += '\n' + '-'*blocks_width
   if print_:
     print(result)
