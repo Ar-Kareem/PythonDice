@@ -47,7 +47,7 @@ class RV:
     if mean is None or mean_X2 is None:
       return None
     var = mean_X2 - mean**2
-    return math.sqrt(var)
+    return math.sqrt(var) if var >= 0 else 0
 
   def _get_expanded_possible_rolls_LEGACY_SLOW(self) -> tuple[tuple[tuple[float, ...]|float, ...], tuple[int, ...]]:
     N, D = self._source_roll, self._source_die  # N rolls of D
@@ -141,6 +141,8 @@ class RV:
   def __len__(self):
     # number of rolls that created this RV
     return self._source_roll
+  def __hash__(self):
+    return hash((self.vals, self.probs))
 
   def __pos__(self):
     return self
@@ -283,7 +285,9 @@ def cast_dice_to_seq():
             new_kwargs[k] = v
           else:
             new_args[k] = v
-        res_vals.append(func(*new_args, **new_kwargs))
+        val = func(*new_args, **new_kwargs)
+        val = val.sum() if isinstance(val, Seq) else val
+        res_vals.append(val)
         res_probs.append(prob)
       return RV(res_vals, res_probs)
     return wrapper
@@ -300,21 +304,42 @@ def dice(n):
     return RV(n.seq, [1]*len(n))
   raise ValueError(f'cant get dice from {type(n)}')
 
-def roll(n: int, d, in_recursion=False):
+def roll(n: int|Seq|RV, d: int|Seq|RV) -> RV:
+  if isinstance(n, Seq):
+    result = sum((roll(i, d) for i in n), start=dice(0))
+    result.set_source(n.sum(), d)
+    return result
+  if isinstance(n, RV):
+    results = [(roll(int(v), d), p) for v, p in zip(n.vals, n.probs)]
+    prob_sums = tuple(sum(r.probs) for r, p in results)
+    PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
+    # combine all possibilities into one RV
+    res_vals = tuple(list(r.vals) for r, p in results)
+    res_probs = tuple([x*p*(PROD//prob_sums[i]) for x in r.probs] for i, (r, p) in enumerate(results))
+    result = RV(sum(res_vals, []), sum(res_probs, []))
+    result.set_source(1, d)
+    return result
   if not isinstance(d, RV):
     d = dice(d)
+  return _roll_int_rv(n, d)
+
+_MEMOIZED = {}
+def _roll_int_rv(n: int, d: RV) -> RV:
+  if (n, d) in _MEMOIZED:
+    return _MEMOIZED[(n, d)]
   assert n >= 0
   if n == 0:
     return dice(0)
   if n == 1:
     return d
-  half = roll(n//2, d, in_recursion=True)
+  half = _roll_int_rv(n//2, d)
   full = half+half
   if n%2 == 1:
     full = full + d
-  if not in_recursion:
-    full.set_source(n, d)
+  full.set_source(n, d)
+  _MEMOIZED[(n, d)] = full
   return full
+
 
 def d(s):
   # s is "ndm", example: "4d6"
@@ -340,4 +365,5 @@ def output(rv: RV|Iterable|int, named=None, show_pdf=True, blocks_width=80, prin
     result += '\n' + '-'*blocks_width
   if print_:
     print(result)
-  return result
+  else:
+    return result
