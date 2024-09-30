@@ -86,9 +86,10 @@ class RV:
 
   def  __rmatmul__(self, other):
     # ( other @ self:DIE )
+    # DOCUMENTATION: https://anydice.com/docs/introspection/  look for "Accessing" -> "Collections of dice" and "A single die"
     if not isinstance(other, Seq):
       other = Seq(other)
-    @cast_dice_to_seq()
+    @anydice_casting()
     def _inner_func(seq: Seq):
       return sum(seq[i] for i in other)
     return _inner_func(self)
@@ -260,26 +261,87 @@ class Seq(Iterable):
     # if other is a number
     return sum(1 for x in self.seq if operation(x, other))
 
-def cast_dice_to_seq():
+  @staticmethod
+  def seqs_are_equal(s1, s2):
+    if not isinstance(s1, Seq):
+      s1 = Seq(s1)
+    if not isinstance(s2, Seq):
+      s2 = Seq(s2)
+    return s1.seq == s2.seq
+
+
+def anydice_casting(verbose=False):
+  # in the documenation of the anydice language https://anydice.com/docs/functions
+  # it states that "The behavior of a function depends on what type of value it expects and what type of value it actually receives."
+  # Thus there are 9 scenarios for each parameters
+  # expect: int, actual: int  =  no change
+  # expect: int, actual: seq  =  seq.sum()
+  # expect: int, actual: rv   =  MUST CALL FUNCTION WITH EACH VALUE OF RV ("If a die is provided, then the function will be invoked for all numbers on the die – or the sums of a collection of dice – and the result will be a new die.")
+  # expect: seq, actual: int  =  [int]
+  # expect: seq, actual: seq  =  no change
+  # expect: seq, actual: rv   =  MUST CALL FUNCTION WITH SEQUENCE OF EVERY ROLL OF THE RV ("If Expecting a sequence and dice are provided, then the function will be invoked for all possible sequences that can be made by rolling those dice. In that case the result will be a new die.")
+  # expect: rv, actual: int   =  dice([int])
+  # expect: rv, actual: seq   =  dice(seq)
+  # expect: rv, actual: rv    =  no change
   def decorator(func):
     def wrapper(*args, **kwargs):
+      args, kwargs = list(args), dict(kwargs)
       fullspec = inspect.getfullargspec(func)
-      arg_names = fullspec.args  # list of arg names
-      seq_params = (k for k, v in fullspec.annotations.items() if v == Seq)  # list of arg names that have typehint Seq
-      args_to_do = {i: v for i, v in enumerate(args) if (i < len(arg_names)) and (arg_names[i] in seq_params) and isinstance(v, RV)}
-      kwargs_to_do = {k: v for k, v in kwargs.items() if k in seq_params and isinstance(v, RV)}
-      combined = {**args_to_do, **kwargs_to_do}
-      if not combined:
+      arg_names = fullspec.args  # list of arg names  for args (not kwargs)
+      param_annotations = fullspec.annotations  # (arg_names): (arg_type)  that have been annotated
+
+      hard_params = {} # update parameters that are easy to update, keep the hard ones for later
+      combined_args = list(enumerate(args)) + list(kwargs.items())
+      if verbose: print('#args', len(combined_args))
+      for k, arg_val in combined_args:
+        arg_name = k if isinstance(k, str) else (arg_names[k] if k < len(arg_names) else None)  # get the name of the parameter (args or kwargs)
+        if arg_name not in param_annotations:  # only look for annotated parameters
+          if verbose: print('no anot', k)
+          continue
+        expected_type = param_annotations[arg_name]
+        actual_type = type(arg_val)
+        new_val = None
+        if (expected_type, actual_type) == (int, Seq):
+          new_val = arg_val.sum()
+        elif (expected_type, actual_type) == (int, RV):
+          hard_params[k] = (arg_val, expected_type)
+          continue
+        elif (expected_type, actual_type) == (Seq, int):
+          new_val = Seq([arg_val])
+        elif (expected_type, actual_type) == (Seq, RV):
+          hard_params[k] = (arg_val, expected_type)
+          if verbose: print('EXPL', k)
+          continue
+        elif (expected_type, actual_type) == (RV, int):
+          new_val = dice([arg_val])
+        elif (expected_type, actual_type) == (RV, Seq):
+          new_val = dice(arg_val)
+        else:  # one of the types is not int, Seq, or RV or no casting needed
+          continue
+        if isinstance(k, str):
+          kwargs[k] = new_val
+        else:
+          args[k] = new_val
+        if verbose: print('cast', k)
+      if verbose: print('hard', list(hard_params.keys()))
+      if not hard_params:
         return func(*args, **kwargs)
-      var_name = tuple(combined.keys())
-      all_rolls_and_probs = tuple(combined[k]._get_expanded_possible_rolls() for k in var_name)
-      # all_rolls_and_probs is a list of tuples, each tuple is (rolls, probs) for a variable
-      # weave each variable's rolls and probs together, new tuple is (roll, prob) for each possible roll
-      all_rolls_and_probs = ((zip(r, p)) for r, p in all_rolls_and_probs)
+
+      var_name = tuple(hard_params.keys())
+      all_rolls_and_probs = []
+      for k in var_name:
+        v, expected_type = hard_params[k]
+        assert isinstance(v, RV), 'expected type RV'
+        if expected_type == Seq:
+          r, p = v._get_expanded_possible_rolls()
+        elif expected_type == int:
+          r, p = v.vals, v.probs
+        else:
+          raise ValueError(f'casting RV to {expected_type} not supported')
+        all_rolls_and_probs.append(zip(r, p))
       # FINALLY take product of all possible rolls
       all_rolls_and_probs = product(*all_rolls_and_probs)
 
-      new_args, new_kwargs = list(args), dict(kwargs)
       res_vals, res_probs = [], []
       for rolls_and_prob in all_rolls_and_probs:
         rolls = tuple(r for r, _ in rolls_and_prob)
@@ -287,10 +349,10 @@ def cast_dice_to_seq():
         # will update args and kwargs with each possible roll using var_name
         for k, v in zip(var_name, rolls):
           if isinstance(k, str):
-            new_kwargs[k] = v
+            kwargs[k] = v
           else:
-            new_args[k] = v
-        val = func(*new_args, **new_kwargs)  # result of one function call
+            args[k] = v
+        val = func(*args, **kwargs)  # single result of the function call
         if isinstance(val, Seq):
           val = val.sum()
         if not isinstance(val, RV):
