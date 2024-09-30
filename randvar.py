@@ -203,6 +203,8 @@ class Seq(Iterable):
     if isinstance(other, RV):  # ( other:RV @ self:SEQ ) thus not allowed,
       raise TypeError('unsupported operand type(s) for @: RV and Seq')
     # access in my indices ( other @ self )
+    if isinstance(other, int):
+      return self[other]
     if not isinstance(other, Seq):
       other = Seq(other)
     return sum(self[i] for i in other.seq)
@@ -263,6 +265,7 @@ class Seq(Iterable):
 
   @staticmethod
   def seqs_are_equal(s1, s2):
+    assert not isinstance(s1, RV) and not isinstance(s2, RV), 'cannot compare Seq with RV'
     if not isinstance(s1, Seq):
       s1 = Seq(s1)
     if not isinstance(s2, Seq):
