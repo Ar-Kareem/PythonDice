@@ -138,6 +138,9 @@ class RV:
   def __bool__(self):
     assert all(v in (0, 1) for v in self.vals)
     return len(self.vals) == 1 and self.vals[0] == 1
+  def __len__(self):
+    # number of rolls that created this RV
+    return self._source_roll
 
   def __pos__(self):
     return self
@@ -155,14 +158,7 @@ class RV:
     return RV(tuple(math.trunc(v) for v in self.vals), self.probs)
 
   def __repr__(self):
-    sum_p = sum(self.probs)
-    mean = self.mean()
-    mean = round(mean, 2) if mean is not None else None
-    std = self.std()
-    std = round(std, 2) if std is not None else None
-    result = f'mean: {mean} std: {std}\n'
-    result += '\n'.join(f"{v}: {round(100*p/sum_p, 2)}" for v, p in zip(self.vals, self.probs))
-    return result
+    return output(self, print_=False)
 
   @staticmethod
   def dices_are_equal(d1, d2):
@@ -325,6 +321,23 @@ def d(s):
   n, m = s.split('d')
   return roll(int(n) if n!='' else 1, dice(int(m)))
 
-def show_summary(name, rv):
-  print(name, f'{rv.mean():.0f} ± {rv.std():.0f}')
+def output(rv: RV|Iterable|int, named=None, show_pdf=True, blocks_width=80, print_=True):
+  if isinstance(rv, int) or isinstance(rv, Iterable):
+    rv = dice([rv])
+  result = ''
+  if named is not None:
+    result += named + ' '
 
+  sum_p = sum(rv.probs)
+  mean = rv.mean()
+  mean = round(mean, 2) if mean is not None else None
+  std = rv.std()
+  std = round(std, 2) if std is not None else None
+  result += f'{mean} ± {std}'
+  if show_pdf:
+    for v, p in zip(rv.vals, rv.probs):
+      result += '\n' + f"{v}: {100*p/sum_p:.2f}  " + ('█'*round(p/sum_p * blocks_width))
+    result += '\n' + '-'*blocks_width
+  if print_:
+    print(result)
+  return result
