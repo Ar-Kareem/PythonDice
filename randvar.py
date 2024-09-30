@@ -85,7 +85,7 @@ class RV:
     return RV([operation(other, v) for v in self.vals], self.probs)
 
   def  __rmatmul__(self, other):
-    # ( other @ self )
+    # ( other @ self:DIE )
     if not isinstance(other, Seq):
       other = Seq(other)
     @cast_dice_to_seq()
@@ -190,13 +190,15 @@ class Seq(Iterable):
   def __getitem__(self, i):
     return self.seq[i-self._one_indexed] if 0 <= i-self._one_indexed < len(self.seq) else 0
   def  __matmul__(self, other):
-    if isinstance(other, RV):  # if other is an RV then it takes priority
+    if isinstance(other, RV):  # ( self:SEQ @ other:RV ) thus RV takes priority
       return other.__rmatmul__(self)
     # access at indices in other ( self @ other )
     if not isinstance(other, Seq):
       other = Seq(other)
     return sum(other[i] for i in self.seq)
   def __rmatmul__(self, other):
+    if isinstance(other, RV):  # ( other:RV @ self:SEQ ) thus not allowed,
+      raise TypeError('unsupported operand type(s) for @: RV and Seq')
     # access in my indices ( other @ self )
     if not isinstance(other, Seq):
       other = Seq(other)
