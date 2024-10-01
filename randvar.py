@@ -10,9 +10,9 @@ import utils
 
 class RV:
   def __init__(self, vals: Sequence[float], probs: Sequence[int]):
+    assert len(vals) == len(probs), 'vals and probs must be the same length'
     self.vals, self.probs = RV._sort_and_group(vals, probs)
     assert all(isinstance(p, int) and p >= 0 for p in self.probs), 'probs must be non-negative integers'
-    assert len(self.vals) == len(self.probs), 'vals and probs must be the same length'
     gcd = math.gcd(*self.probs)
     if gcd > 1:  # simplify probs
       self.probs = tuple(p//gcd for p in self.probs)
