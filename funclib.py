@@ -34,12 +34,16 @@ def maximum_of (DIE:RV):
     return 1@reverse(Seq(DIE))
 
 @rv.anydice_casting()
-def explode(DIE:RV, depth=8):
+def explode(DIE:RV, depth=2):
     MAX = maximum_of(DIE)
-    return _explode_helper(DIE, MAX, ORIG_DIE=DIE, depth=depth)
+    return _explode_helper(DIE, MAX, ORIG_DIE=DIE, depth=depth)  # type: ignore
 
 @rv.anydice_casting()
 def _explode_helper(N:int, MAX:int, ORIG_DIE:RV, depth):
     if N == MAX and depth > 0:
-        return N + _explode_helper(ORIG_DIE, MAX, ORIG_DIE=ORIG_DIE, depth=depth-1)
+        return N + _explode_helper(ORIG_DIE, MAX, ORIG_DIE=ORIG_DIE, depth=depth-1)  # type: ignore
     return N
+
+@rv.anydice_casting()
+def highest_of(NUMBER:int, DICE:RV):
+    return Seq(range(1, NUMBER+1))@DICE
