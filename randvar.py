@@ -296,20 +296,6 @@ class Seq(Iterable):
       s2 = Seq(s2)
     return s1.seq == s2.seq
 
-class D_BASE:
-  def __init__(self, left=None):
-    self.left = left
-  def __mul__(self, other):
-    return roll(other)
-  def __rmul__(self, other):
-    return D_WITH_LEFT(left=other)
-class D_WITH_LEFT:
-  def __init__(self, left):
-    self.left = left
-  def __mul__(self, other):
-    return roll(self.left, other)
-D = D_BASE()
-
 def anydice_casting(verbose=False):
   # in the documenation of the anydice language https://anydice.com/docs/functions
   # it states that "The behavior of a function depends on what type of value it expects and what type of value it actually receives."
@@ -409,17 +395,6 @@ def anydice_casting(verbose=False):
 def _sum_at(orig: Seq, locs: Seq):
   return sum(orig[i] for i in locs)
 
-def dice(n):
-  if isinstance(n, int):
-    if n == 0:  # special case
-      return RV([0], [1])
-    return RV(list(range(1, n+1)), [1]*n)
-  if isinstance(n, Iterable):
-    if not isinstance(n, Seq):
-      n = Seq(*n)
-    return RV(n.seq, [1]*len(n))
-  raise ValueError(f'cant get dice from {type(n)}')
-
 def roll(n: int|Iterable|RV, d: int|Iterable|RV|None=None) -> RV:
   if d is None:  # if only one argument, then roll it as a dice once
     return roll(1, n)
@@ -465,17 +440,9 @@ def _roll_int_rv(n: int, d: RV) -> RV:
   return full
 
 
-def d(s):
-  #    s is "ndm", example: "4d6"
-  # or s is "dm", example: "d6"
-  s = s.split('d')
-  if s[0] == '':
-    return roll(1, int(s[1]))
-  return roll(int(s[0]), int(s[1]))
-
 def output(rv: RV|Iterable|int, named=None, show_pdf=True, blocks_width=170, print_=True):
   if isinstance(rv, int) or isinstance(rv, Iterable):
-    rv = dice([rv])
+    rv = RV.from_seq([rv])
   result = ''
   if named is not None:
     result += named + ' '
