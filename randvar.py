@@ -437,11 +437,12 @@ _MEMOIZED = {}
 def _roll_int_rv(n: int, d: RV) -> RV:
   if (n, d) in _MEMOIZED:
     return _MEMOIZED[(n, d)]
-  assert n >= 0
+  if n < 0:
+    return -_roll_int_rv(-n, d)
   if n == 0:
     return RV.from_const(0)
   if n == 1:
-    return d  # TODO is this correct? what about source_roll?
+    return d
   half = _roll_int_rv(n//2, d)
   full = half+half
   if n%2 == 1:
