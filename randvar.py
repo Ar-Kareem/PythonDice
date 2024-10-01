@@ -23,7 +23,7 @@ class RV:
     self._source_die = self
 
   @staticmethod
-  def _sort_and_group(vals, probs: Sequence[int]):
+  def _sort_and_group(vals: Sequence[float], probs: Sequence[int]):
     zipped = sorted(zip(vals, probs), reverse=True)
     newzipped: list[tuple[float, int]] = []
     for i in range(len(zipped)-1, -1, -1):
@@ -385,7 +385,7 @@ def anydice_casting(verbose=False):
             kwargs[k] = v
           else:
             args[k] = v
-        val: int|Seq|RV = func(*args, **kwargs)  # single result of the function call
+        val: int|float|Seq|RV = func(*args, **kwargs)  # single result of the function call
         if isinstance(val, Seq):
           val = val.sum()
         if not isinstance(val, RV):
