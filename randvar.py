@@ -48,16 +48,17 @@ class RV:
     return RV(s._seq, [1]*len(s))
 
   @staticmethod
-  def from_rvs(rvs: Sequence['RV'], weights: Sequence[int]) -> 'RV':
-      # to fix error in above line must do "from __future__ import annotations" but that will break the decorator since the annotations will be strings sometimes
-      assert len(rvs) == len(weights)
-      prob_sums = tuple(sum(r.probs) for r in rvs)
-      PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
-      # combine all possibilities into one RV
-      res_vals = tuple(list(r.vals) for r in rvs)
-      res_probs = tuple([x*weight*(PROD//prob_sum) for x in rv.probs] for weight, prob_sum, rv in zip(weights, prob_sums, rvs))
-      result = RV(sum(res_vals, []), sum(res_probs, []))
-      return result
+  def from_rvs(rvs: Sequence['RV'], weights: Sequence[int]|None=None) -> 'RV':
+    if weights is None:
+      weights = [1]*len(rvs)
+    assert len(rvs) == len(weights)
+    prob_sums = tuple(sum(r.probs) for r in rvs)
+    PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
+    # combine all possibilities into one RV
+    res_vals = tuple(list(r.vals) for r in rvs)
+    res_probs = tuple([x*weight*(PROD//prob_sum) for x in rv.probs] for weight, prob_sum, rv in zip(weights, prob_sums, rvs))
+    result = RV(sum(res_vals, []), sum(res_probs, []))
+    return result
 
 
   def set_source(self, roll, die):
