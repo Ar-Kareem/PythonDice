@@ -407,10 +407,12 @@ def dice(n):
     return RV(n.seq, [1]*len(n))
   raise ValueError(f'cant get dice from {type(n)}')
 
-def roll(n: int|Seq|RV, d: int|Seq|RV|None=None) -> RV:
+def roll(n: int|Iterable|RV, d: int|Iterable|RV|None=None) -> RV:
   if d is None:  # if only one argument, then roll it as a dice once
     return roll(1, n)
-  if isinstance(n, Seq):
+  if isinstance(n, Iterable):
+    if not isinstance(n, Seq):
+      n = Seq(*n)
     result = sum((roll(i, d) for i in n), start=RV.from_const(0))
     result.set_source(n.sum(), d)
     return result
