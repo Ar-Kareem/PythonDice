@@ -45,7 +45,7 @@ class RV:
       s = Seq(*s)
     if len(s) == 0:
       return RV([0], [1])
-    return RV(s.seq, [1]*len(s))
+    return RV(s._seq, [1]*len(s))
 
   @staticmethod
   def from_rvs(rvs: Sequence['RV'], weights: Sequence[int]) -> 'RV':
@@ -197,32 +197,37 @@ class RV:
 
 class Seq(Iterable):
   def __init__(self, *source):
-    n = list(utils.flatten(source))
-    n = [x for x in n if not isinstance(x, RV)] + [v for x in n if isinstance(x, RV) for v in x.vals]  # expand RVs
-    self.seq = n
+    flat = tuple(utils.flatten(source))
+    flat_rvs = [v for x in flat if isinstance(x, RV) for v in x.vals]  # expand RVs
+    flat_else: list[int|float] = [x for x in flat if not isinstance(x, RV)]
+    assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs'
+    self._seq = tuple(flat_else + flat_rvs)
     self._one_indexed = 1  # 1 is True, 0 is False
     self._sum = None
 
   def sum(self):
     if self._sum is None:
-      self._sum = sum(self.seq)
+      self._sum = sum(self._seq)
     return self._sum
+  def set_one_indexed(self, one_indexed: bool):
+    self._one_indexed = 1 if one_indexed else 0
 
   def __repr__(self):
-    return str(self.seq)
+    return str(self._seq)
   def __iter__(self):
-    return iter(self.seq)
+    return iter(self._seq)
   def __len__(self):
-    return len(self.seq)
+    return len(self._seq)
   def __getitem__(self, i):
-    return self.seq[i-self._one_indexed] if 0 <= i-self._one_indexed < len(self.seq) else 0
+    return self._seq[i-self._one_indexed] if 0 <= i-self._one_indexed < len(self._seq) else 0
+
   def  __matmul__(self, other):
     if isinstance(other, RV):  # ( self:SEQ @ other:RV ) thus RV takes priority
       return other.__rmatmul__(self)
     # access at indices in other ( self @ other )
     if not isinstance(other, Seq):
       other = Seq(other)
-    return sum(other[i] for i in self.seq)
+    return sum(other[i] for i in self._seq)
   def __rmatmul__(self, other):
     if isinstance(other, RV):  # ( other:RV @ self:SEQ ) thus not allowed,
       raise TypeError('unsupported operand type(s) for @: RV and Seq')
@@ -231,7 +236,7 @@ class Seq(Iterable):
       return self[other]
     if not isinstance(other, Seq):
       other = Seq(other)
-    return sum(self[i] for i in other.seq)
+    return sum(self[i] for i in other._seq)
 
   def __add__(self, other):
     return operator.add(self.sum(), other)
@@ -283,9 +288,9 @@ class Seq(Iterable):
         other = Seq(*other)
       if operation == operator.ne: # special case for NE, since it is ∃ as opposed to ∀ like the others
         return not self._compare_to(other, operator.eq)
-      return all(operation(x, y) for x, y in zip_longest(self.seq, other, fillvalue=float('-inf')))
+      return all(operation(x, y) for x, y in zip_longest(self._seq, other, fillvalue=float('-inf')))
     # if other is a number
-    return sum(1 for x in self.seq if operation(x, other))
+    return sum(1 for x in self._seq if operation(x, other))
 
   @staticmethod
   def seqs_are_equal(s1, s2):
@@ -294,7 +299,7 @@ class Seq(Iterable):
       s1 = Seq(s1)
     if not isinstance(s2, Seq):
       s2 = Seq(s2)
-    return s1.seq == s2.seq
+    return s1._seq == s2._seq
 
 def anydice_casting(verbose=False):
   # in the documenation of the anydice language https://anydice.com/docs/functions

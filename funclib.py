@@ -27,7 +27,7 @@ def reverse_VANILLA_SLOW(SEQUENCE:Seq):
     return R
 @rv.anydice_casting()
 def reverse(SEQUENCE:Seq):
-    return Seq(SEQUENCE.seq[::-1])
+    return Seq(SEQUENCE._seq[::-1])
 
 @rv.anydice_casting()
 def maximum_of(DIE:RV):
