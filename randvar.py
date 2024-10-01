@@ -48,7 +48,7 @@ class RV:
     return RV(s.seq, [1]*len(s))
 
   @staticmethod
-  def from_rvs(rvs: Sequence[RV], weights: Sequence[int]) -> RV:
+  def from_rvs(rvs: Sequence['RV'], weights: Sequence[int]) -> 'RV':
       # to fix error in above line must do "from __future__ import annotations" but that will break the decorator since the annotations will be strings sometimes
       assert len(rvs) == len(weights)
       prob_sums = tuple(sum(r.probs) for r in rvs)
