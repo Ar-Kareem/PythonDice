@@ -96,10 +96,10 @@ def _sort_helper_add_N_to_S(N:int, S:Seq):
     for P in range(1, len(S)+1):
         if N >= P@S:
             R = Seq(R, N, P@S)
-            N = Seq()
+            N = Seq() # type: ignore
         else: 
             R = Seq(R, P@S)
-    if len(N): 
+    if len(N): # type: ignore
         R = Seq(R, N)
     return R
 
