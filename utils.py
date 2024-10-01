@@ -5,6 +5,7 @@ def flatten(items):
     """Yield items from any nested iterable; see Reference.  https://stackoverflow.com/a/40857703/6173665"""
     for x in items:
         if isinstance(x, Iterable):
+            assert not isinstance(x, str), "flatten() does not support strings"
             for sub_x in flatten(x):
                 yield sub_x
         else:

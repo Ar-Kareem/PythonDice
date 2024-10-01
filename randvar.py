@@ -1,3 +1,5 @@
+# from __future__ import annotations
+
 import operator
 import math
 from typing import Sequence, Iterable
@@ -32,6 +34,31 @@ class RV:
     vals = tuple(v[0] for v in newzipped)
     probs = tuple(v[1] for v in newzipped)
     return vals, probs
+
+  @staticmethod
+  def from_const(val: int|float):
+    return RV([val], [1])
+
+  @staticmethod
+  def from_seq(s: Iterable):
+    if not isinstance(s, Seq):
+      s = Seq(*s)
+    if len(s) == 0:
+      return RV([0], [1])
+    return RV(s.seq, [1]*len(s))
+
+  @staticmethod
+  def from_rvs(rvs: Sequence[RV], weights: Sequence[int]) -> RV:
+      # to fix error in above line must do "from __future__ import annotations" but that will break the decorator since the annotations will be strings sometimes
+      assert len(rvs) == len(weights)
+      prob_sums = tuple(sum(r.probs) for r in rvs)
+      PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
+      # combine all possibilities into one RV
+      res_vals = tuple(list(r.vals) for r in rvs)
+      res_probs = tuple([x*weight*(PROD//prob_sum) for x in rv.probs] for weight, prob_sum, rv in zip(weights, prob_sums, rvs))
+      result = RV(sum(res_vals, []), sum(res_probs, []))
+      return result
+
 
   def set_source(self, roll, die):
     self._source_roll = roll
@@ -85,14 +112,10 @@ class RV:
     return RV([operation(other, v) for v in self.vals], self.probs)
 
   def  __rmatmul__(self, other):
-    # ( other @ self:DIE )
+    # ( other @ self:RV )
     # DOCUMENTATION: https://anydice.com/docs/introspection/  look for "Accessing" -> "Collections of dice" and "A single die"
-    if not isinstance(other, Seq):
-      other = Seq(other)
-    @anydice_casting()
-    def _inner_func(seq: Seq):
-      return sum(seq[i] for i in other)
-    return _inner_func(self)
+    # ignore type error because of the decorator
+    return _sum_at(self, other) # type: ignore
 
   def __add__(self, other):
     return self._convolve(other, operator.add)
@@ -166,9 +189,9 @@ class RV:
   @staticmethod
   def dices_are_equal(d1, d2):
     if isinstance(d1, int) or isinstance(d1, Iterable):
-      d1 = dice([d1])
+      d1 = RV.from_seq([d1])
     if isinstance(d2, int) or isinstance(d2, Iterable):
-      d2 = dice([d2])
+      d2 = RV.from_seq([d2])
     return d1.vals == d2.vals and d1.probs == d2.probs
 
 class Seq(Iterable):
@@ -316,10 +339,11 @@ def anydice_casting(verbose=False):
           if verbose: print('EXPL', k)
           continue
         elif (expected_type, actual_type) == (RV, int):
-          new_val = dice([arg_val])
+          new_val = RV.from_const(arg_val)
         elif (expected_type, actual_type) == (RV, Seq):
-          new_val = dice(arg_val)
+          new_val = RV.from_seq(arg_val)
         else:  # one of the types is not int, Seq, or RV or no casting needed
+          if verbose: print('no cast', k, expected_type, actual_type)
           continue
         if isinstance(k, str):
           kwargs[k] = new_val
@@ -345,7 +369,8 @@ def anydice_casting(verbose=False):
       # FINALLY take product of all possible rolls
       all_rolls_and_probs = product(*all_rolls_and_probs)
 
-      res_vals, res_probs = [], []
+      res_vals: list[RV] = []
+      res_probs: list[int] = []
       for rolls_and_prob in all_rolls_and_probs:
         rolls = tuple(r for r, _ in rolls_and_prob)
         prob = math.prod(p for _, p in rolls_and_prob)
@@ -355,16 +380,20 @@ def anydice_casting(verbose=False):
             kwargs[k] = v
           else:
             args[k] = v
-        val = func(*args, **kwargs)  # single result of the function call
+        val: int|Seq|RV = func(*args, **kwargs)  # single result of the function call
         if isinstance(val, Seq):
           val = val.sum()
         if not isinstance(val, RV):
           val = RV([val], [1])
         res_vals.append(val)
         res_probs.append(prob)
-      return _combine_rvs_to_one(rvs=res_vals, weights=res_probs)
+      return RV.from_rvs(rvs=res_vals, weights=res_probs)
     return wrapper
   return decorator
+
+@anydice_casting()
+def _sum_at(orig: Seq, locs: Seq):
+  return sum(orig[i] for i in locs)
 
 def dice(n):
   if isinstance(n, int):
@@ -381,27 +410,25 @@ def roll(n: int|Seq|RV, d: int|Seq|RV|None=None) -> RV:
   if d is None:  # if only one argument, then roll it as a dice once
     return roll(1, n)
   if isinstance(n, Seq):
-    result = sum((roll(i, d) for i in n), start=dice(0))
+    result = sum((roll(i, d) for i in n), start=RV.from_const(0))
     result.set_source(n.sum(), d)
     return result
   if isinstance(n, RV):
+    assert all(isinstance(v, int) for v in n.vals), 'RV must have int values to roll other dice'
     dies = tuple(roll(int(v), d) for v in n.vals)
-    result = _combine_rvs_to_one(rvs=dies, weights=n.probs)
+    result = RV.from_rvs(rvs=dies, weights=n.probs)
     result.set_source(1, d)
     return result
-  if not isinstance(d, RV):
-    d = dice(d)
+  if isinstance(d, int):
+    if d > 0:
+      d = RV.from_seq(range(1, d+1))
+    elif d == 0:
+      d = RV.from_const(0)
+    else:
+      d = RV.from_seq([range(d, 0)])
+  elif isinstance(d, Iterable):
+    d = RV.from_seq(d)
   return _roll_int_rv(n, d)
-
-def _combine_rvs_to_one(rvs: tuple[RV, ...], weights: tuple[int, ...]) -> RV:
-    assert len(rvs) == len(weights)
-    prob_sums = tuple(sum(r.probs) for r in rvs)
-    PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
-    # combine all possibilities into one RV
-    res_vals = tuple(list(r.vals) for r in rvs)
-    res_probs = tuple([x*weight*(PROD//prob_sum) for x in rv.probs] for weight, prob_sum, rv in zip(weights, prob_sums, rvs))
-    result = RV(sum(res_vals, []), sum(res_probs, []))
-    return result
 
 _MEMOIZED = {}
 def _roll_int_rv(n: int, d: RV) -> RV:
@@ -409,9 +436,9 @@ def _roll_int_rv(n: int, d: RV) -> RV:
     return _MEMOIZED[(n, d)]
   assert n >= 0
   if n == 0:
-    return dice(0)
+    return RV.from_const(0)
   if n == 1:
-    return d
+    return d  # TODO is this correct? what about source_roll?
   half = _roll_int_rv(n//2, d)
   full = half+half
   if n%2 == 1:
@@ -422,11 +449,14 @@ def _roll_int_rv(n: int, d: RV) -> RV:
 
 
 def d(s):
-  # s is "ndm", example: "4d6"
-  n, m = s.split('d')
-  return roll(int(n) if n!='' else 1, dice(int(m)))
+  #    s is "ndm", example: "4d6"
+  # or s is "dm", example: "d6"
+  s = s.split('d')
+  if s[0] == '':
+    return roll(1, int(s[1]))
+  return roll(int(s[0]), int(s[1]))
 
-def output(rv: RV|Iterable|int, named=None, show_pdf=True, blocks_width=80, print_=True):
+def output(rv: RV|Iterable|int, named=None, show_pdf=True, blocks_width=170, print_=True):
   if isinstance(rv, int) or isinstance(rv, Iterable):
     rv = dice([rv])
   result = ''
