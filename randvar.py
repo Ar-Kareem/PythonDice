@@ -296,6 +296,19 @@ class Seq(Iterable):
       s2 = Seq(s2)
     return s1.seq == s2.seq
 
+class D_BASE:
+  def __init__(self, left=None):
+    self.left = left
+  def __mul__(self, other):
+    return roll(other)
+  def __rmul__(self, other):
+    return D_WITH_LEFT(left=other)
+class D_WITH_LEFT:
+  def __init__(self, left):
+    self.left = left
+  def __mul__(self, other):
+    return roll(self.left, other)
+D = D_BASE()
 
 def anydice_casting(verbose=False):
   # in the documenation of the anydice language https://anydice.com/docs/functions
