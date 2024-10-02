@@ -23,10 +23,12 @@ class RV:
     self._source_die = self
 
   @staticmethod
-  def _sort_and_group(vals: Sequence[float], probs: Sequence[int]):
+  def _sort_and_group(vals: Sequence[float], probs: Sequence[int], skip_zero_probs=True):
     zipped = sorted(zip(vals, probs), reverse=True)
     newzipped: list[tuple[float, int]] = []
     for i in range(len(zipped)-1, -1, -1):
+      if skip_zero_probs and zipped[i][1] == 0:
+        continue
       if i > 0 and zipped[i][0] == zipped[i-1][0]: # add the two probs, go to next
         zipped[i-1] = (zipped[i-1][0], zipped[i-1][1]+zipped[i][1])
       else:
