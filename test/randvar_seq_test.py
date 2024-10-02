@@ -1,7 +1,7 @@
 from typing import Iterable
 import pytest
 
-from randvar import Seq
+from randvar import Seq, RV, roll
 
 
 def test_at_num():
@@ -189,3 +189,11 @@ def test_seq_comp_le(l1, l2, b):
     bb = Seq(*l1) <= Seq(*l2)
     assert bb == b, f'{l1} <= {l2}'
 
+def test_create_RV_from_seq():
+    assert RV.dices_are_equal(RV.from_seq(Seq(2, roll(2, 2))), RV((2, 3, 4), (2, 1, 1)))
+
+
+def test_seq_and_rv_op():
+    assert RV.dices_are_equal(Seq([1, 2, 5]) + roll(2, 6), RV(tuple(range(10, 21)), (1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1))), 'seq + roll'
+    assert RV.dices_are_equal(Seq([1, 2, 5]) > roll(2, 6), RV((0, 1), (5, 7))), 'seq > roll'
+    assert RV.dices_are_equal(roll(2, 6) < Seq([1, 2, 5]), RV((0, 1), (5, 7))), 'roll < seq'
