@@ -1,7 +1,7 @@
 import pytest
 import math
 
-from randvar import RV, roll
+from randvar import RV, Seq, roll
 
 @pytest.mark.parametrize("vals,probs", [
     ([], []),
@@ -50,6 +50,7 @@ def test_probability_zero_RV():
 def test_RV_equality(v, p, gv, gp):
     a = RV(v, p)
     assert (a.vals, a.probs) == (gv, gp)
+    assert RV.dices_are_equal(a, RV(gv, gp))
 
 @pytest.mark.parametrize("n", [
     1, 2, 3, 4, 5, 6, 8, 20, 100, 200, 201
@@ -146,18 +147,69 @@ def test_roll1_zero():
     assert r.probs == (1, )
     assert r.vals == (0, )
 
-def test_dices_are_equal_DD():
-    d1 = roll(6)
-    d2 = roll(6)
-    dnot = roll(7)
-    assert RV.dices_are_equal(d1, d2)
-    assert not RV.dices_are_equal(d1, dnot)
-    assert not RV.dices_are_equal(d2, dnot)
+@pytest.mark.parametrize("n, m, res", [
+    (2, 2, roll(2)+roll(2)), 
+    (1, 2, roll(2)), 
+    (1, 3, roll(3)), 
+    (3, 4, roll(4)+roll(4)+roll(4)), 
+    (2, 4, RV((2, 3, 4, 5, 6, 7, 8), (1, 2, 3, 4, 3, 2, 1))), 
+])
+def test_roll_int_int(n, m, res):
+    assert RV.dices_are_equal(roll(n, m), res)
 
-# def test_RV_operations():
-#     r = roll(6)
-#     assert False
+@pytest.mark.parametrize("a, b", [
+    (roll(Seq(2, Seq(3, 2, roll(3)))),          RV((1, 2, 3), (1, 3, 2))), 
+    (roll(2, roll(2, 2)),                       RV((4, 5, 6, 7, 8), (1, 4, 6, 4, 1))), 
+    (roll(2, Seq(roll(2, 2))),                  RV((4, 5, 6, 7, 8), (1, 2, 3, 2, 1))), 
+    (Seq(roll(2, 2), roll(2, 4)),               RV(range(2, 9), (2, 2, 2, 1, 1, 1, 1))), 
+])
+def test_roll_seq_rv(a, b):
+    assert RV.dices_are_equal(a, b)
 
+
+@pytest.mark.parametrize("a, b", [
+    (roll(2, -3),   RV((-6, -5, -4, -3, -2), (1, 2, 3, 2, 1))),
+    (roll(-2, 6),   -roll(2, 6)),
+    (roll(2, -6),   -roll(2, 6)),
+    (roll(-2, -6),  roll(2, 6)),
+    (roll(0, 6),    RV.from_const(0)),
+    (roll(2, 0),    RV.from_const(0)),
+    (roll(0, 0),    RV.from_const(0)),
+])
+def test_roll2_negative(a, b):
+    assert RV.dices_are_equal(a, b)
+
+
+@pytest.mark.parametrize("d, r", [
+    (roll(6), 1),
+    (roll(2, 6), 2),
+    (roll(3, 6), 3),
+
+    (roll(4, 6), 4),
+    (roll(1, roll(4, 6)), 4),
+    (roll(1, roll(2, roll(4, 6))), 2),
+
+    (roll(roll(2 ,4), 6), 1),
+    (roll(roll(2 ,4), roll(4, 6)), 1),
+    (roll(roll(2 ,4), roll(2, roll(4, 6))), 1),
+
+    (roll(1, Seq(2, 3, 3)), 1),
+    (roll(Seq(2, 3, 3)), 1),
+    (roll(Seq(2), Seq(2, 3, 3)), 2),
+    (roll(Seq(2, 3), Seq(2, 3, 3)), 5),
+
+    (roll(2, 2), 2),
+    (roll(2)+roll(2), 1),
+    (roll(1, roll(2, 2)), 2),
+    (roll(1, roll(2)+roll(2)), 1),
+])
+def test_dice_len(d, r):
+    assert len(d) == r
+
+
+# TODO test comparison operators
+# TODO test arithmetic operators
+# TODO test matmul
 
 
 
