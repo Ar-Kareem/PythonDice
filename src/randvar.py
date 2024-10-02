@@ -452,7 +452,14 @@ def anydice_casting(verbose=False):
 def _sum_at(orig: Seq, locs: Seq):
   return sum(orig[int(i)] for i in locs)
 
-def roll(n: T_isr, d: T_isr|None=None) -> RV:
+def roll(n: T_isr|str, d: T_isr|None=None) -> RV:
+  if isinstance(n, str):  # either rolL('ndm') or roll('dm')
+    assert d is None, 'if n is a string, then d must be None'
+    nm1, nm2 = n.split('d')
+    if nm1 == '':
+      nm1 = 1
+    return roll(int(nm1), int(nm2))
+
   if d is None:  # if only one argument, then roll it as a dice once
     return roll(1, n)
   if isinstance(d, int):
@@ -464,6 +471,7 @@ def roll(n: T_isr, d: T_isr|None=None) -> RV:
       d = RV.from_seq([range(d, 0)])
   elif isinstance(d, Iterable):
     d = RV.from_seq(d)
+
   if isinstance(n, Iterable):
     if not isinstance(n, Seq):
       n = Seq(*n)  # convert to Seq if not already, to flatten and take sum
