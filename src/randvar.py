@@ -11,7 +11,8 @@ import utils
 RV_AUTO_TRUNC = False  # if True, then RV will automatically truncate values to ints (replicate anydice behavior)
 
 class RV:
-  def __init__(self, vals: Sequence[float], probs: Sequence[int], truncate=None):
+  def __init__(self, vals: Iterable[float], probs: Iterable[int], truncate=None):
+    vals, probs = tuple(vals), tuple(probs)
     assert len(vals) == len(probs), 'vals and probs must be the same length'
     if truncate or (truncate is None and RV_AUTO_TRUNC):
       vals = tuple(int(v) for v in vals)
@@ -24,7 +25,7 @@ class RV:
     self._source_die = self
 
   @staticmethod
-  def _sort_and_group(vals: Sequence[float], probs: Sequence[int], skip_zero_probs=True, normalize=True):
+  def _sort_and_group(vals: Iterable[float], probs: Iterable[int], skip_zero_probs=True, normalize=True):
     assert all(isinstance(p, int) and p >= 0 for p in probs), 'probs must be non-negative integers'
     zipped = sorted(zip(vals, probs), reverse=True)
     newzipped: list[tuple[float, int]] = []
@@ -56,9 +57,11 @@ class RV:
     return RV(s._seq, [1]*len(s))
 
   @staticmethod
-  def from_rvs(rvs: Sequence['RV'], weights: Sequence[int]|None=None) -> 'RV':
+  def from_rvs(rvs: Iterable['RV'], weights: Iterable[int]|None=None) -> 'RV':
+    rvs = tuple(rvs)
     if weights is None:
       weights = [1]*len(rvs)
+    weights = tuple(weights)
     assert len(rvs) == len(weights)
     prob_sums = tuple(sum(r.probs) for r in rvs)
     PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
