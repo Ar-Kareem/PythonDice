@@ -423,20 +423,6 @@ def _sum_at(orig: Seq, locs: Seq):
 def roll(n: int|Iterable|RV, d: int|Iterable|RV|None=None) -> RV:
   if d is None:  # if only one argument, then roll it as a dice once
     return roll(1, n)
-  if isinstance(n, Iterable):
-    if not isinstance(n, Seq):
-      n = Seq(*n)  # convert to Seq if not already, to flatten
-    vals = list(n)
-    assert all(isinstance(v, int) for v in vals), 'Seq must have int values to roll other dice'
-    result = sum((roll(i, d) for i in vals), start=RV.from_const(0))
-    result.set_source(n.sum(), d)
-    return result
-  if isinstance(n, RV):
-    assert all(isinstance(v, int) for v in n.vals), 'RV must have int values to roll other dice'
-    dies = tuple(roll(int(v), d) for v in n.vals)
-    result = RV.from_rvs(rvs=dies, weights=n.probs)
-    result.set_source(1, d)
-    return result
   if isinstance(d, int):
     if d > 0:
       d = RV.from_seq(range(1, d+1))
@@ -446,6 +432,18 @@ def roll(n: int|Iterable|RV, d: int|Iterable|RV|None=None) -> RV:
       d = RV.from_seq([range(d, 0)])
   elif isinstance(d, Iterable):
     d = RV.from_seq(d)
+  if isinstance(n, Iterable):
+    if not isinstance(n, Seq):
+      n = Seq(*n)  # convert to Seq if not already, to flatten and take sum
+    s = n.sum()
+    assert isinstance(s, int), 'cant roll non-int number of dice'
+    return roll(s, d)
+  if isinstance(n, RV):
+    assert all(isinstance(v, int) for v in n.vals), 'RV must have int values to roll other dice'
+    dies = tuple(roll(int(v), d) for v in n.vals)
+    result = RV.from_rvs(rvs=dies, weights=n.probs)
+    result.set_source(1, d)
+    return result
   return _roll_int_rv(n, d)
 
 _MEMOIZED = {}
