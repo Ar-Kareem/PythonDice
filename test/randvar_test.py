@@ -1,6 +1,7 @@
 import pytest
 import math
 
+import randvar
 from randvar import RV, Seq, roll
 
 @pytest.mark.parametrize("vals,probs", [
@@ -27,6 +28,12 @@ def test_RV_init(vals, probs):
 def test_RV_init_fail(vals, probs):
     with pytest.raises(Exception):
         RV(vals, probs)
+
+def test_RV_init_empty():
+    a = RV((), ())
+    b = RV([], [])
+    assert (a.vals, a.probs) == ((0, ), (1, ))
+    assert (b.vals, b.probs) == ((0, ), (1, ))
 
 def test_probability_zero_RV():
     a = RV((1, 2, 777), (1, 1, 0))
@@ -99,6 +106,13 @@ def test_RV_sum_probs(v, p, sum_p):
 def test_RV_mean(v, p, mean):
     a = RV(v, p)
     assert a.mean() == mean
+
+@pytest.mark.parametrize("rv, mean, std", [
+    (roll(6)+roll(5), 6.5, 2.22),
+])
+def test_RV_mean_fail(rv, mean, std):
+    assert rv.mean() == mean
+    assert round(rv.std(), 2) == std
 
 @pytest.mark.parametrize("v, p, std", [
     ((1, ), (1, ), 0),
