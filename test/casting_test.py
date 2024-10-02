@@ -1,5 +1,6 @@
 import pytest
 
+import randvar
 from randvar import RV, Seq, roll, anydice_casting
 
 @anydice_casting()
@@ -93,3 +94,23 @@ def test2_cast_to_seq():
     a = cast(roll(2, 2))  # type: ignore
     assert RV.dices_are_equal(a, roll(2, 2)+1), 'casting single dice to sequence'
 
+
+def test_cast_dice_to_seq_then_roll():
+    @anydice_casting()
+    def p(SEQUENCE:Seq):
+        return roll(3, SEQUENCE)
+    assert RV.dices_are_equal(p(roll(2, 3)), RV(range(3, 10), (2, 1, 2, 2, 2, 1, 2))), 'return dice after casting'  # type: ignore
+
+def test_cast_dice_to_seq():
+    @anydice_casting()
+    def p(SEQUENCE:Seq):
+        return SEQUENCE
+    assert RV.dices_are_equal(p(Seq(1, 2, 2, 3)), RV((1, 2, 3), (1, 2, 1)))
+    assert RV.dices_are_equal(p(roll(2, 2)), RV((2, 3, 4), (1, 2, 1)))  # type: ignore
+
+def test_cast_then_matmul():
+    @randvar.anydice_casting()
+    def count(V, SEQUENCE:Seq, *args):
+        return V@SEQUENCE
+    assert RV.dices_are_equal(count(1, roll(2, 4)), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'  # type: ignore
+    assert RV.dices_are_equal(1@roll(2, 4), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'
