@@ -373,6 +373,15 @@ def anydice_casting(verbose=False):
         expected_type = param_annotations[arg_name]
         actual_type = type(arg_val)
         new_val = None
+        if expected_type not in (int, Seq, RV):
+          if verbose: print('not int seq rv', k)
+          continue
+        casted_iter_to_seq = False
+        if isinstance(arg_val, Iterable) and not isinstance(arg_val, Seq):  # if val is iter then need to convert to Seq
+          arg_val = Seq(*arg_val)
+          new_val = arg_val
+          actual_type = Seq
+          casted_iter_to_seq = True
         if (expected_type, actual_type) == (int, Seq):
           new_val = arg_val.sum()
         elif (expected_type, actual_type) == (int, RV):
@@ -385,10 +394,10 @@ def anydice_casting(verbose=False):
           if verbose: print('EXPL', k)
           continue
         elif (expected_type, actual_type) == (RV, int):
-          new_val = RV.from_const(arg_val)
+          new_val = RV.from_const(arg_val)  # type: ignore
         elif (expected_type, actual_type) == (RV, Seq):
           new_val = RV.from_seq(arg_val)
-        else:  # one of the types is not int, Seq, or RV or no casting needed
+        elif not casted_iter_to_seq:  # no cast made and one of the two types is not known, no casting needed
           if verbose: print('no cast', k, expected_type, actual_type)
           continue
         if isinstance(k, str):
