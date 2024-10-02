@@ -263,7 +263,7 @@ class Seq(Iterable):
       return other.__rmatmul__(self)
     # access at indices in other ( self @ other )
     if isinstance(other, (int, float)):
-      other = Seq(0)
+      other = Seq([int(d) for d in str(other)])  # SEQ @ int  thus convert int to sequence using base 10
     if not isinstance(other, Seq):
       other = Seq(other)
     assert all(isinstance(i, int) for i in self._seq), 'indices must be integers'
