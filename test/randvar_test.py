@@ -116,7 +116,7 @@ def test_RV_mean(v, p, mean):
 ])
 def test_RV_std(v, p, std):
     a = RV(v, p)
-    assert abs(a.std() - std) < 1e-10, a.std()**2
+    assert abs(a.std() - std) < 1e-10, a.std()**2  # type: ignore
 
 
 

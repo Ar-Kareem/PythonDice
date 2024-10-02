@@ -2,7 +2,7 @@
 
 import operator
 import math
-from typing import Sequence, Iterable
+from typing import Iterable
 from itertools import zip_longest, product, combinations_with_replacement
 import inspect
 
