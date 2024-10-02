@@ -233,7 +233,7 @@ class RV:
     return d1.vals == d2.vals and d1.probs == d2.probs
 
 class Seq(Iterable):
-  def __init__(self, *source: T_ifs):
+  def __init__(self, *source: T_ifsr):
     flat = tuple(utils.flatten(source))
     flat_rvs = [v for x in flat if isinstance(x, RV) for v in x.vals]  # expand RVs
     flat_else: list[T_if] = [x for x in flat if not isinstance(x, RV)]
