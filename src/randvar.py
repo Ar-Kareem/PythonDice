@@ -11,19 +11,14 @@ import utils
 class RV:
   def __init__(self, vals: Sequence[float], probs: Sequence[int]):
     assert len(vals) == len(probs), 'vals and probs must be the same length'
-    self.vals, self.probs = RV._sort_and_group(vals, probs)
-    assert all(isinstance(p, int) and p >= 0 for p in self.probs), 'probs must be non-negative integers'
-    gcd = math.gcd(*self.probs)
-    if gcd > 1:  # simplify probs
-      self.probs = tuple(p//gcd for p in self.probs)
-    self.sum_probs = sum(self.probs)
-
+    self.vals, self.probs = RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
+    self.sum_probs = None
     # by default, 1 roll of current RV
     self._source_roll = 1
     self._source_die = self
 
   @staticmethod
-  def _sort_and_group(vals: Sequence[float], probs: Sequence[int], skip_zero_probs=True):
+  def _sort_and_group(vals: Sequence[float], probs: Sequence[int], skip_zero_probs=True, normalize=True):
     zipped = sorted(zip(vals, probs), reverse=True)
     newzipped: list[tuple[float, int]] = []
     for i in range(len(zipped)-1, -1, -1):
@@ -35,6 +30,11 @@ class RV:
         newzipped.append(zipped[i])
     vals = tuple(v[0] for v in newzipped)
     probs = tuple(v[1] for v in newzipped)
+    if normalize:
+      assert all(isinstance(p, int) and p >= 0 for p in probs), 'probs must be non-negative integers'
+      gcd = math.gcd(*probs)
+      if gcd > 1:  # simplify probs
+        probs = tuple(p//gcd for p in probs)
     return vals, probs
 
   @staticmethod
@@ -68,9 +68,9 @@ class RV:
     self._source_die = die
 
   def mean(self):
-    if self.sum_probs == 0:
+    if self._get_sum_probs() == 0:
       return None
-    return sum(v*p for v, p in zip(self.vals, self.probs)) / self.sum_probs
+    return sum(v*p for v, p in zip(self.vals, self.probs)) / self._get_sum_probs()
   def std(self):
     mean = self.mean()
     mean_X2 = RV(tuple(v**2 for v in self.vals), self.probs).mean()
@@ -78,6 +78,11 @@ class RV:
       return None
     var = mean_X2 - mean**2
     return math.sqrt(var) if var >= 0 else 0
+
+  def _get_sum_probs(self):
+    if self.sum_probs is None:
+      self.sum_probs = sum(self.probs)
+    return self.sum_probs
 
   def _get_expanded_possible_rolls_LEGACY_SLOW(self) -> tuple[tuple[tuple[float, ...]|float, ...], tuple[int, ...]]:
     N, D = self._source_roll, self._source_die  # N rolls of D
@@ -87,7 +92,7 @@ class RV:
     for roll in all_rolls_and_probs:
       vals.append(tuple(sorted((v for v, _ in roll))))
       probs.append(math.prod(p for _, p in roll))
-    return RV._sort_and_group(vals, probs)
+    return RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
 
   def _get_expanded_possible_rolls(self) -> tuple[tuple[tuple[float, ...]|float, ...], tuple[int, ...]]:
     N, D = self._source_roll, self._source_die  # N rolls of D
@@ -99,7 +104,7 @@ class RV:
       vals.append(Seq(sorted(roll, reverse=True)))
       counts = {v: roll.count(v) for v in roll}
       probs.append(FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values()))
-    return RV._sort_and_group(vals, probs)
+    return RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
 
   def _convolve(self, other, operation):
     if isinstance(other, Seq):
