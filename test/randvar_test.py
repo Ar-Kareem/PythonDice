@@ -171,16 +171,13 @@ def test_roll1_zero():
 def test_roll_int_int(n, m, res):
     assert RV.dices_are_equal(roll(n, m), res)
 
-@pytest.mark.parametrize("a, b", [
+
+@pytest.mark.parametrize("roll, res", [
     (roll(Seq(2, Seq(3, 2, roll(3)))),          RV((1, 2, 3), (1, 3, 2))), 
     (roll(2, roll(2, 2)),                       RV((4, 5, 6, 7, 8), (1, 4, 6, 4, 1))), 
     (roll(2, Seq(roll(2, 2))),                  RV((4, 5, 6, 7, 8), (1, 2, 3, 2, 1))), 
     (Seq(roll(2, 2), roll(2, 4)),               RV(range(2, 9), (2, 2, 2, 1, 1, 1, 1))), 
-])
-def test_roll_seq_rv(a, b):
-    assert RV.dices_are_equal(a, b)
 
-@pytest.mark.parametrize("roll, res", [
     # N d [N|SEQ|DIE]
     (roll(2, 3),                      RV((2, 3, 4, 5, 6), (1, 2, 3, 2, 1))), 
     (roll(2, Seq(1, 5, 5)),           RV((2, 6, 10), (1, 4, 4))), 
