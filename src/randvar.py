@@ -239,8 +239,8 @@ class Seq(Iterable):
     flat_else: list[T_if] = [x for x in flat if not isinstance(x, RV)]
     assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs'
     self._seq = tuple(flat_else + flat_rvs)
-    self._one_indexed = 1  # 1 is True, 0 is False
     self._sum = None
+    self.set_one_indexed(True)
 
   def sum(self):
     if self._sum is None:
