@@ -12,6 +12,8 @@ class RV:
   def __init__(self, vals: Sequence[float], probs: Sequence[int]):
     assert len(vals) == len(probs), 'vals and probs must be the same length'
     self.vals, self.probs = RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
+    if len(self.vals) == 0:  # if no values, then add 0
+      self.vals, self.probs = (0, ), (1, )
     self.sum_probs = None
     # by default, 1 roll of current RV
     self._source_roll = 1
@@ -19,6 +21,7 @@ class RV:
 
   @staticmethod
   def _sort_and_group(vals: Sequence[float], probs: Sequence[int], skip_zero_probs=True, normalize=True):
+    assert all(isinstance(p, int) and p >= 0 for p in probs), 'probs must be non-negative integers'
     zipped = sorted(zip(vals, probs), reverse=True)
     newzipped: list[tuple[float, int]] = []
     for i in range(len(zipped)-1, -1, -1):
@@ -31,7 +34,6 @@ class RV:
     vals = tuple(v[0] for v in newzipped)
     probs = tuple(v[1] for v in newzipped)
     if normalize:
-      assert all(isinstance(p, int) and p >= 0 for p in probs), 'probs must be non-negative integers'
       gcd = math.gcd(*probs)
       if gcd > 1:  # simplify probs
         probs = tuple(p//gcd for p in probs)
@@ -72,11 +74,12 @@ class RV:
       return None
     return sum(v*p for v, p in zip(self.vals, self.probs)) / self._get_sum_probs()
   def std(self):
-    mean = self.mean()
-    mean_X2 = RV(tuple(v**2 for v in self.vals), self.probs).mean()
-    if mean is None or mean_X2 is None:
+    if self._get_sum_probs() == 0:  # if no probabilities, then std does not exist
       return None
-    var = mean_X2 - mean**2
+    EX2 = (self**2).mean()
+    EX = self.mean()
+    assert EX2 is not None and EX is not None, 'mean must be defined to calculate std'
+    var = EX2 - EX**2  # E[X^2] - E[X]^2
     return math.sqrt(var) if var >= 0 else 0
 
   def _get_sum_probs(self):
@@ -106,6 +109,8 @@ class RV:
       probs.append(FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values()))
     return RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
 
+  def _apply_operation(self, operation):
+    return RV([operation(v) for v in self.vals], self.probs)
   def _convolve(self, other, operation):
     if isinstance(other, Seq):
       other = other.sum()
@@ -182,15 +187,15 @@ class RV:
   def __neg__(self):
     return 0 - self
   def __abs__(self):
-    return RV(tuple(abs(v) for v in self.vals), self.probs)
+    return self._apply_operation(abs)
   def __round__(self, n=0):
-    return RV(tuple(round(v, n) for v in self.vals), self.probs)
+    return self._apply_operation(lambda x: round(x, n))
   def __floor__(self):
-    return RV(tuple(math.floor(v) for v in self.vals), self.probs)
+    return self._apply_operation(math.floor)
   def __ceil__(self):
-    return RV(tuple(math.ceil(v) for v in self.vals), self.probs)
+    return self._apply_operation(math.ceil)
   def __trunc__(self):
-    return RV(tuple(math.trunc(v) for v in self.vals), self.probs)
+    return self._apply_operation(math.trunc)
 
   def __repr__(self):
     return output(self, print_=False)
@@ -413,8 +418,10 @@ def roll(n: int|Iterable|RV, d: int|Iterable|RV|None=None) -> RV:
     return roll(1, n)
   if isinstance(n, Iterable):
     if not isinstance(n, Seq):
-      n = Seq(*n)
-    result = sum((roll(i, d) for i in n), start=RV.from_const(0))
+      n = Seq(*n)  # convert to Seq if not already, to flatten
+    vals = list(n)
+    assert all(isinstance(v, int) for v in vals), 'Seq must have int values to roll other dice'
+    result = sum((roll(i, d) for i in vals), start=RV.from_const(0))
     result.set_source(n.sum(), d)
     return result
   if isinstance(n, RV):
