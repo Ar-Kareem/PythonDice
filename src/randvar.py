@@ -8,9 +8,13 @@ import inspect
 
 import utils
 
+RV_AUTO_TRUNC = False  # if True, then RV will automatically truncate values to ints (replicate anydice behavior)
+
 class RV:
-  def __init__(self, vals: Sequence[float], probs: Sequence[int]):
+  def __init__(self, vals: Sequence[float], probs: Sequence[int], truncate=None):
     assert len(vals) == len(probs), 'vals and probs must be the same length'
+    if truncate or (truncate is None and RV_AUTO_TRUNC):
+      vals = tuple(int(v) for v in vals)
     self.vals, self.probs = RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
     if len(self.vals) == 0:  # if no values, then add 0
       self.vals, self.probs = (0, ), (1, )
