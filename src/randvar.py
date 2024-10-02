@@ -2,13 +2,23 @@
 
 import operator
 import math
-from typing import Iterable
+from typing import Callable, Iterable, Union
 from itertools import zip_longest, product, combinations_with_replacement
 import inspect
 
 import utils
 
 RV_AUTO_TRUNC = False  # if True, then RV will automatically truncate values to ints (replicate anydice behavior)
+
+T_if = int|float
+T_ifs = T_if|Iterable['T_ifs']  # recursive type
+T_is = int|Iterable['T_is']  # recursive type
+
+T_isr = Union[T_is, 'RV']
+T_ifr = Union[T_if, 'RV']
+T_ifsr = Union[T_ifs, 'RV']
+
+T_s = Iterable['T_ifs']  # same as T_ifs but excludes int and float (not iterable)
 
 class RV:
   def __init__(self, vals: Iterable[float], probs: Iterable[int], truncate=None):
@@ -45,11 +55,11 @@ class RV:
     return vals, probs
 
   @staticmethod
-  def from_const(val: int|float):
+  def from_const(val: T_if):
     return RV([val], [1])
 
   @staticmethod
-  def from_seq(s: Iterable):
+  def from_seq(s: T_s):
     if not isinstance(s, Seq):
       s = Seq(*s)
     if len(s) == 0:
@@ -72,7 +82,7 @@ class RV:
     return result
 
 
-  def set_source(self, roll, die):
+  def set_source(self, roll: int, die: 'RV'):
     self._source_roll = roll
     self._source_die = die
 
@@ -94,7 +104,7 @@ class RV:
       self.sum_probs = sum(self.probs)
     return self.sum_probs
 
-  def _get_expanded_possible_rolls_LEGACY_SLOW(self) -> tuple[tuple[tuple[float, ...]|float, ...], tuple[int, ...]]:
+  def _get_expanded_possible_rolls_LEGACY_SLOW(self):
     N, D = self._source_roll, self._source_die  # N rolls of D
     all_rolls_and_probs = tuple(product(zip(D.vals, D.probs), repeat=N))
     vals = []
@@ -104,7 +114,7 @@ class RV:
       probs.append(math.prod(p for _, p in roll))
     return RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
 
-  def _get_expanded_possible_rolls(self) -> tuple[tuple[tuple[float, ...]|float, ...], tuple[int, ...]]:
+  def _get_expanded_possible_rolls(self):
     N, D = self._source_roll, self._source_die  # N rolls of D
     all_rolls_and_probs = tuple(combinations_with_replacement(D.vals, N))
     vals = []
@@ -116,68 +126,75 @@ class RV:
       probs.append(FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values()))
     return RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
 
-  def _apply_operation(self, operation):
+  def _apply_operation(self, operation: Callable[[float], float]):
     return RV([operation(v) for v in self.vals], self.probs)
-  def _convolve(self, other, operation):
-    if isinstance(other, Seq):
+  def _convolve(self, other:T_ifsr, operation: Callable[[float, float], float]):
+    if isinstance(other, Iterable):
+      if not isinstance(other, Seq):
+        other = Seq(*other)
       other = other.sum()
     if not isinstance(other, RV):
       return RV([operation(v, other) for v in self.vals], self.probs)
     new_vals = tuple(operation(v1, v2) for v1 in self.vals for v2 in other.vals)
     new_probs = tuple(p1*p2 for p1 in self.probs for p2 in other.probs)
     return RV(new_vals, new_probs)
-  def _rconvolve(self, other, operation):
+  def _rconvolve(self, other:T_ifsr, operation: Callable[[float, float], float]):
     assert not isinstance(other, RV)
-    if isinstance(other, Seq):
+    if isinstance(other, Iterable):
+      if not isinstance(other, Seq):
+        other = Seq(*other)
       other = other.sum()
     return RV([operation(other, v) for v in self.vals], self.probs)
 
-  def  __rmatmul__(self, other):
+  def  __rmatmul__(self, other:T_ifs):
     # ( other @ self:RV )
     # DOCUMENTATION: https://anydice.com/docs/introspection/  look for "Accessing" -> "Collections of dice" and "A single die"
+    assert not isinstance(other, RV), 'unsupported operand type(s) for @: RV and RV'
+    other = Seq([other])
+    assert all(isinstance(i, int) for i in other._seq), 'indices must be integers'
     # ignore type error because of the decorator
     return _sum_at(self, other) # type: ignore
 
-  def __add__(self, other):
+  def __add__(self, other:T_ifsr):
     return self._convolve(other, operator.add)
-  def __radd__(self, other):
+  def __radd__(self, other:T_ifsr):
     return self._rconvolve(other, operator.add)
-  def __sub__(self, other):
+  def __sub__(self, other:T_ifsr):
     return self._convolve(other, operator.sub)
-  def __rsub__(self, other):
+  def __rsub__(self, other:T_ifsr):
     return self._rconvolve(other, operator.sub)
-  def __mul__(self, other):
+  def __mul__(self, other:T_ifsr):
     return self._convolve(other, operator.mul)
-  def __rmul__(self, other):
+  def __rmul__(self, other:T_ifsr):
     return self._rconvolve(other, operator.mul)
-  def __floordiv__(self, other):
+  def __floordiv__(self, other:T_ifsr):
     return self._convolve(other, operator.floordiv)
-  def __rfloordiv__(self, other):
+  def __rfloordiv__(self, other:T_ifsr):
     return self._rconvolve(other, operator.floordiv)
-  def __truediv__(self, other):
+  def __truediv__(self, other:T_ifsr):
     return self._convolve(other, operator.truediv)
-  def __rtruediv__(self, other):
+  def __rtruediv__(self, other:T_ifsr):
     return self._rconvolve(other, operator.truediv)
-  def __pow__(self, other):
+  def __pow__(self, other:T_ifsr):
     return self._convolve(other, operator.pow)
-  def __rpow__(self, other):
+  def __rpow__(self, other:T_ifsr):
     return self._rconvolve(other, operator.pow)
-  def __mod__(self, other):
+  def __mod__(self, other:T_ifsr):
     return self._convolve(other, operator.mod)
-  def __rmod__(self, other):
+  def __rmod__(self, other:T_ifsr):
     return self._rconvolve(other, operator.mod)
 
-  def __eq__(self, other):
+  def __eq__(self, other:T_ifsr):
     return self._convolve(other, lambda x, y: 1 if x == y else 0)
-  def __ne__(self, other):
+  def __ne__(self, other:T_ifsr):
     return self._convolve(other, lambda x, y: 1 if x != y else 0)
-  def __lt__(self, other):
+  def __lt__(self, other:T_ifsr):
     return self._convolve(other, lambda x, y: 1 if x < y else 0)
-  def __le__(self, other):
+  def __le__(self, other:T_ifsr):
     return self._convolve(other, lambda x, y: 1 if x <= y else 0)
-  def __gt__(self, other):
+  def __gt__(self, other:T_ifsr):
     return self._convolve(other, lambda x, y: 1 if x > y else 0)
-  def __ge__(self, other):
+  def __ge__(self, other:T_ifsr):
     return self._convolve(other, lambda x, y: 1 if x >= y else 0)
 
   def __bool__(self):
@@ -208,18 +225,18 @@ class RV:
     return output(self, print_=False)
 
   @staticmethod
-  def dices_are_equal(d1, d2):
-    if isinstance(d1, int) or isinstance(d1, Iterable):
+  def dices_are_equal(d1:T_ifsr, d2:T_ifsr):
+    if isinstance(d1, (int, float)) or isinstance(d1, Iterable):
       d1 = RV.from_seq([d1])
-    if isinstance(d2, int) or isinstance(d2, Iterable):
+    if isinstance(d2, (int, float)) or isinstance(d2, Iterable):
       d2 = RV.from_seq([d2])
     return d1.vals == d2.vals and d1.probs == d2.probs
 
 class Seq(Iterable):
-  def __init__(self, *source):
+  def __init__(self, *source: T_ifs):
     flat = tuple(utils.flatten(source))
     flat_rvs = [v for x in flat if isinstance(x, RV) for v in x.vals]  # expand RVs
-    flat_else: list[int|float] = [x for x in flat if not isinstance(x, RV)]
+    flat_else: list[T_if] = [x for x in flat if not isinstance(x, RV)]
     assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs'
     self._seq = tuple(flat_else + flat_rvs)
     self._one_indexed = 1  # 1 is True, 0 is False
@@ -238,69 +255,73 @@ class Seq(Iterable):
     return iter(self._seq)
   def __len__(self):
     return len(self._seq)
-  def __getitem__(self, i):
+  def __getitem__(self, i: int):
     return self._seq[i-self._one_indexed] if 0 <= i-self._one_indexed < len(self._seq) else 0
 
-  def  __matmul__(self, other):
+  def  __matmul__(self, other: T_ifsr):
     if isinstance(other, RV):  # ( self:SEQ @ other:RV ) thus RV takes priority
       return other.__rmatmul__(self)
     # access at indices in other ( self @ other )
+    if isinstance(other, (int, float)):
+      other = Seq(0)
     if not isinstance(other, Seq):
       other = Seq(other)
-    return sum(other[i] for i in self._seq)
-  def __rmatmul__(self, other):
+    assert all(isinstance(i, int) for i in self._seq), 'indices must be integers'
+    return sum(other[int(i)] for i in self._seq)
+  def __rmatmul__(self, other:T_ifs):
     if isinstance(other, RV):  # ( other:RV @ self:SEQ ) thus not allowed,
       raise TypeError('unsupported operand type(s) for @: RV and Seq')
     # access in my indices ( other @ self )
-    if isinstance(other, int):
-      return self[other]
+    if isinstance(other, (int, float)):
+      return self[int(other)]
     if not isinstance(other, Seq):
       other = Seq(other)
-    return sum(self[i] for i in other._seq)
+    assert all(isinstance(i, int) for i in other._seq), 'indices must be integers'
+    return sum(self[int(i)] for i in other._seq)
 
-  def __add__(self, other):
+  def __add__(self, other:T_ifs):
     return operator.add(self.sum(), other)
-  def __radd__(self, other):
+  def __radd__(self, other:T_ifs):
     return operator.add(other, self.sum())
-  def __sub__(self, other):
+  def __sub__(self, other:T_ifs):
     return operator.sub(self.sum(), other)
-  def __rsub__(self, other):
+  def __rsub__(self, other:T_ifs):
     return operator.sub(other, self.sum())
-  def __mul__(self, other):
+  def __mul__(self, other:T_ifs):
     return operator.mul(self.sum(), other)
-  def __rmul__(self, other):
+  def __rmul__(self, other:T_ifs):
     return operator.mul(other, self.sum())
-  def __floordiv__(self, other):
+  def __floordiv__(self, other:T_ifs):
     return operator.floordiv(self.sum(), other)
-  def __rfloordiv__(self, other):
+  def __rfloordiv__(self, other:T_ifs):
     return operator.floordiv(other, self.sum())
-  def __truediv__(self, other):
+  def __truediv__(self, other:T_ifs):
     return operator.truediv(self.sum(), other)
-  def __rtruediv__(self, other):
+  def __rtruediv__(self, other:T_ifs):
     return operator.truediv(other, self.sum())
-  def __pow__(self, other):
+  def __pow__(self, other:T_ifs):
     return operator.pow(self.sum(), other)
-  def __rpow__(self, other):
+  def __rpow__(self, other:T_ifs):
     return operator.pow(other, self.sum())
-  def __mod__(self, other):
+  def __mod__(self, other:T_ifs):
     return operator.mod(self.sum(), other)
-  def __rmod__(self, other):
+  def __rmod__(self, other:T_ifs):
     return operator.mod(other, self.sum())
 
-  def __eq__(self, other):
+  def __eq__(self, other:T_ifsr):
     return self._compare_to(other, operator.eq)
-  def __ne__(self, other):
+  def __ne__(self, other:T_ifsr):
     return self._compare_to(other, operator.ne)
-  def __lt__(self, other):
+  def __lt__(self, other:T_ifsr):
     return self._compare_to(other, operator.lt)
-  def __le__(self, other):
+  def __le__(self, other:T_ifsr):
     return self._compare_to(other, operator.le)
-  def __gt__(self, other):
+  def __gt__(self, other:T_ifsr):
     return self._compare_to(other, operator.gt)
-  def __ge__(self, other):
+  def __ge__(self, other:T_ifsr):
     return self._compare_to(other, operator.ge)
 
-  def _compare_to(self, other, operation):
+  def _compare_to(self, other:T_ifsr, operation: Callable[[float, T_ifr], bool]):
     if isinstance(other, RV):
       return operation(self.sum(), other)
     if isinstance(other, Iterable):
@@ -308,12 +329,12 @@ class Seq(Iterable):
         other = Seq(*other)
       if operation == operator.ne: # special case for NE, since it is ∃ as opposed to ∀ like the others
         return not self._compare_to(other, operator.eq)
-      return all(operation(x, y) for x, y in zip_longest(self._seq, other, fillvalue=float('-inf')))
+      return all(operation(x, y) for x, y in zip_longest(self._seq, other._seq, fillvalue=float('-inf')))
     # if other is a number
     return sum(1 for x in self._seq if operation(x, other))
 
   @staticmethod
-  def seqs_are_equal(s1, s2):
+  def seqs_are_equal(s1:T_ifs, s2:T_ifs):
     assert not isinstance(s1, RV) and not isinstance(s2, RV), 'cannot compare Seq with RV'
     if not isinstance(s1, Seq):
       s1 = Seq(s1)
@@ -405,8 +426,10 @@ def anydice_casting(verbose=False):
             kwargs[k] = v
           else:
             args[k] = v
-        val: int|float|Seq|RV = func(*args, **kwargs)  # single result of the function call
-        if isinstance(val, Seq):
+        val: T_ifsr = func(*args, **kwargs)  # single result of the function call
+        if isinstance(val, Iterable):
+          if not isinstance(val, Seq):
+            val = Seq(*val)
           val = val.sum()
         if not isinstance(val, RV):
           val = RV([val], [1])
@@ -418,9 +441,9 @@ def anydice_casting(verbose=False):
 
 @anydice_casting()
 def _sum_at(orig: Seq, locs: Seq):
-  return sum(orig[i] for i in locs)
+  return sum(orig[int(i)] for i in locs)
 
-def roll(n: int|Iterable|RV, d: int|Iterable|RV|None=None) -> RV:
+def roll(n: T_isr, d: T_isr|None=None) -> RV:
   if d is None:  # if only one argument, then roll it as a dice once
     return roll(1, n)
   if isinstance(d, int):
@@ -465,7 +488,7 @@ def _roll_int_rv(n: int, d: RV) -> RV:
   return full
 
 
-def output(rv: RV|Iterable|int, named=None, show_pdf=True, blocks_width=170, print_=True):
+def output(rv: T_isr, named=None, show_pdf=True, blocks_width=170, print_=True):
   if isinstance(rv, int) or isinstance(rv, Iterable):
     rv = RV.from_seq([rv])
   result = ''
