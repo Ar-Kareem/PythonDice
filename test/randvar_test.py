@@ -180,6 +180,25 @@ def test_roll_int_int(n, m, res):
 def test_roll_seq_rv(a, b):
     assert RV.dices_are_equal(a, b)
 
+@pytest.mark.parametrize("roll, res", [
+    # N d [N|SEQ|DIE]
+    (roll(2, 3),                      RV((2, 3, 4, 5, 6), (1, 2, 3, 2, 1))), 
+    (roll(2, Seq(1, 5, 5)),           RV((2, 6, 10), (1, 4, 4))), 
+    (roll(2, roll(3, 4)),             RV(range(6, 25), (1, 6, 21, 56, 120, 216, 336, 456, 546, 580, 546, 456, 336, 216, 120, 56, 21, 6, 1))), 
+    # SEQ d [N|SEQ|DIE]
+    (roll(Seq(1, 2), 3),              roll(1, 3)+roll(2, 3)), 
+    (roll(Seq(1, 2), Seq(2, 3)),      RV((6, 7, 8, 9), (1, 3, 3, 1))), 
+    (roll(Seq(1, 2), roll(2, 2)),     RV((6, 7, 8, 9, 10, 11, 12), (1, 6, 15, 20, 15, 6, 1))), 
+    # DIE d [N|SEQ|DIE]
+    (roll(roll(2, 2), 2),             RV((2, 3, 4, 5, 6, 7, 8), (4, 12, 17, 16, 10, 4, 1))), 
+    (roll(roll(2, 2), Seq(5, 7)),     RV((10, 12, 14, 15, 17, 19, 20, 21, 22, 24, 26, 28), (4, 8, 4, 4, 12, 12, 1, 4, 4, 6, 4, 1))), 
+    (roll(roll(2), roll(2)),          RV((1, 2, 3, 4), (2, 3, 2, 1))), 
+    (roll(roll(2, 2), roll(2)),       RV((2, 3, 4, 5, 6, 7, 8), (4, 12, 17, 16, 10, 4, 1))), 
+    (roll(roll(2, 2), roll(2, 2)),    RV(range(4, 17), (16, 64, 104, 112, 137, 168, 148, 104, 78, 56, 28, 8, 1))), 
+])
+def test_roll_seq_rv(roll, res):
+    assert RV.dices_are_equal(roll, res), f'{roll}'
+
 
 @pytest.mark.parametrize("a, b", [
     (roll(2, -3),   RV((-6, -5, -4, -3, -2), (1, 2, 3, 2, 1))),
