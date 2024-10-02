@@ -239,10 +239,51 @@ def test_roll2_negative(a, b):
 def test_dice_len(d, r):
     assert len(d) == r
 
+def test_roll_1_not_change_len():
+    a = roll(3, 4)
+    assert len(a) == 3
+    a = roll(2, a)
+    assert len(a) == 2
+    a = roll(1, a)
+    assert len(a) == 2, 'rolling once should not change the length'
+
 
 # TODO test comparison operators
 # TODO test arithmetic operators
-# TODO test matmul
 
 
+@pytest.mark.parametrize("l, r, l_at_r", [
+    (1,         roll(2, 4),   RV((1, 2, 3, 4), (1, 3, 5, 7))),   # NUM @ DIE
+    (Seq(1, 2), roll(2, 4),   RV((2, 3, 4, 5, 6, 7, 8), (1, 2, 3, 4, 3, 2, 1))),   # SEQ @ DIE
+    (Seq(1,2),  roll(3, 6),   RV((2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), (1, 3, 7, 12, 19, 27, 34, 36, 34, 27, 16))),   # SEQ @ DIE [in docs]
+    (3,         roll(2, 4),   RV((0, ), (1, ))),   # NUM @ DIE OOB
+    (1,         roll(3, 6),   RV((1, 2, 3, 4, 5, 6), (1, 7, 19, 37, 61, 91))),   # NUM @ DIE [in docs]
+    (3,         roll(3, 6),   RV((1, 2, 3, 4, 5, 6), (91, 61, 37, 19, 7, 1))),   # NUM @ DIE [in docs]
+    (0,         roll(6),      RV((0, ), (1, ))),   # NUM @ DIE OOB
+    (1,         roll(6),      roll(6)),   # NUM @ DIE single dice
+    (2,         roll(6),      RV((0, ), (1, ))),   # NUM @ DIE OOB
+])
+def test_matmu(l, r, l_at_r):
+    assert RV.dices_are_equal(l @ r, l_at_r)
 
+@pytest.mark.parametrize("rhs", [
+    1, Seq(1, 2), roll(2, 2)
+])
+def test_FAIL_die_matmul(rhs):
+    with pytest.raises(Exception):
+        roll(2, 4) @ rhs
+
+
+def test_truncate():
+    a = roll(6) / roll(6)
+    b = RV(a.vals, a.probs, truncate=False)
+    c = RV(a.vals, a.probs, truncate=True)
+    randvar.RV_AUTO_TRUNC = True
+    d = roll(6) / roll(6)
+    assert RV.dices_are_equal(a, b)
+    assert RV.dices_are_equal(c, d)
+    assert not RV.dices_are_equal(a, c)
+    assert not RV.dices_are_equal(a, d)
+    assert not RV.dices_are_equal(b, c)
+    assert not RV.dices_are_equal(b, d)
+    randvar.RV_AUTO_TRUNC = False
