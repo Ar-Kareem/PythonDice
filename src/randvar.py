@@ -126,6 +126,9 @@ class RV:
       vals_probs = tuple((v, p) for v, p in vals_probs if v not in vals_to_cut)
     return vals_probs
 
+  def output(self, *args, **kwargs):
+    return output(self, *args, **kwargs)
+
   def _get_sum_probs(self):
     if self.sum_probs is None:
       self.sum_probs = sum(self.probs)

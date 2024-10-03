@@ -2,7 +2,7 @@ import pytest
 import math
 
 import randvar
-from randvar import RV, Seq, roll
+from randvar import RV, Seq, roll, output
 
 @pytest.mark.parametrize("vals,probs", [
     ([], []),
@@ -273,6 +273,10 @@ def test_roll_1_not_change_len():
     a = roll(1, a)
     assert len(a) == 2, 'rolling once should not change the length'
 
+def test_output():
+    b = roll(2, 6)
+    assert b.output(cdf_cut=10, print_=False) == output(b, cdf_cut=10, print_=False)
+    assert b.output(cdf_cut=10, print_=False) != output(b, print_=False)
 
 # TODO test comparison operators
 # TODO test arithmetic operators
