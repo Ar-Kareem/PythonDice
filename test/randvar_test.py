@@ -32,8 +32,14 @@ def test_RV_init_fail(vals, probs):
 def test_RV_init_empty():
     a = RV((), ())
     b = RV([], [])
+    c = RV.from_seq(Seq())
+    d = RV.from_rvs(rvs=[])
+    e = RV.from_rvs(rvs=[RV([], [])])
     assert (a.vals, a.probs) == ((0, ), (1, ))
     assert (b.vals, b.probs) == ((0, ), (1, ))
+    assert (c.vals, c.probs) == ((0, ), (1, ))
+    assert (d.vals, d.probs) == ((0, ), (1, ))
+    assert (e.vals, e.probs) == ((0, ), (1, ))
 
 def test_probability_zero_RV():
     a = RV((1, 2, 777), (1, 1, 0))
