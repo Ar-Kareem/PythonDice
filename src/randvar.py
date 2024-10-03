@@ -35,7 +35,7 @@ class RV:
     self._source_die = self
 
   @staticmethod
-  def _sort_and_group(vals: Iterable[float], probs: Iterable[int], skip_zero_probs=True, normalize=True):
+  def _sort_and_group(vals: Iterable[float], probs: Iterable[int], skip_zero_probs, normalize):
     assert all(isinstance(p, int) and p >= 0 for p in probs), 'probs must be non-negative integers'
     zipped = sorted(zip(vals, probs), reverse=True)
     newzipped: list[tuple[float, int]] = []
@@ -67,18 +67,23 @@ class RV:
     return RV(s._seq, [1]*len(s))
 
   @staticmethod
-  def from_rvs(rvs: Iterable['RV'], weights: Iterable[int]|None=None) -> 'RV':
+  def from_rvs(rvs: Iterable['int|float|RV'], weights: Iterable[int]|None=None) -> 'RV':
     rvs = tuple(rvs)
     if weights is None:
       weights = [1]*len(rvs)
     weights = tuple(weights)
     assert len(rvs) == len(weights)
-    prob_sums = tuple(sum(r.probs) for r in rvs)
+    prob_sums = tuple(sum(r.probs) if isinstance(r, RV) else 1 for r in rvs)
     PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
-    # combine all possibilities into one RV
-    res_vals = tuple(list(r.vals) for r in rvs)
-    res_probs = tuple([x*weight*(PROD//prob_sum) for x in rv.probs] for weight, prob_sum, rv in zip(weights, prob_sums, rvs))
-    result = RV(sum(res_vals, []), sum(res_probs, []))
+    res_vals, res_probs = [], []
+    for weight, prob_sum, rv in zip(weights, prob_sums, rvs):
+      if isinstance(rv, RV):
+        res_vals.extend(rv.vals)
+        res_probs.extend(p*weight*(PROD//prob_sum) for p in rv.probs)
+      else:
+        res_vals.append(rv)
+        res_probs.append(weight*PROD)  # prob_sum is 1
+    result = RV(res_vals, res_probs)
     return result
 
 
@@ -446,7 +451,7 @@ def anydice_casting(verbose=False):
       # FINALLY take product of all possible rolls
       all_rolls_and_probs = product(*all_rolls_and_probs)
 
-      res_vals: list[RV] = []
+      res_vals: list[RV|int|float] = []
       res_probs: list[int] = []
       for rolls_and_prob in all_rolls_and_probs:
         rolls = tuple(r for r, _ in rolls_and_prob)
@@ -462,8 +467,6 @@ def anydice_casting(verbose=False):
           if not isinstance(val, Seq):
             val = Seq(*val)
           val = val.sum()
-        if not isinstance(val, RV):
-          val = RV([val], [1])
         res_vals.append(val)
         res_probs.append(prob)
       return RV.from_rvs(rvs=res_vals, weights=res_probs)
