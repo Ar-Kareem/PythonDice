@@ -283,8 +283,8 @@ def test_roll_1_not_change_len():
     (1,         roll(6),      roll(6)),   # NUM @ DIE single dice
     (2,         roll(6),      RV((0, ), (1, ))),   # NUM @ DIE OOB
 ])
-def test_matmu(l, r, l_at_r):
-    assert RV.dices_are_equal(l @ r, l_at_r)
+def test_matmul(l, r, l_at_r):
+    assert RV.dices_are_equal(l @ r, l_at_r), f'{l} @ {r} ! = {l_at_r}'
 
 @pytest.mark.parametrize("rhs", [
     1, Seq(1, 2), roll(2, 2)
