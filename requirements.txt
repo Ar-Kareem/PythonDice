@@ -1,0 +1,6 @@
+# FOR TESTING ONLY
+pytest
+pytest-timeout
+python-dotenv
+coverage
+selenium
