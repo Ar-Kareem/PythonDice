@@ -1,58 +1,59 @@
 # recreations of functions in https://anydice.com/docs/function-library/
-import randvar as rv
-from randvar import Seq, RV
+from randvar import Seq, RV, roll, anydice_casting
 
-@rv.anydice_casting()
+# BASE FUNCTIONS
+
+@anydice_casting()
 def absolute (NUMBER:int):
     if NUMBER < 0: 
         return -NUMBER
     return NUMBER
 
-@rv.anydice_casting()
+@anydice_casting()
 def contains(SEQUENCE:Seq, NUMBER:int):
     return (SEQUENCE == NUMBER) > 0
 
-@rv.anydice_casting()
+@anydice_casting()
 def count_in(VALUES:Seq, SEQUENCE:Seq):
     COUNT = 0
     for P in range(1, len(VALUES)+1):
         COUNT = COUNT + (P@VALUES == SEQUENCE)
     return COUNT
 
-@rv.anydice_casting()
+@anydice_casting()
 def reverse_VANILLA_SLOW(SEQUENCE:Seq):
     R = Seq()
     for P in range(1, len(SEQUENCE)+1):
         R = Seq(P@SEQUENCE, R)  
     return R
-@rv.anydice_casting()
+@anydice_casting()
 def reverse(SEQUENCE:Seq):
     return Seq(SEQUENCE._seq[::-1])
 
-@rv.anydice_casting()
+@anydice_casting()
 def maximum_of(DIE:RV):
     return 1@reverse(Seq(DIE))
 
-@rv.anydice_casting()
+@anydice_casting()
 def explode(DIE:RV, depth=2):
     MAX = maximum_of(DIE)
     return _explode_helper(DIE, MAX, ORIG_DIE=DIE, depth=depth)  # type: ignore
 
-@rv.anydice_casting()
+@anydice_casting()
 def _explode_helper(N:int, MAX:int, ORIG_DIE:RV, depth):
     if N == MAX and depth > 0:
         return N + _explode_helper(ORIG_DIE, MAX, ORIG_DIE=ORIG_DIE, depth=depth-1)  # type: ignore
     return N
 
-@rv.anydice_casting()
+@anydice_casting()
 def highest_N_of_D(NUMBER:int, DICE:RV):
     return Seq(range(1, NUMBER+1))@DICE
 
-@rv.anydice_casting()
+@anydice_casting()
 def lowest_N_of_D(NUMBER:int, DICE:RV):
     return Seq(range((len(DICE) - NUMBER + 1), len(DICE)+1))@DICE
 
-@rv.anydice_casting()
+@anydice_casting()
 def middle_N_of_D(NUMBER:int, DICE:RV):
     if NUMBER == len(DICE): 
         return DICE
@@ -64,26 +65,26 @@ def middle_N_of_D(NUMBER:int, DICE:RV):
     TO = FROM + NUMBER - 1
     return Seq(range(FROM, TO+1))@DICE
 
-@rv.anydice_casting()
+@anydice_casting()
 def highest_of_N_and_N(A:int, B:int):
     if A > B:
         return A
     return B
 
-@rv.anydice_casting()
+@anydice_casting()
 def lowest_of_N_and_N(A:int, B:int):
     if A < B:
         return A
     return B
 
-@rv.anydice_casting()
+@anydice_casting()
 def sort_VANILLA_SLOW(SEQUENCE:Seq):
     SORTED = Seq()
     for P in range(1, len(SEQUENCE)+1):
         SORTED = _sort_helper_add_N_to_S(P@SEQUENCE, SORTED)
     return SORTED
 
-@rv.anydice_casting()
+@anydice_casting()
 def _sort_helper_add_N_to_S(N:int, S:Seq):
     if len(S) == 0:
         return Seq(N)
@@ -103,6 +104,27 @@ def _sort_helper_add_N_to_S(N:int, S:Seq):
         R = Seq(R, N)
     return R
 
-@rv.anydice_casting()
+@anydice_casting()
 def sort(SEQUENCE:Seq):
     return Seq(sorted(SEQUENCE, reverse=True))
+
+
+# MORE FUNCTIONS
+
+
+@anydice_casting()
+def gwf(num_die: int, dmg_die, min_to_reroll=2):
+    assert isinstance(num_die, int), 'great weapon fighting must get int as number of die and faces of dmg die'
+    if isinstance(dmg_die, int):  # prevent making RV as constant int
+        dmg_die = roll(1, dmg_die)
+    single_gwf = _gwf_helper(roll_1=dmg_die, dmg_die=dmg_die, min_to_reroll=min_to_reroll)  # type: ignore
+    return roll(num_die, single_gwf)
+
+@anydice_casting()
+def _gwf_helper(roll_1: int, dmg_die: RV, min_to_reroll: int):
+    if roll_1 <= min_to_reroll:
+        return dmg_die
+    return roll_1
+
+
+
