@@ -463,6 +463,8 @@ def anydice_casting(verbose=False):
           else:
             args[k] = v
         val: T_ifsr = func(*args, **kwargs)  # single result of the function call
+        if val is None:
+          continue
         if isinstance(val, Iterable):
           if not isinstance(val, Seq):
             val = Seq(*val)
