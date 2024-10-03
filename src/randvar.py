@@ -549,7 +549,7 @@ def output(rv: T_isr, named=None, show_pdf=True, blocks_width=170, print_=True, 
     max_val_len = max(len(str(v)) for v, _ in vp)
     blocks = max(0, blocks_width - max_val_len)
     for v, p in vp:
-      result += '\n' + f"{v:>{max_val_len}}: {100*p:.2f}  " + ('█'*round(p * blocks))
+      result += '\n' + f"{v:>{max_val_len}}: {100*p:>5.2f}  " + ('█'*round(p * blocks))
     result += '\n' + '-' * (blocks_width + 8)
   if print_:
     print(result)
