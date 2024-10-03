@@ -131,16 +131,6 @@ class RV:
       self.sum_probs = sum(self.probs)
     return self.sum_probs
 
-  def _get_expanded_possible_rolls_LEGACY_SLOW(self):
-    N, D = self._source_roll, self._source_die  # N rolls of D
-    all_rolls_and_probs = tuple(product(zip(D.vals, D.probs), repeat=N))
-    vals = []
-    probs = []
-    for roll in all_rolls_and_probs:
-      vals.append(tuple(sorted((v for v, _ in roll))))
-      probs.append(math.prod(p for _, p in roll))
-    return RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
-
   def _get_expanded_possible_rolls(self):
     N, D = self._source_roll, self._source_die  # N rolls of D
     all_rolls_and_probs = tuple(combinations_with_replacement(D.vals, N))
