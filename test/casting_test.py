@@ -122,3 +122,18 @@ def test_time():
         return 0
     a(roll(100_000))
 
+def test_almost_zero():
+    @anydice_casting()
+    def a (N:int):
+        if N == 1000:
+            return 1
+        return 2
+    D: RV = a(roll(1000, 2))
+    assert (i>=1 for i in D.probs)
+
+def test_cast_return_None():
+    @anydice_casting()
+    def f(A:int) -> int|None:
+        if A > 2:
+            return A
+    assert RV.dices_are_equal( f(roll(2, 2)) , RV((3, 4), (2, 1)) )
