@@ -113,7 +113,7 @@ class RV:
     vals, probs = zip(*vp)
     return RV(vals, probs)
 
-  def get_vals_probs(self, cdf_cut=0):
+  def get_vals_probs(self, cdf_cut: float=0):
     '''Get the values and their probabilities, if cdf_cut is given, then remove the maximum bottom n values that sum to less than cdf_cut'''
     assert 0 <= cdf_cut < 1, 'cdf_cut must be in [0, 1)'
     s = self._get_sum_probs()
@@ -532,23 +532,25 @@ def _roll_int_rv(n: int, d: RV) -> RV:
   return full
 
 
-def output(rv: T_isr, named=None, show_pdf=True, blocks_width=170, print_=True):
+def output(rv: T_isr, named=None, show_pdf=True, blocks_width=170, print_=True, cdf_cut=0):
   if isinstance(rv, int) or isinstance(rv, Iterable):
     rv = RV.from_seq([rv])
   result = ''
   if named is not None:
     result += named + ' '
 
-  sum_p = sum(rv.probs)
   mean = rv.mean()
   mean = round(mean, 2) if mean is not None else None
   std = rv.std()
   std = round(std, 2) if std is not None else None
   result += f'{mean} ± {std}'
   if show_pdf:
-    for v, p in zip(rv.vals, rv.probs):
-      result += '\n' + f"{v:.2g}: {100*p/sum_p:.2f}  " + ('█'*round(p/sum_p * blocks_width))
-    result += '\n' + '-'*blocks_width
+    vp = rv.get_vals_probs(cdf_cut/100)
+    max_val_len = max(len(str(v)) for v, _ in vp)
+    blocks = max(0, blocks_width - max_val_len)
+    for v, p in vp:
+      result += '\n' + f"{v:>{max_val_len}}: {100*p:.2f}  " + ('█'*round(p * blocks))
+    result += '\n' + '-' * (blocks_width + 8)
   if print_:
     print(result)
   else:
