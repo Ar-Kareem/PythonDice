@@ -114,3 +114,11 @@ def test_cast_then_matmul():
         return V@SEQUENCE
     assert RV.dices_are_equal(count(1, roll(2, 4)), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'  # type: ignore
     assert RV.dices_are_equal(1@roll(2, 4), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'
+
+@pytest.mark.timeout(.5)
+def test_time():
+    @randvar.anydice_casting()
+    def a(n:int):
+        return 0
+    a(roll(100_000))
+
