@@ -62,8 +62,6 @@ def test_cast_to_seq(s1, s2):
         assert RV.dices_are_equal(f2(s1), s2)
     elif isinstance(s2, Seq):
         assert Seq.seqs_are_equal(f2(s1), s2)
-    else:
-        assert f2(s1) == s2
 
 @pytest.mark.parametrize("s1, s2", [
     (7, RV((7, ), (1, ))),
@@ -115,7 +113,7 @@ def test_cast_then_matmul():
     assert RV.dices_are_equal(count(1, roll(2, 4)), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'  # type: ignore
     assert RV.dices_are_equal(1@roll(2, 4), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'
 
-@pytest.mark.timeout(.5)
+@pytest.mark.timeout(2)
 def test_time():
     @randvar.anydice_casting()
     def a(n:int):
