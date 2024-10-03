@@ -108,6 +108,19 @@ class RV:
     vals, probs = zip(*vp)
     return RV(vals, probs)
 
+  def get_vals_probs(self, cdf_cut=0):
+    '''Get the values and their probabilities, if cdf_cut is given, then remove the maximum bottom n values that sum to less than cdf_cut'''
+    assert 0 <= cdf_cut < 1, 'cdf_cut must be in [0, 1)'
+    s = self._get_sum_probs()
+    vals_probs = tuple((v, p/s) for v, p in zip(self.vals, self.probs))
+    if cdf_cut > 0:  # cut the bottom vals/probs and when stop total cut probs is less than cdf_cut
+      sorted_vals_probs = sorted(vals_probs, key=lambda x: x[1])
+      from itertools import accumulate
+      accumelated_probs = tuple(accumulate(sorted_vals_probs, lambda x, y: (y[0], x[1]+y[1]), initial=(0, 0)))
+      vals_to_cut = set(v for v, p in accumelated_probs if p < cdf_cut)
+      vals_probs = tuple((v, p) for v, p in vals_probs if v not in vals_to_cut)
+    return vals_probs
+
   def _get_sum_probs(self):
     if self.sum_probs is None:
       self.sum_probs = sum(self.probs)
