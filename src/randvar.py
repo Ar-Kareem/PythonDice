@@ -90,6 +90,7 @@ class RV:
     if self._get_sum_probs() == 0:
       return None
     return sum(v*p for v, p in zip(self.vals, self.probs)) / self._get_sum_probs()
+
   def std(self):
     if self._get_sum_probs() == 0:  # if no probabilities, then std does not exist
       return None
@@ -98,6 +99,14 @@ class RV:
     assert EX2 is not None and EX is not None, 'mean must be defined to calculate std'
     var = EX2 - EX**2  # E[X^2] - E[X]^2
     return math.sqrt(var) if var >= 0 else 0
+
+  def filter(self, seq: T_ifsr):
+    to_filter = set(Seq(seq))
+    vp = tuple((v, p) for v, p in zip(self.vals, self.probs) if v not in to_filter)
+    if len(vp) == 0:
+        return RV((), ())
+    vals, probs = zip(*vp)
+    return RV(vals, probs)
 
   def _get_sum_probs(self):
     if self.sum_probs is None:
