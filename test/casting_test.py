@@ -120,7 +120,7 @@ def test_time():
     @randvar.anydice_casting()
     def a(n:int):
         return 0
-    a(roll(100_000))
+    a(roll(100_000))  # type: ignore
 
 def test_almost_zero():
     @anydice_casting()
@@ -128,7 +128,7 @@ def test_almost_zero():
         if N == 1000:
             return 1
         return 2
-    D: RV = a(roll(1000, 2))
+    D: RV = a(roll(1000, 2))  # type: ignore
     assert (i>=1 for i in D.probs)
 
 def test_cast_return_None():
@@ -136,4 +136,4 @@ def test_cast_return_None():
     def f(A:int) -> int|None:
         if A > 2:
             return A
-    assert RV.dices_are_equal( f(roll(2, 2)) , RV((3, 4), (2, 1)) )
+    assert RV.dices_are_equal( f(roll(2, 2)) , RV((3, 4), (2, 1)) )  # type: ignore
