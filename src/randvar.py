@@ -5,6 +5,7 @@ import math
 from typing import Callable, Iterable, Union
 from itertools import zip_longest, product, combinations_with_replacement
 import inspect
+from collections import defaultdict
 
 import utils
 
@@ -151,9 +152,11 @@ class RV:
     probs = []
     FACTORIAL_N = utils.factorial(N)
     for roll in all_rolls_and_probs:
-      # vals.append(Seq(sorted(roll, reverse=True)))  # TODO sort_and_group getting a list[Seq] instead of list[float], can this cause errors? in groupping because of ==?
-      vals.append(Seq(*roll[::-1], _INTERNAL_SKIP_FLATTEN=True))  # TODO sort_and_group getting a list[Seq] instead of list[float], can this cause errors? in groupping because of ==?
-      counts = {v: roll.count(v) for v in roll}
+      vals.append(Seq(_INTERNAL_SEQ_VALUE=roll[::-1], _INTERNAL_SKIP_FLATTEN=True))  # TODO sort_and_group getting a list[Seq] instead of list[float], can this cause errors? in groupping because of ==?
+      counts = defaultdict(int)  # fast counts
+      for v in roll:
+        counts[v] += 1
+
       cur_roll_combination_count = FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values())
       cur_roll_probs = math.prod(pdf_dict[v]**c for v, c in counts.items())  # if D is a uniform then this = 1 and is not needed.
       probs.append(cur_roll_combination_count * cur_roll_probs)
@@ -283,11 +286,11 @@ class RV:
     return d1.vals == d2.vals and d1.probs == d2.probs
 
 class Seq(Iterable):
-  def __init__(self, *source: T_ifsr, _INTERNAL_SKIP_FLATTEN=False):
+  def __init__(self, *source: T_ifsr, _INTERNAL_SEQ_VALUE=None, _INTERNAL_SKIP_FLATTEN=False):
     self._sum = None
     self._one_indexed = 1
-    if _INTERNAL_SKIP_FLATTEN:
-      self._seq: tuple[T_if, ...] = tuple(source)  # type: ignore
+    if _INTERNAL_SKIP_FLATTEN:  # used for internal optimization only
+      self._seq: tuple[T_if, ...] = _INTERNAL_SEQ_VALUE  # type: ignore
       return
     flat = tuple(utils.flatten(source))
     flat_rvs = [v for x in flat if isinstance(x, RV) for v in x.vals]  # expand RVs
