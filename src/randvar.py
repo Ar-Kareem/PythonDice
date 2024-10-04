@@ -151,7 +151,8 @@ class RV:
     probs = []
     FACTORIAL_N = utils.factorial(N)
     for roll in all_rolls_and_probs:
-      vals.append(Seq(sorted(roll, reverse=True)))  # TODO sort_and_group getting a list[Seq] instead of list[float], can this cause errors? in groupping because of ==?
+      # vals.append(Seq(sorted(roll, reverse=True)))  # TODO sort_and_group getting a list[Seq] instead of list[float], can this cause errors? in groupping because of ==?
+      vals.append(Seq(*roll[::-1], _INTERNAL_SKIP_FLATTEN=True))  # TODO sort_and_group getting a list[Seq] instead of list[float], can this cause errors? in groupping because of ==?
       counts = {v: roll.count(v) for v in roll}
       cur_roll_combination_count = FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values())
       cur_roll_probs = math.prod(pdf_dict[v]**c for v, c in counts.items())  # if D is a uniform then this = 1 and is not needed.
