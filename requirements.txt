@@ -1,6 +1,8 @@
 # FOR TESTING ONLY
 pytest
-pytest-timeout
 python-dotenv
+pytest-timeout
+pytest-ordering
+
 coverage
 selenium

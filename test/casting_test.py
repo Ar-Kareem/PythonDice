@@ -131,13 +131,6 @@ def test_cast_then_matmul():
     assert RV.dices_are_equal(count(1, roll(2, 4)), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'  # type: ignore
     assert RV.dices_are_equal(1@roll(2, 4), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'
 
-@pytest.mark.timeout(2)
-def test_time():
-    @randvar.anydice_casting()
-    def a(n:int):
-        return 0
-    a(roll(100_000))  # type: ignore
-
 def test_almost_zero():
     @anydice_casting()
     def a (N:int):
@@ -153,3 +146,18 @@ def test_cast_return_None():
         if A > 2:
             return A
     assert RV.dices_are_equal( f(roll(2, 2)) , RV((3, 4), (2, 1)) )  # type: ignore
+
+@pytest.mark.run(order=-1)
+@pytest.mark.timeout(2)
+def test_time():
+    @randvar.anydice_casting()
+    def a(n:int):
+        return 0
+    a(roll(100_000))  # type: ignore
+
+@pytest.mark.run(order=-1)
+def test_cast_server_error():
+    def f(s:Seq):
+        return Seq(1, 2)@s
+    a =  f(roll(13, RV.from_seq([1, 1, 1, 2, 2, 3, 10, 11, 12, 13, 14, 15, 16])))  # CAUSES SERVER ERROR ON website
+    assert (a.vals, a.probs) == ((2,3,4,5,6,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32), (1594323,13817466,1212200069,3166919392,8666162766,6908733,3173828125,28298170368,28298170368,28298170368,28298170368,28298170368,28291261635,25124342243,55530146023,151638563245,424568633113,865055027200,1963811844073,3643285803885,7429836001303,12820063266387,23629358946363,37127984923120,59470493235141,75109736929955,79972595385853))
