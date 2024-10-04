@@ -146,13 +146,16 @@ class RV:
     if N == 1:  # answer is simple (ALSO cannot use simplified formula for probs and bottom code WILL cause errors)
       return tuple(Seq(i) for i in D.vals), D.probs
     all_rolls_and_probs = tuple(combinations_with_replacement(D.vals, N))
+    pdf_dict = {v: p for v, p in zip(D.vals, D.probs)}
     vals = []
     probs = []
     FACTORIAL_N = utils.factorial(N)
     for roll in all_rolls_and_probs:
       vals.append(Seq(sorted(roll, reverse=True)))  # TODO sort_and_group getting a list[Seq] instead of list[float], can this cause errors? in groupping because of ==?
       counts = {v: roll.count(v) for v in roll}
-      probs.append(FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values()))
+      cur_roll_combination_count = FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values())
+      cur_roll_probs = math.prod(pdf_dict[v]**c for v, c in counts.items())  # if D is a uniform then this = 1 and is not needed.
+      probs.append(cur_roll_combination_count * cur_roll_probs)
     return RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
 
   def _apply_operation(self, operation: Callable[[float], float]):
