@@ -148,18 +148,26 @@ class RV:
       return tuple(Seq(i) for i in D.vals), D.probs
     all_rolls_and_probs = tuple(combinations_with_replacement(D.vals, N))
     pdf_dict = {v: p for v, p in zip(D.vals, D.probs)}
-    vals = []
-    probs = []
+    vals = [None] * len(all_rolls_and_probs)
+    probs = [None] * len(all_rolls_and_probs)
     FACTORIAL_N = utils.factorial(N)
-    for roll in all_rolls_and_probs:
-      vals.append(Seq(_INTERNAL_SEQ_VALUE=roll[::-1], _INTERNAL_SKIP_FLATTEN=True))  # TODO sort_and_group getting a list[Seq] instead of list[float], can this cause errors? in groupping because of ==?
-      counts = defaultdict(int)  # fast counts
-      for v in roll:
-        counts[v] += 1
+    for i, roll in enumerate(all_rolls_and_probs):
+      v = Seq(_INTERNAL_SEQ_VALUE=roll[::-1], _INTERNAL_SKIP_FLATTEN=True)
+      vals[i] = v  # TODO sort_and_group getting a list[Seq] instead of list[float], can this cause errors? in groupping because of ==?
 
-      cur_roll_combination_count = FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values())
-      cur_roll_probs = math.prod(pdf_dict[v]**c for v, c in counts.items())  # if D is a uniform then this = 1 and is not needed.
-      probs.append(cur_roll_combination_count * cur_roll_probs)
+      counts = defaultdict(int)  # fast counts
+      cur_roll_probs = 1  # this is p(x_1)*...*p(x_n) where [x_1,...,x_n] is the current roll, if D is a uniform then this = 1 and is not needed.
+      comb_with_repl_denominator = 1
+      for v in roll:
+        cur_roll_probs *= pdf_dict[v]
+        counts[v] += 1
+        comb_with_repl_denominator *= counts[v]
+      cur_roll_combination_count = FACTORIAL_N // comb_with_repl_denominator
+      # UNOPTIMIZED:
+      # counts = {v: roll.count(v) for v in set(roll)}
+      # cur_roll_combination_count = FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values())
+      # cur_roll_probs = math.prod(pdf_dict[v]**c for v, c in counts.items())  # if D is a uniform then this = 1 and is not needed.
+      probs[i] = cur_roll_combination_count * cur_roll_probs
     return vals, probs
 
   def _apply_operation(self, operation: Callable[[float], float]):
