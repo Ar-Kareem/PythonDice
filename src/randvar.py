@@ -147,11 +147,10 @@ class RV:
     if N == 1:  # answer is simple (ALSO cannot use simplified formula for probs and bottom code WILL cause errors)
       return tuple(Seq(i) for i in D.vals), D.probs
     pdf_dict = {v: p for v, p in zip(D.vals, D.probs)}
-    all_rolls_and_probs = tuple(combinations_with_replacement(D.vals[::-1], N))
-    vals = [Seq(_INTERNAL_SEQ_VALUE=roll) for roll in all_rolls_and_probs]
-    probs = [None] * len(all_rolls_and_probs)
+    vals, probs = [], []
     FACTORIAL_N = utils.factorial(N)
-    for i, roll in enumerate(all_rolls_and_probs):
+    for roll in combinations_with_replacement(D.vals[::-1], N):
+      vals.append(Seq(_INTERNAL_SEQ_VALUE=roll))
       counts = defaultdict(int)  # fast counts
       cur_roll_probs = 1  # this is p(x_1)*...*p(x_n) where [x_1,...,x_n] is the current roll, if D is a uniform then this = 1 and is not needed.
       comb_with_repl_denominator = 1
@@ -160,11 +159,11 @@ class RV:
         counts[v] += 1
         comb_with_repl_denominator *= counts[v]
       cur_roll_combination_count = FACTORIAL_N // comb_with_repl_denominator
-      probs[i] = cur_roll_combination_count * cur_roll_probs
       # UNOPTIMIZED:
       # counts = {v: roll.count(v) for v in set(roll)}
       # cur_roll_combination_count = FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values())
       # cur_roll_probs = math.prod(pdf_dict[v]**c for v, c in counts.items())  # if D is a uniform then this = 1 and is not needed.
+      probs.append(cur_roll_combination_count * cur_roll_probs)
     return vals, probs
 
   def _apply_operation(self, operation: Callable[[float], float]):
