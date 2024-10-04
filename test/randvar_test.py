@@ -139,6 +139,26 @@ def test_RV_std(v, p, std):
     a = RV(v, p)
     assert abs(a.std() - std) < 1e-10, a.std()**2  # type: ignore
 
+@pytest.mark.parametrize("v, p, cdf_probs", [
+    ((1, ), (1, ), (1, )),
+    ((1, 2, 3), (1, 1, 1), (1, 2, 3)),
+    ((2, 1, 3), (1, 1, 1), (1, 2, 3)),
+    ((1, 2, 3), (2, 2, 2), (1, 2, 3)),
+    ((1, 2, 3), (4, 4, 2), (2, 4, 5)),
+    ((1.1, 2.1, 3.1), (1, 1, 1), (1, 2, 3)),
+    ([], [], (1, )),
+    ((1, 1, 3), (1, 5, 1), (6, 7)),
+    ((1, 1, 3, 3), (2, 6, 2, 4), (4, 7)),
+    ((3, 3, 1, 1), (2, 6, 2, 4), (3, 7)),
+    ((3, 1, 3, 1), (2, 6, 2, 4), (5, 7)),
+    ((3, 1, 3, 1, 5), (2, 6, 2, 4, 0), (5, 7)),
+    ((1, 1, 1, 1), (2, 6, 2, 4), (1, )),
+])
+def test_RV_CDF(v, p, cdf_probs):
+    a = RV(v, p)
+    b = a.get_cdf()
+    assert (b.vals, b.probs) == (a.vals, cdf_probs)
+
 @pytest.mark.parametrize("cdf_cut, rv, rv_res", [
     (0,     RV((1, 2, 3), (1, 9, 90)),            ((1, .01), (2, .09), (3, .9),  )), 
     (0.05,  RV((1, 2, 3), (1, 9, 90)),            (          (2, .09), (3, .9),  )),
@@ -160,7 +180,7 @@ def test_RV_std(v, p, std):
     (0.5,   RV((1, 2, 3), (1, 90, 9)),            (          (2, .9),           )), 
     (0.999, RV((1, 2, 3), (1, 90, 9)),            (          (2, .9),           )), 
 ])
-def test_RV_cdf(cdf_cut, rv: RV, rv_res):
+def test_RV_pdf(cdf_cut, rv: RV, rv_res):
     vp = rv.get_vals_probs(cdf_cut)
     assert vp == rv_res, f'{vp} != {rv_res} | {cdf_cut}'
 

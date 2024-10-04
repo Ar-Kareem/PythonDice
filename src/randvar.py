@@ -126,6 +126,13 @@ class RV:
       vals_probs = tuple((v, p) for v, p in vals_probs if v not in vals_to_cut)
     return vals_probs
 
+  def get_cdf(self):
+    '''Get CDF as RV where CDF(x) = P(X <= x)'''
+    cdf_vals = self.vals
+    from itertools import accumulate
+    cdf_probs = accumulate(self.probs)
+    return RV(cdf_vals, cdf_probs)
+
   def output(self, *args, **kwargs):
     return output(self, *args, **kwargs)
 
