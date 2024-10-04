@@ -175,14 +175,31 @@ class RV:
       other = other.sum()
     return RV([operation(other, v) for v in self.vals], self.probs)
 
-  def  __rmatmul__(self, other:T_ifs):
+  def  __rmatmul__(self, other:T_is):
     # ( other @ self:RV )
     # DOCUMENTATION: https://anydice.com/docs/introspection/  look for "Accessing" -> "Collections of dice" and "A single die"
     assert not isinstance(other, RV), 'unsupported operand type(s) for @: RV and RV'
     other = Seq([other])
     assert all(isinstance(i, int) for i in other._seq), 'indices must be integers'
-    # ignore type error because of the decorator
-    return _sum_at(self, other) # type: ignore
+    if len(other) == 1:  # only one index, return the value at that index
+      k: int = other._seq[0] # type: ignore
+      return self._source_die._get_kth_order_statistic(self._source_roll, k)
+    return _sum_at(self, other) # type: ignore 
+
+  def _get_kth_order_statistic(self, draws: int, k: int):
+    '''Get the k-th smallest value of n draws: k@RV where RV is n rolls of a die'''
+    # k-th largest value of n draws: γ@RV where RV is n rolls of a die | FOR DISCRETE (what we need): https://en.wikipedia.org/wiki/Order_statistic#Dealing_with_discrete_variables
+    N = draws
+    k = N - k + 1  # wikipedia uses (k)-th smallest, we want (k)-th largest
+    cdf = self.get_cdf().probs  # P(X <= x)
+    sum_probs = self._get_sum_probs()
+    p1 = tuple(cdf_x-p_x for p_x, cdf_x in zip(self.probs, cdf))  # P(X < x)
+    p2 = self.probs # P(X = x)
+    p3 = tuple(sum_probs-cdf_x for cdf_x in cdf)  # P(X > x)
+    def get_x(xi, k):
+      return sum(math.comb(N, j) * (p3[xi]**j * (p1[xi]+p2[xi])**(N-j) - (p2[xi]+p3[xi])**j * p1[xi]**(N-j)) for j in range(N-k +1))
+    res_prob = [get_x(xi, k) for xi in range(len(self.vals))]
+    return RV(self.vals, res_prob)
 
   def __add__(self, other:T_ifsr):
     return self._convolve(other, operator.add)

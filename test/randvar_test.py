@@ -340,3 +340,7 @@ def test_truncate():
     assert not RV.dices_are_equal(b, c)
     assert not RV.dices_are_equal(b, d)
     randvar.RV_AUTO_TRUNC = False
+
+def test_fast_matmul():
+    r = (2@roll(4, (roll(4) + roll(3, 8) + roll(12)))).get_vals_probs(cdf_cut=0.5)  # type: ignore
+    assert '|'.join(f'{v}:{p:.4f}' for v, p in r) == '22:0.0976|23:0.1124|24:0.1186|25:0.1148|26:0.1019'
