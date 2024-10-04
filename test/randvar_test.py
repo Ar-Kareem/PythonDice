@@ -284,6 +284,9 @@ def test_output():
 
 @pytest.mark.parametrize("l, r, l_at_r", [
     (1,         roll(2, 4),   RV((1, 2, 3, 4), (1, 3, 5, 7))),   # NUM @ DIE
+    (1,         roll(2, 2),   RV((1, 2), (1, 3))),   # NUM @ DIE
+    (1,    roll(2)+roll(2),   RV((2, 3, 4), (1, 2, 1))),   # NUM @ (DIE+DIE)
+    (2,    roll(2)+roll(2),   RV((0, ), (1, ))),   # NUM @ (DIE+DIE)
     (Seq(1, 2), roll(2, 4),   RV((2, 3, 4, 5, 6, 7, 8), (1, 2, 3, 4, 3, 2, 1))),   # SEQ @ DIE
     (Seq(1,2),  roll(3, 6),   RV((2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), (1, 3, 7, 12, 19, 27, 34, 36, 34, 27, 16))),   # SEQ @ DIE [in docs]
     (3,         roll(2, 4),   RV((0, ), (1, ))),   # NUM @ DIE OOB

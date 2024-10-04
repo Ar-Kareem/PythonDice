@@ -105,6 +105,7 @@ def test_cast_dice_to_seq():
         return SEQUENCE
     assert RV.dices_are_equal(p(Seq(1, 2, 2, 3)), RV((1, 2, 3), (1, 2, 1)))
     assert RV.dices_are_equal(p(roll(2, 2)), RV((2, 3, 4), (1, 2, 1)))  # type: ignore
+    assert RV.dices_are_equal(p(roll(2)+roll(2)), RV((2, 3, 4), (1, 2, 1)))  # type: ignore
 
 def test_cast_then_matmul():
     @randvar.anydice_casting()
