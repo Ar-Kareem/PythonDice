@@ -107,6 +107,23 @@ def test_cast_dice_to_seq():
     assert RV.dices_are_equal(p(roll(2, 2)), RV((2, 3, 4), (1, 2, 1)))  # type: ignore
     assert RV.dices_are_equal(p(roll(2)+roll(2)), RV((2, 3, 4), (1, 2, 1)))  # type: ignore
 
+
+@pytest.mark.parametrize("rv, vals, probs", [
+    (roll(5, 8),  (1, 999), (15961, 16807)), 
+    (roll(8)+roll(8)+roll(8)+roll(8)+roll(8), (999, ), (1, ) ), 
+    (roll(8), (1, 999), (1, 7) ), 
+    (roll(2, 8), (1, 999), (15, 49) ), 
+    (roll(8)+roll(8), (1, 999), (1, 63) ), 
+])
+def test_cast_dice_to_seq_more(rv, vals, probs):
+    @anydice_casting()
+    def b(S:Seq):
+        if S == 2:
+            return 1
+        return 999
+    a = b(rv)
+    assert (a.vals, a.probs) == (vals, probs)
+
 def test_cast_then_matmul():
     @randvar.anydice_casting()
     def count(V, SEQUENCE:Seq, *args):

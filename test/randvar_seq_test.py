@@ -118,7 +118,21 @@ def test_seq_arith_mod(s1, t1, s2, t2):
 ])
 def test_seq_comp_eq(l1, l2, b):
     bb = Seq(*l1) == Seq(*l2)
-    assert bb == b, f'{l1} == {l2}'
+    assert bb == b, f'{l1} == {l2} should be {b}'
+
+@pytest.mark.parametrize("l1, n, b", [
+    ((roll(2, 3), 10), 1, False),
+    ((roll(2, 3), 10), 2, True),
+    ((roll(2, 3), 10), 6, True),
+    ((roll(2, 3), 10), 7, False),
+    ((roll(2, 3), 10), 9, False),
+    ((roll(2, 3), 10), 10, True),
+])
+def test_seq_comp_eq(l1, n, b):
+    bb = Seq(*l1) == n
+    assert bb == b, f'{l1} == {n} should be {b}'
+
+
 
 @pytest.mark.parametrize("l1, l2, b", [
     ((1, 2), (2, 1), True),

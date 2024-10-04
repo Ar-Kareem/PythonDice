@@ -136,12 +136,14 @@ class RV:
 
   def _get_expanded_possible_rolls(self):
     N, D = self._source_roll, self._source_die  # N rolls of D
+    if N == 1:  # answer is simple (ALSO cannot use simplified formula for probs and bottom code WILL cause errors)
+      return tuple(Seq(i) for i in D.vals), D.probs
     all_rolls_and_probs = tuple(combinations_with_replacement(D.vals, N))
     vals = []
     probs = []
     FACTORIAL_N = utils.factorial(N)
     for roll in all_rolls_and_probs:
-      vals.append(Seq(sorted(roll, reverse=True)))
+      vals.append(Seq(sorted(roll, reverse=True)))  # TODO sort_and_group getting a list[Seq] instead of list[float], can this cause errors? in groupping because of ==?
       counts = {v: roll.count(v) for v in roll}
       probs.append(FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values()))
     return RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
