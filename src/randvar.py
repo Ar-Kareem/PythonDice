@@ -282,14 +282,17 @@ class RV:
     return d1.vals == d2.vals and d1.probs == d2.probs
 
 class Seq(Iterable):
-  def __init__(self, *source: T_ifsr):
+  def __init__(self, *source: T_ifsr, _INTERNAL_SKIP_FLATTEN=False):
+    self._sum = None
+    self._one_indexed = 1
+    if _INTERNAL_SKIP_FLATTEN:
+      self._seq: tuple[T_if, ...] = tuple(source)  # type: ignore
+      return
     flat = tuple(utils.flatten(source))
     flat_rvs = [v for x in flat if isinstance(x, RV) for v in x.vals]  # expand RVs
     flat_else: list[T_if] = [x for x in flat if not isinstance(x, RV)]
     assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs'
     self._seq = tuple(flat_else + flat_rvs)
-    self._sum = None
-    self.set_one_indexed(True)
 
   def sum(self):
     if self._sum is None:
