@@ -157,7 +157,7 @@ class RV:
       cur_roll_combination_count = FACTORIAL_N // math.prod(utils.factorial(c) for c in counts.values())
       cur_roll_probs = math.prod(pdf_dict[v]**c for v, c in counts.items())  # if D is a uniform then this = 1 and is not needed.
       probs.append(cur_roll_combination_count * cur_roll_probs)
-    return RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
+    return vals, probs
 
   def _apply_operation(self, operation: Callable[[float], float]):
     return RV([operation(v) for v in self.vals], self.probs)
