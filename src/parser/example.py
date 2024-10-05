@@ -14,8 +14,8 @@ reserved = {k: k.upper() for k in reserved}
 
 tokens = [ 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
             'COLON', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS', 'AT', 
-            'COMMENT', 'HASH', 'OR', 'AND', 'EXCLAMATION',
-            'PERIOD', 'COMMA', 'UNDERSCORE', 
+            'HASH', 'OR', 'AND',
+            'DOT', 'COMMA', 'UNDERSCORE', 
             'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE', 'LBRACKET', 'RBRACKET',
             'LOWERNAME', 'UPPERNAME', 'NUMBER', 
             'D_OP',
@@ -44,9 +44,8 @@ t_AT = r'\@'
 t_HASH = r'\#'
 t_OR = r'\|'
 t_AND = r'&'
-t_EXCLAMATION = r'!'
 
-t_PERIOD = r'\.'
+t_DOT = r'\.'
 t_COMMA = r','
 t_UNDERSCORE = r'_'
 
@@ -61,7 +60,7 @@ t_UPPERNAME = r'[A-Z][A-Z]*'
 
 # A function can be used if there is an associated action.
 # Write the matching regex in the docstring.
-def t_COMMENT(t):
+def t_ignore_COMMENT(t):
     r'\\(.|\n)*?\\'
     # comment is any number of chars (including new lines) begining with \ and ending with \
     pass
@@ -334,13 +333,25 @@ def p_term_seq(p):
         p[0] = ('seq', p[2])  # Non-empty seq
 def p_elements(p):
     '''
-    elements : elements COMMA expression
-             | expression
+    elements : elements COMMA element
+             | element
     '''
     if len(p) == 4:
         p[0] = p[1] + [p[3]]  # Append the new element
     else:
-        p[0] = [p[1]]  # Single element in the seq
+        p[0] = [p[1]]  # Single element in the set
+def p_element(p):
+    '''
+    element : expression
+            | range
+    '''
+    p[0] = p[1]
+def p_range(p):
+    '''
+    range : expression DOT DOT expression
+    '''
+    p[0] = ('range', p[1], p[4])  # p[1] is expression1, p[4] is expression2
+# Rule for function calls [ ... ]
 def p_term_call(p):
     '''
     term : LBRACKET call_elements RBRACKET
@@ -371,12 +382,9 @@ def p_ignored_tokens(p):
             | IF
             | ELSE
 
-            | COMMENT
             | HASH
             | OR
             | AND
-            | EXCLAMATION
-            | PERIOD
 '''
 
 #     # No action is taken for ignored tokens; simply return nothing or None.

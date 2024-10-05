@@ -225,7 +225,7 @@ r'''
 output 1d1
 ''',
 r'''
-output 2 > 3
+output {2*3..4@4}
 output [figher damage roll]+[figher damage roll]+[rogue damage roll] named "Who's yer daddy?"
 __A_ : 2 + 3 * {2, {}} / 5 @ 2
 output A
@@ -245,7 +245,6 @@ to_parse = trials[-1]
 # to_parse = '\n'.join(trials)
 
 lexer.input(to_parse)
-# lexer.input(trials[-2])
 tokens = [x for x in lexer]
 
 for x in ILLEGAL_CHARS:
