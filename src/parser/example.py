@@ -162,8 +162,8 @@ def p_main_expression(p):
     main : OUTPUT expression
         |  OUTPUT expression NAMED string
 
-        |  FUNCTION COLON funcname LBRACE RBRACE
-        |  FUNCTION COLON funcname LBRACE funccode RBRACE
+        |  FUNCTION COLON funcname_def LBRACE RBRACE
+        |  FUNCTION COLON funcname_def LBRACE funccode RBRACE
 
         | code
     '''
@@ -205,7 +205,10 @@ def p_var_name(p):
                     | var_name UNDERSCORE
                     | var_name UPPERNAME
     '''
-    p[0] = p[1]
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[1] + p[2]
 
 def p_var_assign(p):
     '''
@@ -232,14 +235,14 @@ def p_strvar_instring(p):
     '''
     p[0] = ('strvar', p[1][1:-1])
 
-def p_funcname(p):
+def p_funcname_def(p):
     '''
-    funcname : LOWERNAME
-            |  funcname LOWERNAME
-            |  funcname var_name COLON LOWERNAME 
+    funcname_def : LOWERNAME
+            |  funcname_def LOWERNAME
+            |  funcname_def var_name COLON LOWERNAME 
     '''
     if len(p) == 2:
-        p[0] = ('funcname', p[1])
+        p[0] = ('funcname_def', p[1])
     elif len(p) == 3:
         p[0] = (*p[1], p[2])
     else:
@@ -254,6 +257,7 @@ precedence = (
     ('left', 'AT'),  # Assuming @ is left-associative
     ('left', 'D_OP'),  # 'd' operator must come after other operators
     ('right', 'UMINUS', 'UPLUS'),  # Unary minus and plus have the highest precedence
+    ('left', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS'),  # Comparison operators
 )
 
 # Parsing rules
@@ -266,16 +270,26 @@ def p_expression_binop(p):
                | expression POWER expression
                | expression AT expression
     '''
-    p[0] = ('binop', p[2], p[1], p[3])
+    p[0] = ('expr_op', p[2], p[1], p[3])
 def p_expression_dop(p):
     '''
     expression : term D_OP term %prec D_OP
                | D_OP term %prec D_OP
     '''
     if len(p) == 4:
-        p[0] = ('d_op', p[1], p[3])  # case: n d m
+        p[0] = ('expr_op', p[1], p[3])  # case: n d m
     else:
-        p[0] = ('d_op_single', p[2])  # case: d m
+        p[0] = ('expr_op', p[2])  # case: d m
+def p_expression_comparison(p):
+    '''
+    expression : expression LESS expression
+               | expression GREATER expression
+               | expression EQUALS expression
+               | expression NOTEQUALS expression
+               | expression LESS EQUALS expression
+               | expression GREATER EQUALS expression
+    '''
+    p[0] = ('expr_op', p[2], p[1], p[3])
 
 def p_expression_term(p):
     '''
@@ -327,6 +341,23 @@ def p_elements(p):
         p[0] = p[1] + [p[3]]  # Append the new element
     else:
         p[0] = [p[1]]  # Single element in the seq
+def p_term_call(p):
+    '''
+    term : LBRACKET call_elements RBRACKET
+    '''
+    p[0] = ('call', p[2])  # Represent the CALL operation
+
+def p_call_elements(p):
+    '''
+    call_elements : call_elements LOWERNAME
+                  | call_elements expression
+                  | LOWERNAME
+                  | expression
+    '''
+    if len(p) == 3:  # Either LOWERNAME or expression
+        p[0] = p[1] + [p[2]]
+    else:
+        p[0] = [p[1]]  # Single element
 
 
 
@@ -340,24 +371,12 @@ def p_ignored_tokens(p):
             | IF
             | ELSE
 
-            | POWER
-
-            | LESS
-            | GREATER
-            | EQUALS
-            | NOTEQUALS
-            | AT
-
             | COMMENT
             | HASH
             | OR
             | AND
             | EXCLAMATION
             | PERIOD
-            | UNDERSCORE
-            
-            | LBRACKET
-            | RBRACKET
 '''
 
 #     # No action is taken for ignored tokens; simply return nothing or None.

@@ -225,8 +225,9 @@ r'''
 output 1d1
 ''',
 r'''
-output 2 ^ 3 ^ 2
-A : 2 + 3 * {2, {}} / 5 @ 2
+output 2 > 3
+output [figher damage roll]+[figher damage roll]+[rogue damage roll] named "Who's yer daddy?"
+__A_ : 2 + 3 * {2, {}} / 5 @ 2
 output A
 output 2d2
 function: rand B:s name a {}
