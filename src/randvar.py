@@ -201,7 +201,8 @@ class RV:
     '''Get the k-th smallest value of n draws: k@RV where RV is n rolls of a die'''
     # k-th largest value of n draws: γ@RV where RV is n rolls of a die | FOR DISCRETE (what we need): https://en.wikipedia.org/wiki/Order_statistic#Dealing_with_discrete_variables
     N = draws
-    k = N - k + 1  # wikipedia uses (k)-th smallest, we want (k)-th largest
+    if SETTINGS.get("position order", "highest first") == "highest first":
+      k = N - k + 1  # wikipedia uses (k)-th smallest, we want (k)-th largest
     if k < 1 or k > N:
       return 0
     cdf = self.get_cdf().probs  # P(X <= x)
@@ -301,7 +302,7 @@ class Seq(Iterable):
     flat = tuple(utils.flatten(source))
     flat_rvs = [v for x in flat if isinstance(x, RV) for v in x.vals]  # expand RVs
     flat_else: list[T_if] = [x for x in flat if not isinstance(x, RV)]
-    assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs'
+    assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs. Seq:' + str(flat_else)
     self._seq = tuple(flat_else + flat_rvs)
 
   def sum(self):
@@ -571,6 +572,8 @@ def myrange(l, r):
 
 SETTINGS = {}
 def settings_set(name, value):
+  if name == "position order":
+    assert value in ("highest first", "lowest first"), 'position order must be "highest first" or "lowest first"'
   SETTINGS[name] = value
 
 def output(rv: T_isr, named=None, show_pdf=True, blocks_width=170, print_=True, cdf_cut=0):
