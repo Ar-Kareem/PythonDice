@@ -131,10 +131,10 @@ class PythonResolver:
                 if isinstance(x, str):
                     name.append(x)
                 else:  # expression
-                    args.append(self.resolve_node(x))
+                    args.append(str(self.resolve_node(x)))
                     name.append('X')
             name = '_'.join(name)
-            return f'{name}({", ".join(args)})'
+            return f'{name}({", ".join(args)})' if args else f'{name}()'
 
 
         else:
