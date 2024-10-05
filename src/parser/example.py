@@ -124,13 +124,15 @@ def t_ANY_ignore_newline(t):
     t.lexer.lineno += t.value.count('\n')
 
 # Error handler for illegal characters
+ILLEGAL_CHARS = []
 def t_ANY_error(t):
     print(f'Illegal character {t.value[0]!r}')
+    ILLEGAL_CHARS.append(t.value[0])
     t.lexer.skip(1)
 
 # Build the lexer object
 lexer = lex()
-    
+
 # --- Parser
 
 # # Write functions for each grammar rule which is

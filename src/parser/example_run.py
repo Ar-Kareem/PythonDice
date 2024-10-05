@@ -1,8 +1,8 @@
+import logging
 from parser import parsetest
 
 trials = [
-
-'''
+r'''
 function: balanced RANK:n from FIVE:s {
  SIXTH: 72 - FIVE
  if SIXTH < 3 | SIXTH > 18 {
@@ -210,7 +210,6 @@ function: return crit or miss with damage DAMAGE:d { result: [is d20 a crit or m
 
 function: figher damage roll { result: [return crit or miss with damage 2d[gwf with die d6]]+5 }
 function: rogue damage roll { result: [return crit or miss with damage 4d6]+4 }
-
 output 1d6+4 named "rogue, do something useful"
 output [figher damage roll] named "figher (one hit)"
 output [rogue damage roll] named "rogue (sneak attack)"
@@ -227,12 +226,23 @@ output 1d1
 '''
 ]
 
-# a = parsetest.do_parse(trials[-1], reload_module=True)
+def setup_logging(filename):
+    logging.basicConfig(filename=filename, level=logging.DEBUG, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.getLogger().addHandler(logging.StreamHandler())
+
+setup_logging('./log/example_run.log')
 
 
 
-a = parsetest.do_lexer('\n'.join(trials))
-for x in a: 
-    # print(x)
-    if isinstance(x, str):
-        print(x)
+from .example import lexer, ILLEGAL_CHARS
+
+lexer.input('\n'.join(trials))
+# lexer.input(trials[-2])
+tokens = [x for x in lexer]
+
+for x in ILLEGAL_CHARS:
+    logging.debug(f'Illegal character {x!r}')
+logging.debug('Tokens:')
+for x in tokens:
+    logging.debug(x)
+
