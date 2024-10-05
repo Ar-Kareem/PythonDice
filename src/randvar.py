@@ -564,6 +564,8 @@ def _roll_int_rv(n: int, d: RV) -> RV:
   _MEMOIZED[(n, d)] = full
   return full
 
+def myrange(l, r):
+  return range(l, r+1)
 
 def output(rv: T_isr, named=None, show_pdf=True, blocks_width=170, print_=True, cdf_cut=0):
   if isinstance(rv, int) or isinstance(rv, Iterable):
