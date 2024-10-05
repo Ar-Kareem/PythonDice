@@ -225,12 +225,9 @@ r'''
 output 1d1
 ''',
 r'''
-output 1 named "output[A][B ] 1"
-output (1+2*5)
-output 3
-output 4
-output 5
-output 6
+A :2 + 2
+output A
+function: rand name a {}
 '''
 ]
 
@@ -251,9 +248,9 @@ tokens = [x for x in lexer]
 for x in ILLEGAL_CHARS:
     logging.debug(f'Illegal character {x!r}')
 
-# logging.debug('Tokens:')
-# for x in tokens:
-#     logging.debug(x)
+logging.debug('Tokens:')
+for x in tokens:
+    logging.debug(x)
 
 logging.debug('Yacc Parsing:')
 for x in yacc_parser.parse(to_parse):

@@ -142,11 +142,16 @@ lexer = lex()
 #
 # -----------------------------------------------------------------------------
 
-def p_base_output_expr(p):
+precedence = (
+    ('left', 'PLUS', 'MINUS'),
+    ('left', 'TIMES', 'DIVIDE'),
+)
+
+def p_start(p):
     '''
-    base : main
-        |  base main
-        |  base ignored_tokens
+    start : main
+        |  start main
+        |  start ignored_tokens
     '''
     if len(p) == 2:
         p[0] = (p[1], )
@@ -157,14 +162,48 @@ def p_main_expression(p):
     '''
     main : OUTPUT expression
         |  OUTPUT expression NAMED string
-        |  FUNCTION LBRACE expression RBRACE
+
+        |  FUNCTION COLON funcname LBRACE RBRACE
+        |  FUNCTION COLON funcname LBRACE funccode RBRACE
+
+        | code
     '''
-    if len(p) == 3:
-        p[0] = ('output', p[2])
-    elif len(p) == 3 and p[1] == 'function':
+    if p[1] == 'output':
+        if len(p) == 3:
+            p[0] = ('output', p[2])
+        else:
+            p[0] = ('output_named', p[2], p[4])
+    elif p[1] == 'function':
         p[0] = ('function', p[3])
+    elif len(p) == 2:
+        p[0] = p[1]
+
+def p_func_code(p):
+    '''
+    funccode : LOWERNAME COLON expression
+            |  code
+            |  funccode LOWERNAME COLON expression
+            |  funccode code
+    '''
+    if len(p) == 2:
+        p[0] = ('funccode', p[1])
+    elif len(p) == 3:
+        p[0] = ('funccode', *p[1], p[2])
+    elif len(p) == 4:
+        assert p[1] == 'result', 'what does this mean? ' + str(p[1])
+        result = ('result', p[3])
+        p[0] = ('funccode', *p[1], result)
     else:
-        p[0] = ('output_named', p[2], p[4])
+        assert p[2] == 'result', 'what does this mean? ' + str(p[2])
+        result = ('result', p[4])
+        p[0] = ('funccode', *p[1], result)
+
+
+def p_var_assign(p):
+    '''
+    code : UPPERNAME COLON expression
+    '''
+    p[0] = ('var_assign', p[1], p[3])
 
 def p_string_instring(p):
     '''
@@ -179,12 +218,24 @@ def p_string_instring(p):
         p[0] = ('concat_string', p[1], p[2])
     else:
         p[0] = ('string', p[1])
-
 def p_strvar_instring(p):
     '''
     strvar : INSTRING_VAR
     '''
     p[0] = ('strvar', p[1][1:-1])
+
+def p_funcname(p):
+    '''
+    funcname : LOWERNAME
+            |  funcname LOWERNAME
+            |  funcname UPPERNAME COLON LOWERNAME 
+    '''
+    if len(p) == 2:
+        p[0] = ('funcname', p[1])
+    elif len(p) == 3:
+        p[0] = (*p[1], p[2])
+    else:
+        p[0] = (*p[1], ('param', p[3], p[4]))
 
 def p_expression_term_binop(p):
     '''
@@ -201,7 +252,7 @@ def p_expression_term(p):
 
 def p_term_factor_binop(p):
     '''
-    term : factor TIMES factor
+    factor : factor TIMES factor
          | factor DIVIDE factor
     '''
     p[0] = ('binop', p[2], p[1], p[3])
@@ -218,11 +269,11 @@ def p_factor_number(p):
     '''
     p[0] = ('number', p[1])
 
-# def p_factor_name(p):
-#     '''
-#     factor : NAME
-#     '''
-#     p[0] = ('name', p[1])
+def p_factor_name(p):
+    '''
+    factor : UPPERNAME
+    '''
+    p[0] = ('var_read', p[1])
 
 def p_factor_unary(p):
     '''
@@ -251,7 +302,6 @@ def p_ignored_tokens(p):
 
             | POWER
 
-            | COLON
             | LESS
             | GREATER
             | EQUALS
@@ -272,7 +322,6 @@ def p_ignored_tokens(p):
             | LBRACKET
             | RBRACKET
             | LOWERNAME
-            | UPPERNAME
 '''
 
 #     # No action is taken for ignored tokens; simply return nothing or None.
