@@ -250,8 +250,9 @@ def p_funcname(p):
 precedence = (
     ('left', 'PLUS', 'MINUS'),
     ('left', 'TIMES', 'DIVIDE'),
-    ('right', 'POWER'),
+    ('left', 'POWER'),
     ('left', 'AT'),  # Assuming @ is left-associative
+    ('left', 'D_OP'),  # 'd' operator must come after other operators
     ('right', 'UMINUS', 'UPLUS'),  # Unary minus and plus have the highest precedence
 )
 
@@ -266,6 +267,15 @@ def p_expression_binop(p):
                | expression AT expression
     '''
     p[0] = ('binop', p[2], p[1], p[3])
+def p_expression_dop(p):
+    '''
+    expression : term D_OP term %prec D_OP
+               | D_OP term %prec D_OP
+    '''
+    if len(p) == 4:
+        p[0] = ('d_op', p[1], p[3])  # case: n d m
+    else:
+        p[0] = ('d_op_single', p[2])  # case: d m
 
 def p_expression_term(p):
     '''
