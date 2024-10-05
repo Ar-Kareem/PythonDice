@@ -9,7 +9,7 @@ states = (
     ('instring','exclusive'),
 )
 
-reserved = ('output','function','loop','named','set','if','else','result')
+reserved = ('output','function','loop','over','named','set','if','else','result')
 reserved = {k: k.upper() for k in reserved}
 
 tokens = [ 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
@@ -147,22 +147,45 @@ lexer = lex()
 
 def p_start(p):
     '''
-    start : main
-        |  start main
-        |  start ignored_tokens
+    start : outercode
     '''
-    if len(p) == 2:
-        p[0] = (p[1], )
-    else:
-        p[0] = (*p[1], p[2])
+    p[0] = p[1]
 
-def p_main_expression(p):
+def p_multi_outercode(p):
     '''
-    main : OUTPUT expression
+    outercode : outercode outercode
+    '''
+    if p[1][0] == 'multi':
+        left = p[1][1:]
+    else:
+        left = [p[1]]
+    if p[2][0] == 'multi':
+        right = p[2][1:]
+    else:
+        right = [p[2]]
+    p[0] = ('multi', *left, *right)
+
+def p_outercode_ignore(p):
+    '''
+    outercode : outercode ignored_tokens
+    '''
+    p[0] = p[1]
+
+def p_outercode(p):
+    '''
+    outercode : OUTPUT expression
         |  OUTPUT expression NAMED string
 
-        |  FUNCTION COLON funcname_def LBRACE RBRACE
-        |  FUNCTION COLON funcname_def LBRACE funccode RBRACE
+        |  FUNCTION COLON funcname_def LBRACE outercode RBRACE
+
+        |  LOOP var_name OVER expression LBRACE outercode RBRACE
+
+        |  IF expression LBRACE outercode RBRACE
+        |  IF expression LBRACE outercode RBRACE ELSE LBRACE outercode RBRACE
+        |  IF expression LBRACE outercode RBRACE ELSEIF
+        |  IF expression LBRACE outercode RBRACE ELSEIF ELSE LBRACE outercode RBRACE
+
+        |  RESULT COLON expression
 
         | code
     '''
@@ -173,28 +196,38 @@ def p_main_expression(p):
             p[0] = ('output_named', p[2], p[4])
     elif p[1] == 'function':
         p[0] = ('function', p[3])
-    elif len(p) == 2:
-        p[0] = p[1]
-
-def p_func_code(p):
-    '''
-    funccode : RESULT COLON expression
-            |  code
-            |  funccode RESULT COLON expression
-            |  funccode code
-    '''
-    if len(p) == 2:
-        p[0] = ('funccode', p[1])
-    elif len(p) == 3:
-        p[0] = ('funccode', *p[1], p[2])
+    elif p[1] == 'loop':
+        code = None if len(p) == 7 else p[6]
+        p[0] = ('loop', p[2], p[4], code)
+    elif p[1] == 'if':
+        if_expr_code = ('if', p[2], p[4])
+        if len(p) == 6:
+            p[0] = if_expr_code
+        elif len(p) == 10:
+            p[0] = (*if_expr_code, 'else', p[8])
+        elif len(p) == 7:
+            p[0] = (*if_expr_code, *p[6])
+        elif len(p) == 11:
+            p[0] = (*if_expr_code, *p[6], 'else', p[9])
+        else:
+            assert False, f'{len(p)}, {p}'
     elif len(p) == 4:
         assert p[1] == 'result', 'what does this mean? ' + str(p[1])
-        result = ('result', p[3])
-        p[0] = ('funccode', *p[1], result)
+        p[0] = ('result', p[3])
+    elif len(p) == 2:
+        p[0] = p[1]
     else:
-        assert p[2] == 'result', 'what does this mean? ' + str(p[2])
-        result = ('result', p[4])
-        p[0] = ('funccode', *p[1], result)
+        assert False, f'{len(p)}, {p}'
+
+def p_outercode_elif(p):
+    '''
+    ELSEIF :  ELSE IF expression LBRACE outercode RBRACE
+            | ELSEIF ELSE IF expression LBRACE outercode RBRACE
+    '''
+    if p[1] == 'else':
+        p[0] = ('elseif', p[3], p[5])
+    else:
+        p[0] = (*p[1], p[4], p[6])
 
 
 def p_var_name(p):
@@ -239,6 +272,7 @@ def p_funcname_def(p):
     funcname_def : LOWERNAME
             |  funcname_def LOWERNAME
             |  funcname_def var_name COLON LOWERNAME 
+            |  funcname_def var_name COLON D_OP 
     '''
     if len(p) == 2:
         p[0] = ('funcname_def', p[1])
@@ -276,9 +310,9 @@ def p_expression_dop(p):
                | D_OP term %prec D_OP
     '''
     if len(p) == 4:
-        p[0] = ('expr_op', p[1], p[3])  # case: n d m
+        p[0] = ('expr_op', 'dm', p[1], p[3])  # case: n d m
     else:
-        p[0] = ('expr_op', p[2])  # case: d m
+        p[0] = ('expr_op', 'ndm', p[2])  # case: d m
 def p_expression_comparison(p):
     '''
     expression : expression LESS expression
@@ -377,10 +411,7 @@ def p_error(p):
 
 def p_ignored_tokens(p):
     '''
-    ignored_tokens : LOOP
-            | SET
-            | IF
-            | ELSE
+    ignored_tokens : SET
 
             | HASH
             | OR

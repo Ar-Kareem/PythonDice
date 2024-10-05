@@ -153,7 +153,7 @@ r'''
 A: 2d6
 ''',
 r'''
-function: d a {
+function: da {
 A:1d4
 }
 A: 2d6
@@ -230,7 +230,17 @@ output [figher damage roll]+[figher damage roll]+[rogue damage roll] named "Who'
 __A_ : 2 + 3 * {2, {}} / 5 @ 2
 output A
 output 2d2
-function: rand B:s name a {}
+output 1
+if 1 {if 1 {A:1 A:1}}
+output 1
+if 1=1 {A:1} else {A:2}
+if 1=1 {A:1} else if 1=1 {A:2} else {A:3}
+function: rand B:s name a {A:2}
+''',
+r'''
+output 1
+output 2
+output 3
 '''
 ]
 
@@ -242,7 +252,9 @@ setup_logging('./log/example_run.log')
 
 
 to_parse = trials[-1]
-# to_parse = '\n'.join(trials)
+# to_parse = trials[-7]
+to_parse = '\n'.join(trials)
+# logging.debug(to_parse)
 
 lexer.input(to_parse)
 tokens = [x for x in lexer]
@@ -250,9 +262,9 @@ tokens = [x for x in lexer]
 for x in ILLEGAL_CHARS:
     logging.debug(f'Illegal character {x!r}')
 
-logging.debug('Tokens:')
-for x in tokens:
-    logging.debug(x)
+# logging.debug('Tokens:')
+# for x in tokens:
+#     logging.debug(x)
 
 logging.debug('Yacc Parsing:')
 for x in yacc_parser.parse(to_parse):
