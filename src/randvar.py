@@ -202,6 +202,8 @@ class RV:
     # k-th largest value of n draws: γ@RV where RV is n rolls of a die | FOR DISCRETE (what we need): https://en.wikipedia.org/wiki/Order_statistic#Dealing_with_discrete_variables
     N = draws
     k = N - k + 1  # wikipedia uses (k)-th smallest, we want (k)-th largest
+    if k < 1 or k > N:
+      return 0
     cdf = self.get_cdf().probs  # P(X <= x)
     sum_probs = self._get_sum_probs()
     p1 = tuple(cdf_x-p_x for p_x, cdf_x in zip(self.probs, cdf))  # P(X < x)
