@@ -84,7 +84,7 @@ def t_begin_instring(t):
     t.lexer.begin('instring')             # Starts 'instring' state
 
 t_instring_INSTRING_VAR = r'\[[A-Z]+\]'
-t_instring_INSTRING_NONVAR = r'\[[^"]*+'
+t_instring_INSTRING_NONVAR = r'\[[^"[]*+'
 t_instring_INSTRING_ANY = r'[^"[]+'
 
 def t_instring_end(t):
@@ -207,39 +207,26 @@ lexer = lex()
 def p_start(p):
     '''
     start : outercode
+            | start outercode
     '''
-    if p[1][0] == 'multi':
-        p[0] = p[1][1:]
+    if len(p) == 2:
+        p[0] = [p[1]]
     else:
-        p[0] = p[1]
-
-def p_multi_outercode(p):
-    '''
-    outercode : outercode outercode
-    '''
-    if p[1][0] == 'multi':
-        left = p[1][1:]
-    else:
-        left = [p[1]]
-    if p[2][0] == 'multi':
-        right = p[2][1:]
-    else:
-        right = [p[2]]
-    p[0] = ('multi', *left, *right)
+        p[0] = p[1] + [p[2]]
 
 def p_outercode(p):
     '''
     outercode : OUTPUT expression
         |  OUTPUT expression NAMED string
 
-        |  FUNCTION COLON funcname_def LBRACE outercode RBRACE
+        |  FUNCTION COLON funcname_def LBRACE start RBRACE
 
-        |  LOOP var_name OVER expression LBRACE outercode RBRACE
+        |  LOOP var_name OVER expression LBRACE start RBRACE
 
-        |  IF expression LBRACE outercode RBRACE
-        |  IF expression LBRACE outercode RBRACE ELSE LBRACE outercode RBRACE
-        |  IF expression LBRACE outercode RBRACE ELSEIF
-        |  IF expression LBRACE outercode RBRACE ELSEIF ELSE LBRACE outercode RBRACE
+        |  IF expression LBRACE start RBRACE
+        |  IF expression LBRACE start RBRACE ELSE LBRACE start RBRACE
+        |  IF expression LBRACE start RBRACE ELSEIF
+        |  IF expression LBRACE start RBRACE ELSEIF ELSE LBRACE start RBRACE
 
         |  RESULT COLON expression
         |  SET string TO string
@@ -275,13 +262,13 @@ def p_outercode(p):
 
 def p_outercode_elif(p):
     '''
-    ELSEIF :  ELSE IF expression LBRACE outercode RBRACE
-            | ELSEIF ELSE IF expression LBRACE outercode RBRACE
+    ELSEIF :  ELSE IF expression LBRACE start RBRACE
+            | ELSEIF ELSE IF expression LBRACE start RBRACE
     '''
     if p[1] == 'else':
         p[0] = ('elseif', p[3], p[5])
     else:
-        p[0] = (*p[1], p[4], p[6])
+        p[0] = (*p[1], 'elseif', p[4], p[6])
 
 def p_var_assign(p):
     '''
@@ -401,9 +388,9 @@ def p_expression_dop(p):
                | D_OP term %prec D_OP
     '''
     if len(p) == 4:
-        p[0] = ('expr_op', 'dm', p[1], p[3])  # case: n d m
+        p[0] = ('expr_op', 'ndm', p[1], p[3])  # case: n d m
     else:
-        p[0] = ('expr_op', 'ndm', p[2])  # case: d m
+        p[0] = ('expr_op', 'dm', p[2], None)  # case: d m
 def p_expression_comparison(p):
     '''
     expression : expression LESS expression
