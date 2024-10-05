@@ -38,8 +38,6 @@ class PythonResolver:
             params = self.resolve_node(node[1])
             name = self.resolve_node(node[2])
             return f'{CONST["output"]}({params}, named=f"{name}")'
-        elif node[0] == 'string':
-            return cleanup_string(node[1])
         elif node[0] == 'strvar':
             return '{' + node[1] + '}'
         elif node[0] == 'concat_string':

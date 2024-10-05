@@ -295,7 +295,7 @@ def p_string_instring(p):
     if len(p) == 3:
         p[0] = ('concat_string', p[1], p[2])
     else:
-        p[0] = ('string', p[1])
+        p[0] = p[1]
 def p_strvar_instring(p):
     '''
     strvar : INSTRING_VAR
