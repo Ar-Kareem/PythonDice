@@ -569,6 +569,10 @@ def _roll_int_rv(n: int, d: RV) -> RV:
 def myrange(l, r):
   return range(l, r+1)
 
+SETTINGS = {}
+def settings_set(name, value):
+  SETTINGS[name] = value
+
 def output(rv: T_isr, named=None, show_pdf=True, blocks_width=170, print_=True, cdf_cut=0):
   if isinstance(rv, int) or isinstance(rv, Iterable):
     rv = RV.from_seq([rv])
