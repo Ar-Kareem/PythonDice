@@ -225,9 +225,8 @@ output 1d1
 ''',
 r'''
 output {2*3..4@4}
-output [figher damage roll]+[figher damage roll]+[rogue damage roll] named "Who's yer daddy?"
-__A_ : 2 + 3 * {2, {}} / 5 @ 2
-output A
+__A_ : 2 + 3 * {2, {}} / 5
+output __A_ 
 output 2d2
 output 1
 if 1 {if 1 {A:1 A:1}}
@@ -294,7 +293,7 @@ def parse(to_parse, verbose_lex=False, verbose_yacc=False):
       logging.debug('yacc: ' + str(x))
   return yacc_ret
 
-def parse_and_exec(to_parse, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False):
+def parse_and_exec(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False):
   if verbose_input_str:
     logging.debug(f'Parsing:\n{to_parse}')
   parsed = parse(to_parse, verbose_lex=verbose_lex, verbose_yacc=verbose_yacc)
@@ -322,15 +321,19 @@ def parse_and_exec(to_parse, verbose_input_str=False, verbose_lex=False, verbose
                   ('reverse', 'reverse_X'), 
                   ('sort', 'sort_X')]
   _import_str += '\n'.join(f'from funclib import {k} as {v}' for k,v in helper_funcs)
-  exec(_import_str, g, g)
-  logging.debug('Executing parsed python:')
-  exec(r, g, g)
+  if do_exec:
+    exec(_import_str, g, g)
+    logging.debug('Executing parsed python:')
+    exec(r, g, g)
 
 
-# to_parse = trials[-5]
-to_parse = trials[-1]
-# to_parse = '\n'.join(trials[7:8])
-# to_parse = '\n'.join(trials)
-# parse_and_exec(to_parse, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=True)
-parse_and_exec(to_parse, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False)
-
+for to_parse in trials:
+  try:
+    parse_and_exec(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=True)
+  except Exception as e:
+    logging.warning(f'Error in parsing: {to_parse}')
+    logging.exception(e)
+    raise
+    # parse_and_exec(to_parse, do_exec=False, verbose_input_str=True, verbose_lex=True, verbose_yacc=True, verbose_parseed_python=False)
+    pass
+print('done')
