@@ -8,6 +8,8 @@ CONST = {
     'seq': 'Seq',
     'roll': 'roll',
     'range': 'myrange',
+    'cast_decorator': '@anydice_casting()',
+    'setter': lambda name, value: f'settings_set("{name}", "{value}")'
 }
 
 class PythonResolver:
@@ -17,7 +19,7 @@ class PythonResolver:
     def resolve(self):
         print(f'INPUT TREE:\n{self.root}\n\n')
         result = '\n'.join(map(self.resolve_node, self.root))
-        print(f'RESULT:{result}\n\n')
+        print(f'RESULT:\n{result}\n\n')
         return result
 
     def resolve_node(self, node, cur_indent=0):
@@ -28,8 +30,8 @@ class PythonResolver:
         elif node[0] == 'var_name':  # variable name inside a string, utilize f-string
             return node[1].replace('{', '').replace('}', '')
 
-        # OUTPUT
-        if node[0] == 'output':
+        # OUTPUT:
+        elif node[0] == 'output':
             params = self.resolve_node(node[1])
             return f'{CONST["output"]}({params})'
         elif node[0] == 'output_named':
@@ -46,7 +48,32 @@ class PythonResolver:
             res = l + r
             return cleanup_string(res)
 
-        # CONDITIONALS
+        elif node[0] == 'set':
+            name, value = node[1], node[2]
+            name, value = self.resolve_node(name), self.resolve_node(value)
+            return CONST['setter'](name, value)
+
+
+        # FUNCTION:
+        elif node[0] == 'function':
+            nameargs, code = node[1][1:], node[2]
+            name, args = [], []
+            for x in nameargs:
+                if isinstance(x, str):
+                    name.append(x)
+                else:
+                    DATATYPES = {'s': 'Seq', 'n': 'int', 'd': 'RV'}
+                    args.append(f'{x[1]}: {DATATYPES[x[2]]}')
+                    name.append('X')
+            name = '_'.join(name)
+            res = CONST['cast_decorator'] + '\n'
+            res += f'def {name}({", ".join(args)}):\n'
+            res += '\n'.join([indent_str(self.resolve_node(x, cur_indent+2), cur_indent+2) for x in code])
+            return res + '\n'
+        elif node[0] == 'result':
+            return f'return {self.resolve_node(node[1])}'
+
+        # CONDITIONALS (IF / LOOP)
         elif node[0] == 'if':
             cond, code = node[1], node[2]
             res = f'if {self.resolve_node(cond)}:\n'
@@ -98,13 +125,18 @@ class PythonResolver:
             l, r = self.resolve_node(l), self.resolve_node(r)
             return f'{CONST["range"]}({l}, {r})'
         elif node[0] == 'call':
-            func = node[1]
-            args = ', '.join(map(self.resolve_node, node[2]))
-            return f'{func}({args})'
+            nameargs = node[1]
+            name, args = [], []
+            for x in nameargs:
+                if isinstance(x, str):
+                    name.append(x)
+                else:  # expression
+                    args.append(self.resolve_node(x))
+                    name.append('X')
+            name = '_'.join(name)
+            return f'{name}({", ".join(args)})'
 
-# function
-# result
-# set
+
         else:
             assert False, f'Unknown node: {node}'
 

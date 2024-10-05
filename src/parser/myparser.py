@@ -351,9 +351,10 @@ def p_funcname_def_param(p):
         p[0] = (*p[1], param)
     else:  # base case
         if len(p) == 2:
-            p[0] = ('funcname_def', p[1])
+            param = ('param', p[1])
         else:
-            p[0] = ('funcname_def', p[1], p[3])
+            param = ('param', p[1], p[3])
+        p[0] = ('funcname_def', param)
 
 # Precedence rules to handle associativity and precedence of operators
 precedence = (
