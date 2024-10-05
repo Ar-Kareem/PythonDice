@@ -223,26 +223,38 @@ r'''
 \ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ \
 
 output 1d1
+''',
+r'''
+output 1 named "output[A][B ] 1"
+output (1+2*5)
+output 3
+output 4
+output 5
+output 6
 '''
 ]
 
+from .example import lexer, ILLEGAL_CHARS, yacc_parser
 def setup_logging(filename):
     logging.basicConfig(filename=filename, level=logging.DEBUG, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
     logging.getLogger().addHandler(logging.StreamHandler())
-
 setup_logging('./log/example_run.log')
 
 
+to_parse = trials[-1]
+# to_parse = '\n'.join(trials)
 
-from .example import lexer, ILLEGAL_CHARS
-
-lexer.input('\n'.join(trials))
+lexer.input(to_parse)
 # lexer.input(trials[-2])
 tokens = [x for x in lexer]
 
 for x in ILLEGAL_CHARS:
     logging.debug(f'Illegal character {x!r}')
-logging.debug('Tokens:')
-for x in tokens:
-    logging.debug(x)
 
+# logging.debug('Tokens:')
+# for x in tokens:
+#     logging.debug(x)
+
+logging.debug('Yacc Parsing:')
+for x in yacc_parser.parse(to_parse):
+  logging.debug('yacc: ' + str(x))

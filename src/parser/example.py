@@ -1,24 +1,3 @@
-# -----------------------------------------------------------------------------
-# example.py
-#
-# Example of using PLY To parse the following simple grammar.
-#
-#   expression : term PLUS term
-#              | term MINUS term
-#              | term
-#
-#   term       : factor TIMES factor
-#              | factor DIVIDE factor
-#              | factor
-#
-#   factor     : NUMBER
-#              | NAME
-#              | PLUS factor
-#              | MINUS factor
-#              | LPAREN expression RPAREN
-#
-# -----------------------------------------------------------------------------
-
 from .ply.lex import lex
 from .ply.yacc import yacc
 
@@ -30,15 +9,9 @@ states = (
     ('instring','exclusive'),
 )
 
-reserved = {
-    'OUTPUT': 'output',
-    'FUNCTION': 'function',
-    'LOOP': 'loop',
-    'NAMED': 'named',
-    'SET': 'set',
-    'IF': 'if',
-    'ELSE': 'else',
-}
+reserved = ('output','function','loop','named','set','if','else')
+reserved = {k: k.upper() for k in reserved}
+
 tokens = [ 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
             'COLON', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS', 'AT', 
             'COMMENT', 'HASH', 'OR', 'AND', 'EXCLAMATION',
@@ -133,46 +106,117 @@ def t_ANY_error(t):
 # Build the lexer object
 lexer = lex()
 
+
+
+
+
+
+
+
 # --- Parser
+# -----------------------------------------------------------------------------
+#
+#   base       : OUTPUT expression
+#              | OUTPUT expression NAMED string
+#
+#   string     : string INSTRING_ANY
+#              | string INSTRING_VAR
+#              | string INSTRING_NONVAR
+#              | INSTRING_ANY
+#              | INSTRING_VAR
+#              | INSTRING_NONVAR
+#
+#   expression : term PLUS term
+#              | term MINUS term
+#              | term
+#
+#   term       : factor TIMES factor
+#              | factor DIVIDE factor
+#              | factor
+#
+#   factor     : NUMBER
+#              | NAME
+#              | PLUS factor
+#              | MINUS factor
+#              | LPAREN expression RPAREN
+#
+# -----------------------------------------------------------------------------
 
-# # Write functions for each grammar rule which is
-# # specified in the docstring.
-# def p_expression(p):
-#     '''
-#     expression : term PLUS term
-#                | term MINUS term
-#     '''
-#     # p is a sequence that represents rule contents.
-#     #
-#     # expression : term PLUS term
-#     #   p[0]     : p[1] p[2] p[3]
-#     # 
-#     p[0] = ('binop', p[2], p[1], p[3])
+def p_base_output_expr(p):
+    '''
+    base : main
+        |  base main
+        |  base ignored_tokens
+    '''
+    if len(p) == 2:
+        p[0] = (p[1], )
+    else:
+        p[0] = (*p[1], p[2])
 
-# def p_expression_term(p):
-#     '''
-#     expression : term
-#     '''
-#     p[0] = p[1]
+def p_main_expression(p):
+    '''
+    main : OUTPUT expression
+        |  OUTPUT expression NAMED string
+        |  FUNCTION LBRACE expression RBRACE
+    '''
+    if len(p) == 3:
+        p[0] = ('output', p[2])
+    elif len(p) == 3 and p[1] == 'function':
+        p[0] = ('function', p[3])
+    else:
+        p[0] = ('output_named', p[2], p[4])
 
-# def p_term(p):
-#     '''
-#     term : factor TIMES factor
-#          | factor DIVIDE factor
-#     '''
-#     p[0] = ('binop', p[2], p[1], p[3])
+def p_string_instring(p):
+    '''
+    string : INSTRING_ANY
+           | strvar
+           | INSTRING_NONVAR
+           | string INSTRING_ANY
+           | string strvar
+           | string INSTRING_NONVAR
+    '''
+    if len(p) == 3:
+        p[0] = ('concat_string', p[1], p[2])
+    else:
+        p[0] = ('string', p[1])
 
-# def p_term_factor(p):
-#     '''
-#     term : factor
-#     '''
-#     p[0] = p[1]
+def p_strvar_instring(p):
+    '''
+    strvar : INSTRING_VAR
+    '''
+    p[0] = ('strvar', p[1][1:-1])
 
-# def p_factor_number(p):
-#     '''
-#     factor : NUMBER
-#     '''
-#     p[0] = ('number', p[1])
+def p_expression_term_binop(p):
+    '''
+    expression : term PLUS term
+               | term MINUS term
+    '''
+    p[0] = ('binop', p[2], p[1], p[3])
+
+def p_expression_term(p):
+    '''
+    expression : term
+    '''
+    p[0] = p[1]
+
+def p_term_factor_binop(p):
+    '''
+    term : factor TIMES factor
+         | factor DIVIDE factor
+    '''
+    p[0] = ('binop', p[2], p[1], p[3])
+
+def p_term_factor(p):
+    '''
+    term : factor
+    '''
+    p[0] = p[1]
+
+def p_factor_number(p):
+    '''
+    factor : NUMBER
+    '''
+    p[0] = ('number', p[1])
 
 # def p_factor_name(p):
 #     '''
@@ -180,22 +224,60 @@ lexer = lex()
 #     '''
 #     p[0] = ('name', p[1])
 
-# def p_factor_unary(p):
-#     '''
-#     factor : PLUS factor
-#            | MINUS factor
-#     '''
-#     p[0] = ('unary', p[1], p[2])
+def p_factor_unary(p):
+    '''
+    factor : PLUS factor
+           | MINUS factor
+    '''
+    p[0] = ('unary', p[1], p[2])
 
-# def p_factor_grouped(p):
-#     '''
-#     factor : LPAREN expression RPAREN
-#     '''
-#     p[0] = ('grouped', p[2])
+def p_factor_grouped(p):
+    '''
+    factor : LPAREN expression RPAREN
+    '''
+    p[0] = ('grouped', p[2])
 
-# def p_error(p):
-#     print(f'Syntax error at {p.value!r}')
+def p_error(p):
+    print(f'Syntax error at {p.value!r}')
 
-# # Build the parser
-# yacc_parser = yacc()
-# print('yacc_parser ready')
+def p_ignored_tokens(p):
+    '''
+    ignored_tokens : FUNCTION
+            | LOOP
+            | NAMED
+            | SET
+            | IF
+            | ELSE
+
+            | POWER
+
+            | COLON
+            | LESS
+            | GREATER
+            | EQUALS
+            | NOTEQUALS
+            | AT
+
+            | COMMENT
+            | HASH
+            | OR
+            | AND
+            | EXCLAMATION
+            | PERIOD
+            | COMMA
+            | UNDERSCORE
+            
+            | LBRACE
+            | RBRACE
+            | LBRACKET
+            | RBRACKET
+            | LOWERNAME
+            | UPPERNAME
+'''
+
+#     # No action is taken for ignored tokens; simply return nothing or None.
+#     pass
+
+# Build the parser
+yacc_parser = yacc()
+print('yacc_parser ready')
