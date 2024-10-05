@@ -483,7 +483,6 @@ def p_call_elements(p):
                 | call_elements LOWERNAME
                 | call_elements expression
 
-                | D_OP
                 | OUTPUT
                 | FUNCTION
                 | LOOP
@@ -494,7 +493,6 @@ def p_call_elements(p):
                 | IF
                 | ELSE
                 | RESULT
-                | call_elements D_OP
                 | call_elements OUTPUT
                 | call_elements FUNCTION
                 | call_elements LOOP
