@@ -23,12 +23,20 @@ class PythonResolver:
         return result
 
     def resolve_node(self, node, cur_indent=0):
-        if node[0] == 'number':
+
+        # Handle str_obj  |  str_obj which is str or concat_string(str_obj, str_obj) or strvar(str)
+        if isinstance(node, str):
+            return node
+        elif node[0] == 'strvar':
+            return '{' + node[1] + '}'
+        elif node[0] == 'concat_string':
+            res = self.resolve_node(node[1]) + self.resolve_node(node[2])
+            return cleanup_string(res)
+
+        elif node[0] == 'number':
             return node[1]
         elif node[0] == 'var':  # variable inside an expression
             return node[1]
-        elif node[0] == 'var_name':  # variable name inside a string, utilize f-string
-            return node[1].replace('{', '').replace('}', '')
 
         # OUTPUT:
         elif node[0] == 'output':
@@ -36,15 +44,8 @@ class PythonResolver:
             return f'{CONST["output"]}({params})'
         elif node[0] == 'output_named':
             params = self.resolve_node(node[1])
-            name = self.resolve_node(node[2])
+            name = self.resolve_node(node[2])  # node[2] is str_obj
             return f'{CONST["output"]}({params}, named=f"{name}")'
-        elif node[0] == 'strvar':
-            return '{' + node[1] + '}'
-        elif node[0] == 'concat_string':
-            l = node[1] if isinstance(node[1], str) else self.resolve_node(node[1])
-            r = node[2] if isinstance(node[2], str) else self.resolve_node(node[2])
-            res = l + r
-            return cleanup_string(res)
 
         elif node[0] == 'set':
             name, value = node[1], node[2]
