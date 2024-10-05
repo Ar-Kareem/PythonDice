@@ -17,6 +17,7 @@ class PythonResolver:
     def __init__(self, root):
         self.root: T_sn = root
         self.defined_functions: set[str] = set(CONST['function library'])
+        self.user_defined_functions: list[str] = []
 
     def resolve(self):
         result = '\n'.join(map(self.resolve_node, self.root))
@@ -66,6 +67,7 @@ class PythonResolver:
                     name.append('X')
             name = '_'.join(name)
             self.defined_functions.add(name)
+            self.user_defined_functions.append(name)
             res = CONST['cast_decorator'] + '\n'
             res += f'def {name}({", ".join(args)}):\n'
             res += '\n'.join([indent_str(self.resolve_node(x, cur_indent+2), cur_indent+2) for x in code])
@@ -134,7 +136,7 @@ class PythonResolver:
                     args.append(str(self.resolve_node(x)))
                     name.append('X')
             name = '_'.join(name)
-            assert name in self.defined_functions, f'Unknown function {name} not defined'
+            assert name in self.defined_functions, f'Unknown function {name} not defined. Currently callable functions: ' + str(self.user_defined_functions)
             return f'{name}({", ".join(args)})' if args else f'{name}()'
 
 
