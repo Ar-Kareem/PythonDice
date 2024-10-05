@@ -1,5 +1,3 @@
-import logging
-from parser import parsetest
 
 trials = [
 r'''
@@ -249,12 +247,15 @@ output 1@3d6 named "highest die"
 output 1@246 named "most significant digit"
 '''
 ]
-
-from .example import lexer, ILLEGAL_CHARS, yacc_parser
+import logging
+from parser import myparser
+from .myparser import lexer, ILLEGAL_CHARS, yacc_parser
 def setup_logging(filename):
     logging.basicConfig(filename=filename, level=logging.DEBUG, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
     logging.getLogger().addHandler(logging.StreamHandler())
 setup_logging('./log/example_run.log')
+
+
 
 
 to_parse = trials[-1]
