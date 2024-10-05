@@ -238,10 +238,15 @@ if 1=1 {A:1} else if 1=1 {A:2} else {A:3}
 function: rand B:s name a {A:2}
 ''',
 r'''
-function: asdf {
-  HI : 1@ROLL 
-  LO : 2@ROLL
-}
+set "position order" to "lowest first"
+
+output 1@3d6 named "lowest die"
+output 1@246 named "least significant digit"
+
+set "position order" to "highest first" \ the default behavior \
+
+output 1@3d6 named "highest die"
+output 1@246 named "most significant digit"
 '''
 ]
 

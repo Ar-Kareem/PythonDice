@@ -9,7 +9,7 @@ states = (
     ('instring','exclusive'),
 )
 
-reserved = ('output','function','loop','over','named','set','if','else','result')
+reserved = ('output','function','loop','over','named','set','to','if','else','result')
 reserved = {k: k.upper() for k in reserved}
 
 tokens = [ 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
@@ -118,29 +118,89 @@ lexer = lex()
 # --- Parser
 # -----------------------------------------------------------------------------
 #
-#   base       : OUTPUT expression
-#              | OUTPUT expression NAMED string
+#   start       : outercode
+#             
+#   outercode   : outercode outercode
+#               | OUTPUT expression
+#               | OUTPUT expression NAMED string
+#               | FUNCTION COLON funcname_def LBRACE outercode RBRACE
+#               | LOOP var_name OVER expression LBRACE outercode RBRACE
+#               | IF expression LBRACE outercode RBRACE
+#               | IF expression LBRACE outercode RBRACE ELSE LBRACE outercode RBRACE
+#               | IF expression LBRACE outercode RBRACE ELSEIF
+#               | IF expression LBRACE outercode RBRACE ELSEIF ELSE LBRACE outercode RBRACE
+#               | RESULT COLON expression
+#               | SET string TO string
+#               | var_name COLON expression
 #
-#   string     : string INSTRING_ANY
-#              | string INSTRING_VAR
-#              | string INSTRING_NONVAR
-#              | INSTRING_ANY
-#              | INSTRING_VAR
-#              | INSTRING_NONVAR
-#
-#   expression : term PLUS term
-#              | term MINUS term
-#              | term
-#
-#   term       : factor TIMES factor
-#              | factor DIVIDE factor
-#              | factor
-#
-#   factor     : NUMBER
-#              | NAME
-#              | PLUS factor
-#              | MINUS factor
-#              | LPAREN expression RPAREN
+#    ELSEIF     : ELSE IF expression LBRACE outercode RBRACE
+#               | ELSEIF ELSE IF expression LBRACE outercode RBRACE
+# 
+#   string      : INSTRING_ANY
+#               | strvar
+#               | INSTRING_NONVAR
+#               | string INSTRING_ANY
+#               | string strvar
+#               | string INSTRING_NONVAR
+# 
+#   strvar      : INSTRING_VAR
+# 
+#   funcname_def: LOWERNAME
+#               | funcname_def LOWERNAME
+#               | OUTPUT | FUNCTION | LOOP | OVER | NAMED | SET | TO | IF | ELSE | RESULT
+#               | funcname_def OUTPUT | funcname_def FUNCTION | funcname_def LOOP | funcname_def OVER | funcname_def NAMED | funcname_def SET | funcname_def TO | funcname_def IF | funcname_def ELSE | funcname_def RESULT
+# 
+#   funcname_def: var_name
+#               |  var_name COLON D_OP
+#               |  var_name COLON LOWERNAME
+#               |  funcname_def var_name
+#               |  funcname_def var_name COLON D_OP
+#               |  funcname_def var_name COLON LOWERNAME
+# 
+#   expression  : expression PLUS expression
+#               | expression MINUS expression
+#               | expression TIMES expression
+#               | expression DIVIDE expression
+#               | expression POWER expression
+#               | expression AT expression
+#               | expression AND expression
+#               | expression OR expression
+#               | term D_OP term
+#               | D_OP term
+#               | expression LESS expression
+#               | expression GREATER expression
+#               | expression EQUALS expression
+#               | expression NOTEQUALS expression
+#               | expression LESS EQUALS expression
+#               | expression GREATER EQUALS expression
+#               | term
+# 
+#   term        : PLUS term
+#               | MINUS term
+#               | HASH term
+#               | LPAREN expression RPAREN
+#               | NUMBER
+#               | var_name
+#               | term DOT DOT term
+#               | term LBRACE RBRACE
+#               | LBRACE elements RBRACE
+#               | LBRACKET call_elements RBRACKET
+# 
+#   elements    : elements COMMA element
+#               | element
+# 
+#   element     : expression
+#               | range
+# 
+#   range       : expression DOT DOT expression
+# 
+#   call_elements : LOWERNAME
+#                 | expression
+#                 | call_elements LOWERNAME
+#                 | call_elements expression
+#                 | D_OP | OUTPUT | FUNCTION | LOOP | OVER | NAMED | SET | TO | IF | ELSE | RESULT
+#                 | call_elements D_OP | call_elements OUTPUT | call_elements FUNCTION | call_elements LOOP | call_elements OVER | call_elements NAMED | call_elements SET | call_elements TO | call_elements IF | call_elements ELSE | call_elements RESULT
+# 
 #
 # -----------------------------------------------------------------------------
 
@@ -148,7 +208,10 @@ def p_start(p):
     '''
     start : outercode
     '''
-    p[0] = p[1]
+    if p[1][0] == 'multi':
+        p[0] = p[1][1:]
+    else:
+        p[0] = p[1]
 
 def p_multi_outercode(p):
     '''
@@ -163,12 +226,6 @@ def p_multi_outercode(p):
     else:
         right = [p[2]]
     p[0] = ('multi', *left, *right)
-
-def p_outercode_ignore(p):
-    '''
-    outercode : outercode ignored_tokens
-    '''
-    p[0] = p[1]
 
 def p_outercode(p):
     '''
@@ -185,6 +242,7 @@ def p_outercode(p):
         |  IF expression LBRACE outercode RBRACE ELSEIF ELSE LBRACE outercode RBRACE
 
         |  RESULT COLON expression
+        |  SET string TO string
     '''
     if p[1] == 'output':
         if len(p) == 3:
@@ -208,11 +266,10 @@ def p_outercode(p):
             p[0] = (*if_expr_code, *p[6], 'else', p[9])
         else:
             assert False, f'{len(p)}, {p}'
-    elif len(p) == 4:
-        assert p[1] == 'result', 'what does this mean? ' + str(p[1])
+    elif p[1] == 'set':
+        p[0] = ('set', p[2], p[4])
+    elif p[1] == 'result':
         p[0] = ('result', p[3])
-    elif len(p) == 2:
-        p[0] = p[1]
     else:
         assert False, f'{len(p)}, {p}'
 
@@ -231,7 +288,6 @@ def p_var_assign(p):
     outercode : var_name COLON expression
     '''
     p[0] = ('var_assign', p[1], p[3])
-
 
 
 def p_var_name(p):
@@ -269,6 +325,7 @@ def p_funcname_def(p):
                 | OVER
                 | NAMED
                 | SET
+                | TO
                 | IF
                 | ELSE
                 | RESULT
@@ -278,6 +335,7 @@ def p_funcname_def(p):
                 | funcname_def OVER
                 | funcname_def NAMED
                 | funcname_def SET
+                | funcname_def TO
                 | funcname_def IF
                 | funcname_def ELSE
                 | funcname_def RESULT
@@ -444,6 +502,7 @@ def p_call_elements(p):
                 | OVER
                 | NAMED
                 | SET
+                | TO
                 | IF
                 | ELSE
                 | RESULT
@@ -454,6 +513,7 @@ def p_call_elements(p):
                 | call_elements OVER
                 | call_elements NAMED
                 | call_elements SET
+                | call_elements TO
                 | call_elements IF
                 | call_elements ELSE
                 | call_elements RESULT
@@ -463,17 +523,8 @@ def p_call_elements(p):
     else:
         p[0] = [p[1]]  # Single element
 
-
-
 def p_error(p):
     print(f'Syntax error at {p.value!r}')
 
-def p_ignored_tokens(p):
-    '''ignored_tokens : SET'''
-
-#     # No action is taken for ignored tokens; simply return nothing or None.
-#     pass
-
 # Build the parser
 yacc_parser = yacc()
-print('yacc_parser ready')
