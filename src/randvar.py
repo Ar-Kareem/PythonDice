@@ -23,8 +23,12 @@ T_s = Iterable['T_ifs']  # same as T_ifs but excludes int and float (not iterabl
 
 class RV:
   def __init__(self, vals: Iterable[float], probs: Iterable[int], truncate=None):
-    vals, probs = tuple(vals), tuple(probs)
+    vals, probs = list(vals), tuple(probs)
     assert len(vals) == len(probs), 'vals and probs must be the same length'
+    for i, v in enumerate(vals):  # convert elems in vals bool to int
+      if isinstance(v, bool):
+        vals[i] = int(v)
+
     if truncate or (truncate is None and RV_AUTO_TRUNC):
       vals = tuple(int(v) for v in vals)
     self.vals, self.probs = RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
