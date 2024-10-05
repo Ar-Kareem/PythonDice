@@ -315,6 +315,10 @@ def test_output():
     (0,         roll(6),      RV((0, ), (1, ))),   # NUM @ DIE OOB
     (1,         roll(6),      roll(6)),   # NUM @ DIE single dice
     (2,         roll(6),      RV((0, ), (1, ))),   # NUM @ DIE OOB
+    (-1,        roll(2, 6),      RV((0, ), (1, ))),   # NUM @ DIE OOB
+    (0,         roll(2, 6),      RV((0, ), (1, ))),   # NUM @ DIE OOB
+    (3,         roll(2, 6),      RV((0, ), (1, ))),   # NUM @ DIE OOB
+    (13,        roll(2, 6),      RV((0, ), (1, ))),   # NUM @ DIE OOB
 ])
 def test_matmul(l, r, l_at_r):
     assert RV.dices_are_equal(l @ r, l_at_r), f'{l} @ {r} ! = {l_at_r}'
