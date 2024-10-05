@@ -87,6 +87,11 @@ t_UPPERNAME = r'[A-Z][A-Z]*'
 
 # A function can be used if there is an associated action.
 # Write the matching regex in the docstring.
+def t_COMMENT(t):
+    r'\\(.|\n)*?\\'
+    # comment is any number of chars (including new lines) begining with \ and ending with \
+    pass
+
 def t_NUMBER(t):
     r'\d+'
     t.value = int(t.value)
@@ -96,10 +101,6 @@ def t_LOWERNAME(t):
     r'[a-z][a-z]*'
     t.type = reserved.get(t.value, 'LOWERNAME')
     return t
-
-def t_COMMENT(t):
-    r'\\.*\\'
-    pass
 
 
 

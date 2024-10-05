@@ -149,15 +149,90 @@ A: 2d6
 output 1d6 + 1d6 named "hello[A][B ]" \ this is a comment function: test \ output 1d6 + 1d6
 output 1d6 + 1d6 named "hello[A][B ]"
 ''',
+r'''
+A: 2d6
+''',
+r'''
+function: d a {
+A:1d4
+}
+A: 2d6
+if {1,2,A}>1>=1<=1!=2 {output A}
+
+ORIGINAL: 6d(3d6)
+NEW: 7d[highest 3 of 4d{3..6}]
+
+loop N over {1} {
+  output N@ORIGINAL named "[N]@3d6"
+  output N@NEW named "[N]@7d(4d6r1,2)"
+}
+ARRAY: 7d[highest 3 of 4d{3..6}]
+output 1@ARRAY
+output 2@ARRAY
+output 3@ARRAY
+output 4@ARRAY
+output 5@ARRAY
+output 6@ARRAY
+function: stat{
+result: [highest 3 of 4d6]
+}
+output 1@24d([stat])
+''',
+r'''
+\** GREAT WEAPON FIGHTING **\
+\
+  the first parameter is evaluated as a die roll, the second is evaluated as a die,
+  a die cannot be rolled within a function and assigned to a variable (this sucks).
+  the only way to evaluate a die roll is to pass it as an argument; DAMAGE_ROLL
+  and DAMAGE_DIE must be the same, i.e. d6 & d6
+\
+function: gwf with DAMAGE_ROLL:n rolled on DAMAGE_DIE:d {
+   if DAMAGE_ROLL < 3 { result: dDAMAGE_DIE }
+   result: DAMAGE_ROLL
+}
+\ so, we define another function to call the first one \
+function: gwf with die DIE:d { result: [gwf with DIE rolled on DIE] }
+
+\** CRITICAL HIT (OR MISS) **\
+\
+  the only way to evaluate a die roll is to pass it as an argument, so ROLL must be 'd20'
+  I can't see away around the tight coupling between function definition and function call.
+\
+function: is ROLL:n a crit or miss with damage DAMAGE:d {
+   if ROLL = 20 { result: dDAMAGE+dDAMAGE }
+   if ROLL = 1 { result: 0 }
+   result: dDAMAGE
+}
+\ so, we define another function to call the first one \
+function: return crit or miss with damage DAMAGE:d { result: [is d20 a crit or miss with damage DAMAGE] }
+
+\ END DEFINITIONS \
+
+function: figher damage roll { result: [return crit or miss with damage 2d[gwf with die d6]]+5 }
+function: rogue damage roll { result: [return crit or miss with damage 4d6]+4 }
+
+output 1d6+4 named "rogue, do something useful"
+output [figher damage roll] named "figher (one hit)"
+output [rogue damage roll] named "rogue (sneak attack)"
+output [figher damage roll]+[figher damage roll] named "figher (two hits)"
+output [figher damage roll]+[figher damage roll]+[rogue damage roll] named "Who's yer daddy?"
+''',
+r'''
+\
+ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+\
+\ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ \
+
+output 1d1
+'''
 ]
 
-# a = parsetest.do_lexer('2 * 3 + 4 * (5 - x)', reload_module=True)
-# a = parsetest.do_lexer(trials[-1], reload_module=True)
 # a = parsetest.do_parse(trials[-1], reload_module=True)
-a = parsetest.do_lexer('\n'.join(trials), reload_module=True)
 
 
+
+a = parsetest.do_lexer('\n'.join(trials))
 for x in a: 
-    print(x)
+    # print(x)
     if isinstance(x, str):
         print(x)
