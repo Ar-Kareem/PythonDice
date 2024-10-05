@@ -9,7 +9,7 @@ states = (
     ('instring','exclusive'),
 )
 
-reserved = ('output','function','loop','named','set','if','else')
+reserved = ('output','function','loop','named','set','if','else','result')
 reserved = {k: k.upper() for k in reserved}
 
 tokens = [ 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
@@ -18,7 +18,8 @@ tokens = [ 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
             'PERIOD', 'COMMA', 'UNDERSCORE', 
             'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE', 'LBRACKET', 'RBRACKET',
             'LOWERNAME', 'UPPERNAME', 'NUMBER', 
-            
+            'D_OP',
+
             'INSTRING_ANY', 'INSTRING_VAR', 'INSTRING_NONVAR', 
             ] + list(reserved.values())
 
@@ -72,7 +73,10 @@ def t_NUMBER(t):
 
 def t_LOWERNAME(t):
     r'[a-z][a-z]*'
-    t.type = reserved.get(t.value, 'LOWERNAME')
+    if t.value == 'd':  # Special case for 'd' operator
+        t.type = 'D_OP'
+    else:
+        t.type = reserved.get(t.value, 'LOWERNAME')
     return t
 
 
@@ -142,11 +146,6 @@ lexer = lex()
 #
 # -----------------------------------------------------------------------------
 
-precedence = (
-    ('left', 'PLUS', 'MINUS'),
-    ('left', 'TIMES', 'DIVIDE'),
-)
-
 def p_start(p):
     '''
     start : main
@@ -180,9 +179,9 @@ def p_main_expression(p):
 
 def p_func_code(p):
     '''
-    funccode : LOWERNAME COLON expression
+    funccode : RESULT COLON expression
             |  code
-            |  funccode LOWERNAME COLON expression
+            |  funccode RESULT COLON expression
             |  funccode code
     '''
     if len(p) == 2:
@@ -199,9 +198,18 @@ def p_func_code(p):
         p[0] = ('funccode', *p[1], result)
 
 
+def p_var_name(p):
+    '''
+    var_name : UPPERNAME
+                    | UNDERSCORE
+                    | var_name UNDERSCORE
+                    | var_name UPPERNAME
+    '''
+    p[0] = p[1]
+
 def p_var_assign(p):
     '''
-    code : UPPERNAME COLON expression
+    code : var_name COLON expression
     '''
     p[0] = ('var_assign', p[1], p[3])
 
@@ -228,19 +236,34 @@ def p_funcname(p):
     '''
     funcname : LOWERNAME
             |  funcname LOWERNAME
-            |  funcname UPPERNAME COLON LOWERNAME 
+            |  funcname var_name COLON LOWERNAME 
     '''
     if len(p) == 2:
         p[0] = ('funcname', p[1])
     elif len(p) == 3:
         p[0] = (*p[1], p[2])
     else:
-        p[0] = (*p[1], ('param', p[3], p[4]))
+        p[0] = (*p[1], ('param', p[2], p[4]))
 
-def p_expression_term_binop(p):
+
+# Precedence rules to handle associativity and precedence of operators
+precedence = (
+    ('left', 'PLUS', 'MINUS'),
+    ('left', 'TIMES', 'DIVIDE'),
+    ('right', 'POWER'),
+    ('left', 'AT'),  # Assuming @ is left-associative
+    ('right', 'UMINUS', 'UPLUS'),  # Unary minus and plus have the highest precedence
+)
+
+# Parsing rules
+def p_expression_binop(p):
     '''
-    expression : term PLUS term
-               | term MINUS term
+    expression : expression PLUS expression
+               | expression MINUS expression
+               | expression TIMES expression
+               | expression DIVIDE expression
+               | expression POWER expression
+               | expression AT expression
     '''
     p[0] = ('binop', p[2], p[1], p[3])
 
@@ -250,52 +273,59 @@ def p_expression_term(p):
     '''
     p[0] = p[1]
 
-def p_term_factor_binop(p):
+def p_term_unary(p):
     '''
-    factor : factor TIMES factor
-         | factor DIVIDE factor
-    '''
-    p[0] = ('binop', p[2], p[1], p[3])
-
-def p_term_factor(p):
-    '''
-    term : factor
-    '''
-    p[0] = p[1]
-
-def p_factor_number(p):
-    '''
-    factor : NUMBER
-    '''
-    p[0] = ('number', p[1])
-
-def p_factor_name(p):
-    '''
-    factor : UPPERNAME
-    '''
-    p[0] = ('var_read', p[1])
-
-def p_factor_unary(p):
-    '''
-    factor : PLUS factor
-           | MINUS factor
+    term : PLUS term %prec UPLUS
+         | MINUS term %prec UMINUS
     '''
     p[0] = ('unary', p[1], p[2])
 
-def p_factor_grouped(p):
+def p_term_grouped(p):
     '''
-    factor : LPAREN expression RPAREN
+    term : LPAREN expression RPAREN
     '''
-    p[0] = ('grouped', p[2])
+    p[0] = p[2]
+
+def p_term_number(p):
+    '''
+    term : NUMBER
+    '''
+    p[0] = ('number', p[1])
+def p_term_name(p):
+    '''
+    term : var_name
+    '''
+    p[0] = ('var', p[1])
+
+
+# Rule for seqs  { ... }
+def p_term_seq(p):
+    '''
+    term : LBRACE RBRACE
+         | LBRACE elements RBRACE
+    '''
+    if len(p) == 3:
+        p[0] = ('seq', [])  # Empty seq
+    else:
+        p[0] = ('seq', p[2])  # Non-empty seq
+def p_elements(p):
+    '''
+    elements : elements COMMA expression
+             | expression
+    '''
+    if len(p) == 4:
+        p[0] = p[1] + [p[3]]  # Append the new element
+    else:
+        p[0] = [p[1]]  # Single element in the seq
+
+
 
 def p_error(p):
     print(f'Syntax error at {p.value!r}')
 
 def p_ignored_tokens(p):
     '''
-    ignored_tokens : FUNCTION
-            | LOOP
-            | NAMED
+    ignored_tokens : LOOP
             | SET
             | IF
             | ELSE
@@ -314,14 +344,10 @@ def p_ignored_tokens(p):
             | AND
             | EXCLAMATION
             | PERIOD
-            | COMMA
             | UNDERSCORE
             
-            | LBRACE
-            | RBRACE
             | LBRACKET
             | RBRACKET
-            | LOWERNAME
 '''
 
 #     # No action is taken for ignored tokens; simply return nothing or None.

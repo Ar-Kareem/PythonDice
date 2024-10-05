@@ -225,9 +225,10 @@ r'''
 output 1d1
 ''',
 r'''
-A :2 + 2
+A : 2 + 3 * {2, {}} / 5 @ 2
 output A
-function: rand name a {}
+output 22
+function: rand B:s name a {}
 '''
 ]
 
