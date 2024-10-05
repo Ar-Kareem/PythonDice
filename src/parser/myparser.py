@@ -401,7 +401,10 @@ def p_expression_comparison(p):
                | expression LESS EQUALS expression
                | expression GREATER EQUALS expression
     '''
-    p[0] = ('expr_op', p[2], p[1], p[3])
+    if len(p) == 4:
+        p[0] = ('expr_op', p[2], p[1], p[3])
+    elif len(p) == 5:
+        p[0] = ('expr_op', p[2] + p[3], p[1], p[4])
 
 def p_expression_term(p):
     '''
