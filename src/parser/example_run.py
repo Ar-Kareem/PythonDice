@@ -239,39 +239,18 @@ r'''
 set "position order" to "lowest first"
 
 output 1@3d6 named "lowest die"
-output 1@246 named "least significant digit"
+output 1@2d6 named "least significant digit"
 
 set "position order" to "highest first" \ the default behavior \
 
 output 1@3d6 named "highest die"
-output 1@246 named "most significant digit"
-''',r'''
-
-
-A: 2*4  \ this is a comment function: test \ output 1d6 + 1d6
-output 1d6 named "d6 asd [ asf} ][ asf] [E ]]]][[A]a[]]"
-output 1
-if 1=1 {if 2=2 {A:1} else {A:2}}
-__A_ : 2 + 3 * {2, {}} / 5 @ 2d5
-output A
-output 2d2
-output 1
-if 1 {if 1 {A:1 A:1}}
-output 1
-if 1=1 {A:1} else {A:2}
-if 1=1 {A:1} else if 1=1 {A:2} else {A:3}
-
-P: 2d6
-loop PP over {P} {
-output PP
-}
-
-'''
+output 1@2d6 named "most significant digit"
+''',
 ]
 import logging
 from parser import myparser
 from .myparser import lexer, ILLEGAL_CHARS, yacc_parser
-from src.randvar import RV, Seq, anydice_casting, output, roll, myrange
+from src.randvar import RV, Seq, anydice_casting, output, roll, myrange, settings_set
 from .python_resolver import PythonResolver
 
 def setup_logging(filename):
@@ -280,7 +259,7 @@ def setup_logging(filename):
 setup_logging('./log/example_run.log')
 
 def pipeline(to_parse):
-  if to_parse.strip() == '':
+  if to_parse is None or to_parse.strip() == '':
     logging.debug('Empty string')
     return
   # logging.debug(to_parse)
@@ -299,7 +278,7 @@ def pipeline(to_parse):
     logging.debug('Parse failed')
     return
   r = PythonResolver(p).resolve()
-  exec(r)
+  exec(r, globals())
   # for x in p:
   #   logging.debug('yacc: ' + str(x))
 
