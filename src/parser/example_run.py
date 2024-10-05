@@ -151,6 +151,7 @@ r'''
 A: 2d6
 ''',
 r'''
+A: 1 >= 2
 function: da {
 A:1d4
 }
@@ -246,11 +247,24 @@ set "position order" to "highest first" \ the default behavior \
 output 1@3d6 named "highest die"
 output 1@2d6 named "most significant digit"
 ''',
+r'''
+output [absolute 1]
+output [{1..5} contains 1]
+output [count 1 in {1..5}]
+output [explode d3]
+output [highest 1 of 2d3]
+output [lowest 1 of 2d3]
+output [middle 1 of 2d3]
+output [highest of 1 and 1]
+output [lowest of 1 and 1]
+output [maximum of 2d3]
+output [reverse {1..4}]
+output [sort {1..4}]
+'''
 ]
 import logging
 from parser import myparser
 from .myparser import lexer, ILLEGAL_CHARS, yacc_parser
-from src.randvar import RV, Seq, anydice_casting, output, roll, myrange, settings_set
 from .python_resolver import PythonResolver
 
 def setup_logging(filename):
@@ -258,33 +272,65 @@ def setup_logging(filename):
     logging.getLogger().addHandler(logging.StreamHandler())
 setup_logging('./log/example_run.log')
 
-def pipeline(to_parse):
+def parse(to_parse, verbose_lex=False, verbose_yacc=False):
   if to_parse is None or to_parse.strip() == '':
     logging.debug('Empty string')
     return
-  # logging.debug(to_parse)
+
   lexer.input(to_parse)
   tokens = [x for x in lexer]
 
   for x in ILLEGAL_CHARS:
       logging.debug(f'Illegal character {x!r}')
-    
-  # logging.debug('Tokens:')
-  # for x in tokens:
-  #     logging.debug(x)
 
-  p = yacc_parser.parse(to_parse)
-  if p is None:
+  if verbose_lex:
+    logging.debug('Tokens:')
+    for x in tokens:
+        logging.debug(x)
+
+  yacc_ret = yacc_parser.parse(to_parse)
+  if verbose_yacc and yacc_ret:
+    for x in yacc_ret:
+      logging.debug('yacc: ' + str(x))
+  return yacc_ret
+
+def parse_and_exec(to_parse, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False):
+  if verbose_input_str:
+    logging.debug(f'Parsing:\n{to_parse}')
+  parsed = parse(to_parse, verbose_lex=verbose_lex, verbose_yacc=verbose_yacc)
+  if parsed is None:
     logging.debug('Parse failed')
     return
-  r = PythonResolver(p).resolve()
-  exec(r, globals())
-  # for x in p:
-  #   logging.debug('yacc: ' + str(x))
+  r = PythonResolver(parsed).resolve()
+  if verbose_parseed_python:
+    logging.debug(f'Parsed python:\n{r}')
+  g = {}
+  # import the main functions
+  _import_str = 'from randvar import RV, Seq, anydice_casting, output, roll, myrange, settings_set \n'
+  _import_str += 'import funclib \n'
+  # add helper functions
+  helper_funcs = [('absolute', 'absolute_X'), 
+                  ('contains', 'X_contains_X'), 
+                  ('count_in', 'count_X_in_X'), 
+                  ('explode', 'explode_X'), 
+                  ('highest_N_of_D', 'highest_X_of_X'), 
+                  ('lowest_N_of_D', 'lowest_X_of_X'), 
+                  ('middle_N_of_D', 'middle_X_of_X'), 
+                  ('highest_of_N_and_N', 'highest_of_X_and_X'), 
+                  ('lowest_of_N_and_N', 'lowest_of_X_and_X'), 
+                  ('maximum_of', 'maximum_of_X'), 
+                  ('reverse', 'reverse_X'), 
+                  ('sort', 'sort_X')]
+  _import_str += '\n'.join(f'from funclib import {k} as {v}' for k,v in helper_funcs)
+  exec(_import_str, g, g)
+  logging.debug('Executing parsed python:')
+  exec(r, g, g)
 
 
+# to_parse = trials[-5]
 to_parse = trials[-1]
 # to_parse = '\n'.join(trials[7:8])
 # to_parse = '\n'.join(trials)
-pipeline(to_parse)
+# parse_and_exec(to_parse, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=True)
+parse_and_exec(to_parse, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False)
 
