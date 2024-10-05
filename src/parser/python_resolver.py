@@ -9,17 +9,17 @@ CONST = {
     'roll': 'roll',
     'range': 'myrange',
     'cast_decorator': '@anydice_casting()',
-    'setter': lambda name, value: f'settings_set("{name}", "{value}")'
+    'setter': lambda name, value: f'settings_set("{name}", "{value}")',
+    'function library': ('absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X'),
 }
 
 class PythonResolver:
     def __init__(self, root):
         self.root: T_sn = root
+        self.defined_functions: set[str] = set(CONST['function library'])
 
     def resolve(self):
-        print(f'INPUT TREE:\n{self.root}\n\n')
         result = '\n'.join(map(self.resolve_node, self.root))
-        print(f'RESULT:\n{result}\n\n')
         return result
 
     def resolve_node(self, node, cur_indent=0):
@@ -64,6 +64,7 @@ class PythonResolver:
                     args.append(f'{x[1]}: {DATATYPES[x[2]]}')
                     name.append('X')
             name = '_'.join(name)
+            self.defined_functions.add(name)
             res = CONST['cast_decorator'] + '\n'
             res += f'def {name}({", ".join(args)}):\n'
             res += '\n'.join([indent_str(self.resolve_node(x, cur_indent+2), cur_indent+2) for x in code])
@@ -132,6 +133,7 @@ class PythonResolver:
                     args.append(str(self.resolve_node(x)))
                     name.append('X')
             name = '_'.join(name)
+            assert name in self.defined_functions, f'Unknown function {name} not defined'
             return f'{name}({", ".join(args)})' if args else f'{name}()'
 
 
