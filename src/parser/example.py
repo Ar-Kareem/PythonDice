@@ -15,7 +15,7 @@ reserved = {k: k.upper() for k in reserved}
 tokens = [ 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
             'COLON', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS', 'AT', 
             'HASH', 'OR', 'AND',
-            'DOT', 'COMMA', 'UNDERSCORE', 
+            'DOT', 'COMMA', 
             'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE', 'LBRACKET', 'RBRACKET',
             'LOWERNAME', 'UPPERNAME', 'NUMBER', 
             'D_OP',
@@ -47,7 +47,6 @@ t_AND = r'&'
 
 t_DOT = r'\.'
 t_COMMA = r','
-t_UNDERSCORE = r'_'
 
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
@@ -56,7 +55,7 @@ t_RBRACE = r'\}'
 t_LBRACKET = r'\['
 t_RBRACKET = r'\]'
 
-t_UPPERNAME = r'[A-Z][A-Z]*'
+t_UPPERNAME = r'[A-Z_][A-Z_]*'
 
 # A function can be used if there is an associated action.
 # Write the matching regex in the docstring.
@@ -186,8 +185,6 @@ def p_outercode(p):
         |  IF expression LBRACE outercode RBRACE ELSEIF ELSE LBRACE outercode RBRACE
 
         |  RESULT COLON expression
-
-        | code
     '''
     if p[1] == 'output':
         if len(p) == 3:
@@ -195,7 +192,7 @@ def p_outercode(p):
         else:
             p[0] = ('output_named', p[2], p[4])
     elif p[1] == 'function':
-        p[0] = ('function', p[3])
+        p[0] = ('function', p[3], p[5])
     elif p[1] == 'loop':
         code = None if len(p) == 7 else p[6]
         p[0] = ('loop', p[2], p[4], code)
@@ -229,24 +226,19 @@ def p_outercode_elif(p):
     else:
         p[0] = (*p[1], p[4], p[6])
 
+def p_var_assign(p):
+    '''
+    outercode : var_name COLON expression
+    '''
+    p[0] = ('var_assign', p[1], p[3])
+
+
 
 def p_var_name(p):
     '''
     var_name : UPPERNAME
-                    | UNDERSCORE
-                    | var_name UNDERSCORE
-                    | var_name UPPERNAME
     '''
-    if len(p) == 2:
-        p[0] = p[1]
-    else:
-        p[0] = p[1] + p[2]
-
-def p_var_assign(p):
-    '''
-    code : var_name COLON expression
-    '''
-    p[0] = ('var_assign', p[1], p[3])
+    p[0] = p[1]
 
 def p_string_instring(p):
     '''
@@ -270,25 +262,64 @@ def p_strvar_instring(p):
 def p_funcname_def(p):
     '''
     funcname_def : LOWERNAME
-            |  funcname_def LOWERNAME
-            |  funcname_def var_name COLON LOWERNAME 
-            |  funcname_def var_name COLON D_OP 
+                |  funcname_def LOWERNAME
+                | OUTPUT
+                | FUNCTION
+                | LOOP
+                | OVER
+                | NAMED
+                | SET
+                | IF
+                | ELSE
+                | RESULT
+                | funcname_def OUTPUT
+                | funcname_def FUNCTION
+                | funcname_def LOOP
+                | funcname_def OVER
+                | funcname_def NAMED
+                | funcname_def SET
+                | funcname_def IF
+                | funcname_def ELSE
+                | funcname_def RESULT
     '''
     if len(p) == 2:
         p[0] = ('funcname_def', p[1])
     elif len(p) == 3:
         p[0] = (*p[1], p[2])
     else:
-        p[0] = (*p[1], ('param', p[2], p[4]))
-
+        # p[0] = (*p[1], ('param', p[2], p[4]))
+        assert False, f'{len(p)}, {p}'
+def p_funcname_def_param(p):
+    '''
+    funcname_def : var_name
+                |  var_name COLON D_OP 
+                |  var_name COLON LOWERNAME 
+                |  funcname_def var_name
+                |  funcname_def var_name COLON D_OP 
+                |  funcname_def var_name COLON LOWERNAME 
+    '''
+    if isinstance(p[1], tuple):  # recursive case
+        if len(p) == 3:
+            param = ('param', p[2])
+        else:
+            param = ('param', p[2], p[4])
+        p[0] = (*p[1], param)
+    else:  # base case
+        if len(p) == 2:
+            p[0] = ('funcname_def', p[1])
+        else:
+            p[0] = ('funcname_def', p[1], p[3])
 
 # Precedence rules to handle associativity and precedence of operators
 precedence = (
+    ('left', 'OR'),            # OR operator (lowest precedence)
+    ('left', 'AND'),           # AND operator (higher precedence than OR)
     ('left', 'PLUS', 'MINUS'),
     ('left', 'TIMES', 'DIVIDE'),
     ('left', 'POWER'),
     ('left', 'AT'),  # Assuming @ is left-associative
     ('left', 'D_OP'),  # 'd' operator must come after other operators
+    ('right', 'HASH_OP'),  # 'HASH' (unary #) operator precedence
     ('right', 'UMINUS', 'UPLUS'),  # Unary minus and plus have the highest precedence
     ('left', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS'),  # Comparison operators
 )
@@ -302,6 +333,8 @@ def p_expression_binop(p):
                | expression DIVIDE expression
                | expression POWER expression
                | expression AT expression
+               | expression AND expression
+               | expression OR expression
     '''
     p[0] = ('expr_op', p[2], p[1], p[3])
 def p_expression_dop(p):
@@ -336,6 +369,11 @@ def p_term_unary(p):
          | MINUS term %prec UMINUS
     '''
     p[0] = ('unary', p[1], p[2])
+def p_term_hash(p):
+    '''
+    term : HASH term %prec HASH_OP
+    '''
+    p[0] = ('hash', p[2])
 
 def p_term_grouped(p):
     '''
@@ -394,10 +432,31 @@ def p_term_call(p):
 
 def p_call_elements(p):
     '''
-    call_elements : call_elements LOWERNAME
-                  | call_elements expression
-                  | LOWERNAME
-                  | expression
+    call_elements : LOWERNAME
+                | expression
+                | call_elements LOWERNAME
+                | call_elements expression
+
+                | D_OP
+                | OUTPUT
+                | FUNCTION
+                | LOOP
+                | OVER
+                | NAMED
+                | SET
+                | IF
+                | ELSE
+                | RESULT
+                | call_elements D_OP
+                | call_elements OUTPUT
+                | call_elements FUNCTION
+                | call_elements LOOP
+                | call_elements OVER
+                | call_elements NAMED
+                | call_elements SET
+                | call_elements IF
+                | call_elements ELSE
+                | call_elements RESULT
     '''
     if len(p) == 3:  # Either LOWERNAME or expression
         p[0] = p[1] + [p[2]]
@@ -410,13 +469,7 @@ def p_error(p):
     print(f'Syntax error at {p.value!r}')
 
 def p_ignored_tokens(p):
-    '''
-    ignored_tokens : SET
-
-            | HASH
-            | OR
-            | AND
-'''
+    '''ignored_tokens : SET'''
 
 #     # No action is taken for ignored tokens; simply return nothing or None.
 #     pass

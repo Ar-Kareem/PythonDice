@@ -238,9 +238,10 @@ if 1=1 {A:1} else if 1=1 {A:2} else {A:3}
 function: rand B:s name a {A:2}
 ''',
 r'''
-output 1
-output 2
-output 3
+function: asdf {
+  HI : 1@ROLL 
+  LO : 2@ROLL
+}
 '''
 ]
 
@@ -252,7 +253,7 @@ setup_logging('./log/example_run.log')
 
 
 to_parse = trials[-1]
-# to_parse = trials[-7]
+# to_parse = '\n'.join(trials[7:8])
 to_parse = '\n'.join(trials)
 # logging.debug(to_parse)
 
@@ -267,5 +268,6 @@ for x in ILLEGAL_CHARS:
 #     logging.debug(x)
 
 logging.debug('Yacc Parsing:')
-for x in yacc_parser.parse(to_parse):
-  logging.debug('yacc: ' + str(x))
+p = yacc_parser.parse(to_parse)
+# for x in p:
+#   logging.debug('yacc: ' + str(x))
