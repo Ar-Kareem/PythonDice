@@ -427,6 +427,15 @@ class Seq(Iterable):
   def __ge__(self, other:T_ifsr):
     return self._compare_to(other, operator.ge)
 
+  def __or__(self, other:T_ifsr):
+    return int((self.sum() != 0) or (other != 0)) if isinstance(other, (int, float)) else operator.or_(self.sum(), other)
+  def __ror__(self, other:T_ifsr):
+    return int((self.sum() != 0) or (other != 0)) if isinstance(other, (int, float)) else operator.or_(other, self.sum())
+  def __and__(self, other:T_ifsr):
+    return int((self.sum() != 0) and (other != 0)) if isinstance(other, (int, float)) else operator.and_(self.sum(), other)
+  def __rand__(self, other:T_ifsr):
+    return int((self.sum() != 0) and (other != 0)) if isinstance(other, (int, float)) else operator.and_(other, self.sum())
+
   def _compare_to(self, other:T_ifsr, operation: Callable[[float, T_ifr], bool]):
     if isinstance(other, RV):
       return operation(self.sum(), other)
