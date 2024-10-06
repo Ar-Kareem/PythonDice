@@ -585,8 +585,8 @@ def roll(n: T_isr|str, d: T_isr|None=None) -> RV:
 
 _MEMOIZED = {}
 def _roll_int_rv(n: int, d: RV) -> RV:
-  if (n, d) in _MEMOIZED:
-    return _MEMOIZED[(n, d)]
+  if (n, d.vals, d.probs) in _MEMOIZED:
+    return _MEMOIZED[(n, d.vals, d.probs)]
   if n < 0:
     return -_roll_int_rv(-n, d)
   if n == 0:
@@ -598,7 +598,7 @@ def _roll_int_rv(n: int, d: RV) -> RV:
   if n%2 == 1:
     full = full + d
   full.set_source(n, d)
-  _MEMOIZED[(n, d)] = full
+  _MEMOIZED[(n, d.vals, d.probs)] = full
   return full
 
 def myrange(l, r):
