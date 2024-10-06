@@ -14,7 +14,7 @@ reserved = {k: k.upper() for k in reserved}
 
 tokens = [ 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
             'COLON', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS', 'AT', 
-            'HASH', 'OR', 'AND',
+            'HASH', 'OR', 'AND', 'EXCLAMATION',
             'DOT', 'COMMA', 
             'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE', 'LBRACKET', 'RBRACKET',
             'LOWERNAME', 'UPPERNAME', 'NUMBER', 
@@ -44,6 +44,7 @@ t_AT = r'\@'
 t_HASH = r'\#'
 t_OR = r'\|'
 t_AND = r'&'
+t_EXCLAMATION = r'!'
 
 t_DOT = r'\.'
 t_COMMA = r','
@@ -366,6 +367,7 @@ precedence = (
     ('left', 'AT'),  # Assuming @ is left-associative
     ('left', 'D_OP'),  # 'd' operator must come after other operators
     ('right', 'HASH_OP'),  # 'HASH' (unary #) operator precedence
+    ('right', 'EXCLAMATION'),  # Unary NOT operator (!) precedence
     ('right', 'UMINUS', 'UPLUS'),  # Unary minus and plus have the highest precedence
     ('left', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS'),  # Comparison operators
 )
@@ -415,7 +417,8 @@ def p_expression_term(p):
 def p_term_unary(p):
     '''
     term : PLUS term %prec UPLUS
-         | MINUS term %prec UMINUS
+            | MINUS term %prec UMINUS
+            | EXCLAMATION term %prec EXCLAMATION
     '''
     p[0] = ('unary', p[1], p[2])
 def p_term_hash(p):

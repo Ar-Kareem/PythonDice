@@ -9,10 +9,6 @@ def setup_logging(filename):
 setup_logging('./log/example_run.log')
 
 def parse(to_parse, verbose_lex=False, verbose_yacc=False):
-  if to_parse is None or to_parse.strip() == '':
-    logging.debug('Empty string')
-    return
-
   myparser.lexer.input(to_parse)
   tokens = [x for x in myparser.lexer]
 
@@ -32,6 +28,9 @@ def parse(to_parse, verbose_lex=False, verbose_yacc=False):
   return yacc_ret
 
 def pipeline(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False):
+  if to_parse is None or to_parse.strip() == '':
+    logging.debug('Empty string')
+    return
   if verbose_input_str:
     logging.debug(f'Parsing:\n{to_parse}')
   parsed = parse(to_parse, verbose_lex=verbose_lex, verbose_yacc=verbose_yacc)
