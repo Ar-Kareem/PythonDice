@@ -115,7 +115,7 @@ class RV:
     to_filter = set(Seq(seq))
     vp = tuple((v, p) for v, p in zip(self.vals, self.probs) if v not in to_filter)
     if len(vp) == 0:
-        return RV((), ())
+        return RV.from_const(0)
     vals, probs = zip(*vp)
     return RV(vals, probs)
 
@@ -207,16 +207,17 @@ class RV:
   def _get_kth_order_statistic(self, draws: int, k: int):
     '''Get the k-th smallest value of n draws: k@RV where RV is n rolls of a die'''
     # k-th largest value of n draws: γ@RV where RV is n rolls of a die | FOR DISCRETE (what we need): https://en.wikipedia.org/wiki/Order_statistic#Dealing_with_discrete_variables
-    N = draws
-    if SETTINGS.get("position order", "highest first") == "highest first":
-      k = N - k + 1  # wikipedia uses (k)-th smallest, we want (k)-th largest
-    if k < 1 or k > N:
-      return 0
     cdf = self.get_cdf().probs  # P(X <= x)
     sum_probs = self._get_sum_probs()
     p1 = tuple(cdf_x-p_x for p_x, cdf_x in zip(self.probs, cdf))  # P(X < x)
     p2 = self.probs # P(X = x)
     p3 = tuple(sum_probs-cdf_x for cdf_x in cdf)  # P(X > x)
+
+    N = draws
+    if SETTINGS.get("position order", "highest first") == "highest first":
+      k = N - k + 1  # wikipedia uses (k)-th smallest, we want (k)-th largest
+    if k < 1 or k > N:
+      return 0
     def get_x(xi, k):
       return sum(math.comb(N, j) * (p3[xi]**j * (p1[xi]+p2[xi])**(N-j) - (p2[xi]+p3[xi])**j * p1[xi]**(N-j)) for j in range(N-k +1))
     res_prob = [get_x(xi, k) for xi in range(len(self.vals))]
