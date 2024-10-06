@@ -1,17 +1,26 @@
 import pytest
 
 import randvar
-from randvar import RV, Seq, anydice_casting, output, roll
+from randvar import RV, Seq, anydice_casting, output, roll, settings_set
 from parser.parse_and_exec import pipeline
 
+
+settings_set('RV_IGNORE_ZERO_PROBS', True)
+bv = (0, 1)
 
 @pytest.mark.parametrize("code,res", [
 ('''
 output ((1d4-1) | (1d2-1))
-''', [RV((0, 1), (125, 875))]),
-('''
-output ((1d4-1) | (1d2-1))
-''', [RV((0, 1), (125, 875))]),
+''', [RV(bv, (125, 875))]
+),('''
+output {2}&(1d2-1)
+output {2,-2}&(1d2-1)
+''', [RV(bv, (1, 1)), RV(bv, (1, 0))]
+),('''
+output {2}&{2,-1}
+output {2,-2}&{2,-2}
+''', [RV(bv, (0, 1)), RV(bv, (1, 0))]
+),
 
 ])
 def test_parse_and_exec(code, res):
