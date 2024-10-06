@@ -291,9 +291,18 @@ class RV:
   def __ge__(self, other:T_ifsr):
     return self._convolve(other, lambda x, y: 1 if x >= y else 0)
 
+  def __or__(self, other:T_ifsr):
+    return self._convolve(other, lambda x, y: 1 if x or y else 0)
+  def __ror__(self, other:T_ifsr):
+    return self._rconvolve(other, lambda x, y: 1 if x or y else 0)
+  def __and__(self, other:T_ifsr):
+    return self._convolve(other, lambda x, y: 1 if x and y else 0)
+  def __rand__(self, other:T_ifsr):
+    return self._rconvolve(other, lambda x, y: 1 if x and y else 0)
+
   def __bool__(self):
-    assert all(v in (0, 1) for v in self.vals)
-    return len(self.vals) == 1 and self.vals[0] == 1
+    raise TypeError('Boolean values can only be numbers, but you provided RV')
+    
   def __len__(self):
     # number of rolls that created this RV
     return self._source_roll
@@ -608,8 +617,8 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   sum_ = rv._get_sum_probs()
   if sum_ <= sum_limit:
     return rv
-  normalizing_const = 2*int(sum_ // sum_limit)
-  print('WARNING reducing probabilities | sum limit', sum_limit, 'sum', sum_, 'NORMALIZING BY', normalizing_const)
+  normalizing_const = int(10e10 * sum_ // sum_limit)
+  print(f'WARNING reducing probabilities | sum limit {sum_limit}, sum{sum_:.1g}, NORMALIZING BY {normalizing_const:.1g}')
   # EPS = 1/lim  where lim is very large int, thus EPS is very small
   # below will round up any P(X=x) < EPS to 0
   rv.probs = tuple(p//normalizing_const for p in rv.probs)
