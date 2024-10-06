@@ -85,7 +85,7 @@ def t_begin_instring(t):
     t.lexer.begin('instring')             # Starts 'instring' state
 
 t_instring_INSTRING_VAR = r'\[[A-Z]+\]'
-t_instring_INSTRING_NONVAR = r'\[[^"[]*+'
+t_instring_INSTRING_NONVAR = r'\[[^"[]*'
 t_instring_INSTRING_ANY = r'[^"[]+'
 
 def t_instring_end(t):
