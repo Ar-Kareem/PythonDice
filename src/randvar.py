@@ -9,7 +9,6 @@ from collections import defaultdict
 
 import utils
 
-RV_AUTO_TRUNC = False  # if True, then RV will automatically truncate values to ints (replicate anydice behavior)
 
 T_if = int|float
 T_ifs = T_if|Iterable['T_ifs']  # recursive type
@@ -21,6 +20,30 @@ T_ifsr = Union[T_ifs, 'RV']
 
 T_s = Iterable['T_ifs']  # same as T_ifs but excludes int and float (not iterable)
 
+DEFAULT_SETTINGS = {
+  'RV_TRUNC': False,  # if True, then RV will automatically truncate values to ints (replicate anydice behavior)
+  'RV_IGNORE_ZERO_PROBS': False,  # if True, then RV remove P=0 vals when creating RVs (False by default in anydice)
+
+  'position order': 'highest first',  # 'highest first' or 'lowest first'
+}
+SETTINGS = DEFAULT_SETTINGS.copy()
+
+def settings_set(name, value):
+  if name == "position order":
+    assert value in ("highest first", "lowest first"), 'position order must be "highest first" or "lowest first"'
+  elif name in ('RV_TRUNC', 'RV_IGNORE_ZERO_PROBS'):
+    if isinstance(value, str):
+      assert value.lower() in ('true', 'false'), 'value must be "True" or "False"'
+      value = value.lower() == 'true'
+    assert isinstance(value, bool), 'value must be a boolean'
+  else:
+    assert False, f'invalid setting name: {name}'
+  SETTINGS[name] = value
+
+def settings_reset():
+  SETTINGS.clear()
+  SETTINGS.update(DEFAULT_SETTINGS)
+
 class RV:
   def __init__(self, vals: Iterable[float], probs: Iterable[int], truncate=None):
     vals, probs = list(vals), tuple(probs)
@@ -29,9 +52,9 @@ class RV:
       if isinstance(v, bool):
         vals[i] = int(v)
 
-    if truncate or (truncate is None and RV_AUTO_TRUNC):
+    if truncate or (truncate is None and SETTINGS['RV_TRUNC']):
       vals = tuple(int(v) for v in vals)
-    self.vals, self.probs = RV._sort_and_group(vals, probs, skip_zero_probs=True, normalize=True)
+    self.vals, self.probs = RV._sort_and_group(vals, probs, skip_zero_probs=SETTINGS['RV_IGNORE_ZERO_PROBS'], normalize=True)
     if len(self.vals) == 0:  # if no values, then add 0
       self.vals, self.probs = (0, ), (1, )
     self.sum_probs = None
@@ -214,7 +237,7 @@ class RV:
     p3 = tuple(sum_probs-cdf_x for cdf_x in cdf)  # P(X > x)
 
     N = draws
-    if SETTINGS.get("position order", "highest first") == "highest first":
+    if SETTINGS["position order"] == "highest first":
       k = N - k + 1  # wikipedia uses (k)-th smallest, we want (k)-th largest
     if k < 1 or k > N:
       return 0
@@ -591,12 +614,6 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   rv.probs = tuple(p//normalizing_const for p in rv.probs)
   return rv
 
-
-SETTINGS = {}
-def settings_set(name, value):
-  if name == "position order":
-    assert value in ("highest first", "lowest first"), 'position order must be "highest first" or "lowest first"'
-  SETTINGS[name] = value
 
 def output(rv: T_isr, named=None, show_pdf=True, blocks_width=170, print_=True, cdf_cut=0):
   if isinstance(rv, int) or isinstance(rv, Iterable):

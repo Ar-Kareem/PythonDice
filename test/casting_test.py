@@ -3,6 +3,15 @@ import pytest
 import randvar
 from randvar import RV, Seq, roll, anydice_casting
 
+
+
+@pytest.fixture(autouse=True)
+def settings_reset():
+    randvar.settings_reset()
+
+
+
+
 @anydice_casting()
 def f1(inp:int):
     assert isinstance(inp, int)

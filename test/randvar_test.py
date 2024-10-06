@@ -4,6 +4,12 @@ import math
 import randvar
 from randvar import RV, Seq, roll, output
 
+
+@pytest.fixture(autouse=True)
+def settings_reset():
+    randvar.settings_reset()
+
+
 @pytest.mark.parametrize("vals,probs", [
     ([], []),
     ((0, ), (1, )),
@@ -42,8 +48,12 @@ def test_RV_init_empty():
     assert (e.vals, e.probs) == ((0, ), (1, ))
 
 def test_probability_zero_RV():
+    randvar.settings_set('RV_IGNORE_ZERO_PROBS', 'true')
     a = RV((1, 2, 777), (1, 1, 0))
     assert (a.vals, a.probs) == ((1, 2), (1, 1))
+    randvar.settings_set('RV_IGNORE_ZERO_PROBS', 'false')
+    a = RV((1, 2, 777), (1, 1, 0))
+    assert (a.vals, a.probs) == ((1, 2, 777), (1, 1, 0))
 
 @pytest.mark.parametrize("v, p, gv, gp", [
     ((1, ), (1, ), (1, ), (1, )),
@@ -57,10 +67,21 @@ def test_probability_zero_RV():
     ((1, 1, 3, 3), (2, 6, 2, 4), (1, 3), (4, 3)),
     ((3, 3, 1, 1), (2, 6, 2, 4), (1, 3), (3, 4)),
     ((3, 1, 3, 1), (2, 6, 2, 4), (1, 3), (5, 2)),
-    ((3, 1, 3, 1, 5), (2, 6, 2, 4, 0), (1, 3), (5, 2)),
+    ((3, 1, 3, 1, 5), (2, 6, 2, 4, 0), (1, 3, 5), (5, 2, 0)),
     ((1, 1, 1, 1), (2, 6, 2, 4), (1, ), (1, )),
+    ((1, 2), (1, 0), (1, 2), (1, 0)),
 ])
 def test_RV_equality(v, p, gv, gp):
+    a = RV(v, p)
+    assert (a.vals, a.probs) == (gv, gp)
+    assert RV.dices_are_equal(a, RV(gv, gp))
+
+@pytest.mark.parametrize("setting, v, p, gv, gp", [
+    ('true', (3, 1, 3, 1, 5), (2, 6, 2, 4, 0), (1, 3, ), (5, 2, )),
+    ('false', (3, 1, 3, 1, 5), (2, 6, 2, 4, 0), (1, 3, 5), (5, 2, 0)),
+])
+def test_RV_equality_SET_ZERO_PROB(setting, v, p, gv, gp):
+    randvar.settings_set('RV_IGNORE_ZERO_PROBS', setting)
     a = RV(v, p)
     assert (a.vals, a.probs) == (gv, gp)
     assert RV.dices_are_equal(a, RV(gv, gp))
@@ -151,7 +172,7 @@ def test_RV_std(v, p, std):
     ((1, 1, 3, 3), (2, 6, 2, 4), (4, 7)),
     ((3, 3, 1, 1), (2, 6, 2, 4), (3, 7)),
     ((3, 1, 3, 1), (2, 6, 2, 4), (5, 7)),
-    ((3, 1, 3, 1, 5), (2, 6, 2, 4, 0), (5, 7)),
+    ((3, 1, 3, 1, 5), (2, 6, 2, 4, 0), (5, 7, 7)),
     ((1, 1, 1, 1), (2, 6, 2, 4), (1, )),
 ])
 def test_RV_CDF(v, p, cdf_probs):
@@ -356,10 +377,11 @@ def test_FAIL_die_matmul(rhs):
 
 
 def test_truncate():
+    randvar.settings_set('RV_TRUNC', 'false')
     a = roll(6) / roll(6)
     b = RV(a.vals, a.probs, truncate=False)
     c = RV(a.vals, a.probs, truncate=True)
-    randvar.RV_AUTO_TRUNC = True
+    randvar.settings_set('RV_TRUNC', 'true')
     d = roll(6) / roll(6)
     assert RV.dices_are_equal(a, b)
     assert RV.dices_are_equal(c, d)
@@ -367,7 +389,6 @@ def test_truncate():
     assert not RV.dices_are_equal(a, d)
     assert not RV.dices_are_equal(b, c)
     assert not RV.dices_are_equal(b, d)
-    randvar.RV_AUTO_TRUNC = False
 
 def test_fast_matmul():
     r = (2@roll(4, (roll(4) + roll(3, 8) + roll(12)))).get_vals_probs(cdf_cut=0.5)  # type: ignore

@@ -1,7 +1,13 @@
 from typing import Iterable
 import pytest
 
+import randvar
 from randvar import Seq, RV, roll
+
+
+@pytest.fixture(autouse=True)
+def settings_reset():
+    randvar.settings_reset()
 
 
 def test_at_num():
