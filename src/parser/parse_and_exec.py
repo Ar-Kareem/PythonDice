@@ -303,11 +303,9 @@ def parse_and_exec(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=
   r = PythonResolver(parsed).resolve()
   if verbose_parseed_python:
     logging.debug(f'Parsed python:\n{r}')
-  g = {}
-  # import the main functions
+
   _import_str = 'from randvar import RV, Seq, anydice_casting, output, roll, myrange, settings_set \n'
   _import_str += 'import funclib \n'
-  # add helper functions
   helper_funcs = [('absolute', 'absolute_X'), 
                   ('contains', 'X_contains_X'), 
                   ('count_in', 'count_X_in_X'), 
@@ -322,14 +320,21 @@ def parse_and_exec(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=
                   ('sort', 'sort_X')]
   _import_str += '\n'.join(f'from funclib import {k} as {v}' for k,v in helper_funcs)
   if do_exec:
+    g = {}
     exec(_import_str, g, g)
+    print('g', g)
     logging.debug('Executing parsed python:')
     exec(r, g, g)
 
 
 for to_parse in trials:
   try:
-    parse_and_exec(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=True)
+    parse_and_exec(to_parse, 
+                  do_exec=True, 
+                  verbose_input_str=False, 
+                  verbose_lex=False, 
+                  verbose_yacc=False, 
+                  verbose_parseed_python=True)
   except Exception as e:
     logging.warning(f'Error in parsing: {to_parse}')
     logging.exception(e)
