@@ -118,6 +118,8 @@ class PythonResolver:
                 return f'{self.resolve_node(left)} {op} {self.resolve_node(right)}'
         elif node[0] == 'unary':
             op, expr = node[1:]
+            if op == '!':
+                return f'(not {self.resolve_node(expr)})'
             return f'{op}{self.resolve_node(expr)}'
         elif node[0] == 'hash':  # len
             return f'len({self.resolve_node(node[1])})'
