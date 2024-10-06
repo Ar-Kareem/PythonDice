@@ -601,10 +601,10 @@ def roll(n: T_isr|str, d: T_isr|None=None) -> RV:
     return result
   return _roll_int_rv(n, d)
 
-_MEMOIZED = {}
+_MEMOIZED_ROLLS = {}
 def _roll_int_rv(n: int, d: RV) -> RV:
-  if (n, d.vals, d.probs) in _MEMOIZED:
-    return _MEMOIZED[(n, d.vals, d.probs)]
+  if (n, d.vals, d.probs) in _MEMOIZED_ROLLS:
+    return _MEMOIZED_ROLLS[(n, d.vals, d.probs)]
   if n < 0:
     return -_roll_int_rv(-n, d)
   if n == 0:
@@ -616,11 +616,9 @@ def _roll_int_rv(n: int, d: RV) -> RV:
   if n%2 == 1:
     full = full + d
   full.set_source(n, d)
-  _MEMOIZED[(n, d.vals, d.probs)] = full
+  _MEMOIZED_ROLLS[(n, d.vals, d.probs)] = full
   return full
 
-def myrange(l, r):
-  return range(l, r+1)
 
 def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   sum_ = rv._get_sum_probs()
