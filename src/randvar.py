@@ -23,6 +23,7 @@ T_s = Iterable['T_ifs']  # same as T_ifs but excludes int and float (not iterabl
 DEFAULT_SETTINGS = {
   'RV_TRUNC': False,  # if True, then RV will automatically truncate values to ints (replicate anydice behavior)
   'RV_IGNORE_ZERO_PROBS': False,  # if True, then RV remove P=0 vals when creating RVs (False by default in anydice)
+  'DEFAULT_OUTPUT_WIDTH': 180,  # default width of output
 
   'position order': 'highest first',  # 'highest first' or 'lowest first'
 }
@@ -615,9 +616,13 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   return rv
 
 
-def output(rv: T_isr, named=None, show_pdf=True, blocks_width=170, print_=True, cdf_cut=0):
-  if isinstance(rv, int) or isinstance(rv, Iterable):
+def output(rv: T_isr, named=None, show_pdf=True, blocks_width=None, print_=True, cdf_cut=0):
+  if isinstance(rv, int) or isinstance(rv, Iterable) or isinstance(rv, bool):
     rv = RV.from_seq([rv])
+  assert isinstance(rv, RV), 'rv must be a RV'
+  if blocks_width is None:
+    blocks_width = SETTINGS['DEFAULT_OUTPUT_WIDTH']
+
   result = ''
   if named is not None:
     result += named + ' '
