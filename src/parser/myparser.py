@@ -182,8 +182,7 @@ lexer = lex()
 #               | LPAREN expression RPAREN
 #               | NUMBER
 #               | var_name
-#               | term DOT DOT term
-#               | term LBRACE RBRACE
+#               | LBRACE RBRACE
 #               | LBRACE elements RBRACE
 #               | LBRACKET call_elements RBRACKET
 # 
