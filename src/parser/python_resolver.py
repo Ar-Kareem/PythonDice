@@ -34,10 +34,12 @@ class PythonResolver:
             res = self.resolve_node(node[1]) + self.resolve_node(node[2])
             return cleanup_string(res)
 
-        elif node[0] == 'number':
+        elif node[0] == 'number':  # number in an expression
             return node[1]
         elif node[0] == 'var':  # variable inside an expression
             return node[1]
+        elif node[0] == 'group':  # group inside an expression, node[1] is an expression
+            return f'({self.resolve_node(node[1])})'
 
         # OUTPUT:
         elif node[0] == 'output':

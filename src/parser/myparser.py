@@ -431,7 +431,7 @@ def p_term_grouped(p):
     '''
     term : LPAREN expression RPAREN
     '''
-    p[0] = p[2]
+    p[0] = ('group', p[2])
 
 def p_term_number(p):
     '''
