@@ -89,6 +89,7 @@ class RV:
         res_vals.append(rv)
         res_probs.append(weight*PROD)  # prob_sum is 1
     result = RV(res_vals, res_probs)
+    result = _INTERNAL_PROB_LIMIT_VALS(result)
     return result
 
 
@@ -181,7 +182,9 @@ class RV:
       return RV([operation(v, other) for v in self.vals], self.probs)
     new_vals = tuple(operation(v1, v2) for v1 in self.vals for v2 in other.vals)
     new_probs = tuple(p1*p2 for p1 in self.probs for p2 in other.probs)
-    return RV(new_vals, new_probs)
+    res = RV(new_vals, new_probs)
+    res = _INTERNAL_PROB_LIMIT_VALS(res)
+    return res
   def _rconvolve(self, other:T_ifsr, operation: Callable[[float, float], float]):
     assert not isinstance(other, RV)
     if isinstance(other, Iterable):
@@ -217,7 +220,9 @@ class RV:
     def get_x(xi, k):
       return sum(math.comb(N, j) * (p3[xi]**j * (p1[xi]+p2[xi])**(N-j) - (p2[xi]+p3[xi])**j * p1[xi]**(N-j)) for j in range(N-k +1))
     res_prob = [get_x(xi, k) for xi in range(len(self.vals))]
-    return RV(self.vals, res_prob)
+    res = RV(self.vals, res_prob)
+    res = _INTERNAL_PROB_LIMIT_VALS(res)
+    return res
 
   def __add__(self, other:T_ifsr):
     return self._convolve(other, operator.add)
@@ -573,6 +578,18 @@ def _roll_int_rv(n: int, d: RV) -> RV:
 
 def myrange(l, r):
   return range(l, r+1)
+
+def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
+  sum_ = rv._get_sum_probs()
+  if sum_ <= sum_limit:
+    return rv
+  normalizing_const = 2*int(sum_ // sum_limit)
+  print('WARNING reducing probabilities | sum limit', sum_limit, 'sum', sum_, 'NORMALIZING BY', normalizing_const)
+  # EPS = 1/lim  where lim is very large int, thus EPS is very small
+  # below will round up any P(X=x) < EPS to 0
+  rv.probs = tuple(p//normalizing_const for p in rv.probs)
+  return rv
+
 
 SETTINGS = {}
 def settings_set(name, value):
