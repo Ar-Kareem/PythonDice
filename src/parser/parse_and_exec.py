@@ -27,7 +27,7 @@ def parse(to_parse, verbose_lex=False, verbose_yacc=False):
       logging.debug('yacc: ' + str(x))
   return yacc_ret
 
-def pipeline(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False):
+def pipeline(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False, global_vars=None):
   if to_parse is None or to_parse.strip() == '':
     logging.debug('Empty string')
     return
@@ -59,6 +59,7 @@ def pipeline(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False,
   if do_exec:
     g = {}
     exec(_import_str, g, g)
+    g = {**g, **(global_vars or {})}
     logging.debug('Executing parsed python:')
     exec(r, g, g)
 
