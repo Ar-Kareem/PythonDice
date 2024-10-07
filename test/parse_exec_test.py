@@ -58,6 +58,7 @@ def test_ands_and_ors(code, res):
         check(x, res[i])
         i += 1
     pipeline(code, global_vars={'output': lambda x: check_res(x)})
+    assert i == len(res)
 
 
 @pytest.mark.parametrize("code", [
