@@ -25,14 +25,14 @@ def parse(to_parse, verbose_lex=False, verbose_yacc=False):
     for x in tokens:
         logging.debug(x)
 
-  yacc_ret = myparser.yacc_parser.parse(to_parse)  # generate the AST
-
+  yacc_ret: myparser.Node = myparser.yacc_parser.parse(to_parse)  # generate the AST
   if yacc_ret is None:
     logging.debug('Parse failed')
     return
   if verbose_yacc:
     for x in yacc_ret:
       logging.debug('yacc: ' + str(x))
+  assert isinstance(yacc_ret, myparser.Node), f'Expected Node, got {type(yacc_ret)}'
   return yacc_ret
 
 def get_lib():
@@ -90,6 +90,8 @@ def pipeline(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False,
   if verbose_input_str:
     logging.debug(f'Parsing:\n{to_parse}')
   parsed = parse(to_parse, verbose_lex=verbose_lex, verbose_yacc=verbose_yacc)
+  if parsed is None:
+    return
   r = PythonResolver(parsed).resolve()
   if verbose_parseed_python:
     logging.debug(f'Parsed python:\n{r}')
