@@ -3,5 +3,7 @@ __pycache__
 .vscode
 .coverage
 coverage_re
+htmlcov
+junit
 log
-
+coverage.xml
