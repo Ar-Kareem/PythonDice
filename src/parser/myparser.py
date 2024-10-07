@@ -372,7 +372,7 @@ def p_expression_dop(p):
     if len(p) == 4:
         p[0] = Node(NodeType.EXPR_OP, 'ndm', p[1], p[3])  # case: n d m
     else:
-        p[0] = Node(NodeType.EXPR_OP, 'dm', p[2], None)  # case: d m
+        p[0] = Node(NodeType.EXPR_OP, 'dm', p[2], 'DUMMY VAL')  # case: d m
 def p_expression_comparison(p):
     '''
     expression : expression LESS expression

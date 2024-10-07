@@ -52,10 +52,7 @@ class PythonResolver:
         return '\n'.join(' '*self.INDENT_LEVEL + x for x in s.split('\n'))
 
     def resolve_node(self, node: 'Node|str') -> str:
-        if node is None:
-            logger.error('Got None')
-            assert False, 'Got None'
-            return ''
+        assert node is not None, 'Got None'
         assert not isinstance(node, str), f'resolver error, not sure what to do with a string: {node}. All strings should be a Node ("string", str|strvar...)'
 
         if node.type == NodeType.MULTILINE_CODE:
