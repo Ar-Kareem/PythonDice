@@ -6,3 +6,5 @@ pytest-ordering
 
 coverage
 selenium
+
+RestrictedPython
