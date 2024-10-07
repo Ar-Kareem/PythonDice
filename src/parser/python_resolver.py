@@ -1,11 +1,11 @@
 import logging
 from typing import Union, Sequence
 
+from .myparser import Node, NodeType
+
 
 logger = logging.getLogger(__name__)
 
-
-T_elem = Union[str, int, None, Sequence["T_elem"]]
 
 CONST = {
     'output': 'output',
@@ -18,9 +18,9 @@ CONST = {
 }
 
 class PythonResolver:
-    def __init__(self, root):
-        assert self._check_nested_str(root), f'Expected nested strings/numbers from yacc, got {root}'
-        self.root: T_elem = root
+    def __init__(self, root: Node):
+        assert self._check_nested_str(root), f'Expected nested strings/None/Node from yacc, got {root}'
+        self.root = root
         self.defined_functions: set[str] = set(CONST['function library'])
         self.user_defined_functions: list[str] = []
         self.INDENT_LEVEL = 2
@@ -31,11 +31,9 @@ class PythonResolver:
         self.NEWLINES_AFTER_FILE = 1
 
     def _check_nested_str(self, node):
-        if node is None or isinstance(node, (int, str)):
-            return True
-        if isinstance(node, Sequence):
-            return all(self._check_nested_str(x) for x in node)
-        logging.error(f'Unexpected node: {node}')
+        if isinstance(node, Node):
+            return all(x is None or isinstance(x, str) or self._check_nested_str(x) for x in node)
+        logging.error(f'Unexpected node: {node} with children nodes {node.vals}')
         return False
 
     def resolve(self):
@@ -45,7 +43,7 @@ class PythonResolver:
         result = [x for i, x in enumerate(result) if i == 0 or x.strip() != '' or result[i-1].strip() != '']
         return '\n'.join(result)
 
-    def _indent_resolve(self, node: T_elem) -> str:
+    def _indent_resolve(self, node: 'Node|str') -> str:
         """Given a node, resolve it and indent it. node to indent: if/elif/else, loop, function"""
         return self._indent_str(self.resolve_node(node))
 
@@ -53,97 +51,100 @@ class PythonResolver:
         """Indent a string by self.indent_level spaces for each new line"""
         return '\n'.join(' '*self.INDENT_LEVEL + x for x in s.split('\n'))
 
-    def resolve_node(self, node: T_elem) -> str:
+    def resolve_node(self, node: 'Node|str') -> str:
         if node is None:
+            logger.error('Got None')
+            assert False, 'Got None'
             return ''
-        assert not isinstance(node, int), f'resovler error, not sure what to do with a number: {node}. All numbers should be a tuple ("number", int)'
-        assert not isinstance(node, str), f'resolver error, not sure what to do with a string: {node}. All strings should be a tuple ("string", str|strvar...)'
+        assert not isinstance(node, str), f'resolver error, not sure what to do with a string: {node}. All strings should be a Node ("string", str|strvar...)'
 
-        if node[0] == 'multiline_code':
-            return '\n'.join([self.resolve_node(x) for x in node[1:]])
+        if node.type == NodeType.MULTILINE_CODE:
+            return '\n'.join([self.resolve_node(x) for x in node])
 
-        elif node[0] == 'string':  # tuple of str or ("strvar", ...)
-            return ''.join([x if isinstance(x, str) else self.resolve_node(x) for x in node[1:]])
-        elif node[0] == 'strvar':
-            assert isinstance(node[1], str), f'Expected string for strvar, got {node[1]}'
-            return '{' + node[1] + '}'
-        elif node[0] == 'number':  # number in an expression
-            assert isinstance(node[1], str), f'Expected str of a number, got {node[1]}  type: {type(node[1])}'
-            return str(node[1])
-        elif node[0] == 'var':  # variable inside an expression
-            assert isinstance(node[1], str), f'Expected str of a variable, got {node[1]}'
-            return node[1]
-        elif node[0] == 'group':  # group inside an expression, node[1] is an expression
-            return f'({self.resolve_node(node[1])})'
+        elif node.type == NodeType.STRING:  # Node of str or ("strvar", ...)
+            return ''.join([x if isinstance(x, str) else self.resolve_node(x) for x in node])
+        elif node.type == NodeType.STRVAR:
+            assert isinstance(node.val, str), f'Expected string for strvar, got {node.val}'
+            return '{' + node.val + '}'
+        elif node.type == NodeType.NUMBER:  # number in an expression
+            assert isinstance(node.val, str), f'Expected str of a number, got {node.val}  type: {type(node.val)}'
+            return str(node.val)
+        elif node.type == NodeType.VAR:  # variable inside an expression
+            assert isinstance(node.val, str), f'Expected str of a variable, got {node.val}'
+            return node.val
+        elif node.type == NodeType.GROUP:  # group inside an expression, node.val is an expression
+            return f'({self.resolve_node(node.val)})'
 
         # OUTPUT:
-        elif node[0] == 'output':
-            params = self.resolve_node(node[1])
+        elif node.type == NodeType.OUTPUT:
+            params = self.resolve_node(node.val)
             return f'{CONST["output"]}({params})'
-        elif node[0] == 'output_named':
-            params = self.resolve_node(node[1])
-            name = self.resolve_node(node[2])  # node[2] is str_obj
+        elif node.type == NodeType.OUTPUT_NAMED:
+            params, name = node
+            params, name = self.resolve_node(params), self.resolve_node(name)
             return f'{CONST["output"]}({params}, named=f"{name}")'
 
-        elif node[0] == 'set':
-            name, value = node[1], node[2]
+        elif node.type == NodeType.SET:
+            name, value = node
             name, value = self.resolve_node(name), self.resolve_node(value)
             return CONST['setter'](name, value)
 
         # FUNCTION:
-        elif node[0] == 'function':
-            nameargs, code = node[1], node[2]
-            assert isinstance(nameargs, tuple) and nameargs[0] == 'funcname_def', f'Error in parsing fuction node: {node}'
-            nameargs = nameargs[1:]
-            name, args = [], []
+        elif node.type == NodeType.FUNCTION:
+            nameargs, code = node
+            assert isinstance(nameargs, Node) and nameargs.type == NodeType.FUNCNAME_DEF, f'Error in parsing fuction node: {node}'
+            func_name, func_args = [], []
             for x in nameargs:  # nameargs is a list of strings and expressions e.g. [attack 3d6 if crit 6d6 and double crit 12d6]
                 if isinstance(x, str):
-                    name.append(x)
+                    func_name.append(x)
                 else:
-                    assert isinstance(x, tuple) and x[0] == 'param', f'Error in parsing function node: {node}'
-                    DATATYPES = {'s': 'Seq', 'n': 'int', 'd': 'RV'}
-                    args.append(f'{x[1]}: {DATATYPES[x[2]]}')
-                    name.append('X')
-            name = '_'.join(name)
-            self.defined_functions.add(name)
-            self.user_defined_functions.append(name)
+                    assert isinstance(x, Node) and x.type in (NodeType.PARAM, NodeType.PARAM_WITH_DTYPE), f'Error in parsing function node: {node}'
+                    arg_name, arg_dtype = x
+                    assert isinstance(arg_dtype, str), f'Expected string for arg_dtype, got {arg_dtype}'
+                    arg_dtype = {'s': 'Seq', 'n': 'int', 'd': 'RV'}.get(arg_dtype, arg_dtype)
+                    func_args.append(f'{arg_name}: {arg_dtype}')
+                    func_name.append('X')
+            func_name = '_'.join(func_name)
+            self.defined_functions.add(func_name)
+            self.user_defined_functions.append(func_name)
             func_decorator = CONST['cast_decorator']
-            func_def = f'def {name}({", ".join(args)}):'
+            func_def = f'def {func_name}({", ".join(func_args)}):'
             func_code = self._indent_resolve(code)
             return f'{func_decorator}\n{func_def}\n{func_code}' + '\n'*self.NEWLINES_AFTER_FUNCTION
-        elif node[0] == 'result':
-            return f'return {self.resolve_node(node[1])}'
+        elif node.type == NodeType.RESULT:
+            return f'return {self.resolve_node(node.val)}'
 
         # CONDITIONALS IF
-        elif node[0] == 'if_elif_else':
-            blocks = node[1:]  # list of tuples ('if', cond, code)+, ('elif', cond, code)*, ('else', code)?  (+: 1+, *: 0+, ?: 0 or 1)
+        elif node.type == NodeType.IF_ELIF_ELSE:
             res = []
-            for block in blocks:
-                assert isinstance(block, tuple), f'Expected tuple in conditionals, got {block}'
-                if block[0] == 'if':
-                    res.append(f'if {self.resolve_node(block[1])}:\n{self._indent_resolve(block[2])}')
-                elif block[0] == 'elseif':
-                    res.append(f'elif {self.resolve_node(block[1])}:\n{self._indent_resolve(block[2])}')
-                elif block[0] == 'else':
-                    res.append(f'else:\n{self._indent_resolve(block[1])}')
+            for block in node:  # list of Nodes ('if', cond, code)+, ('elif', cond, code)*, ('else', code)?  (+: 1+, *: 0+, ?: 0 or 1)
+                assert isinstance(block, Node), f'Expected Node in conditionals, got {block}'
+                if block.type == NodeType.IF:
+                    expr, code = block
+                    r = f'if {self.resolve_node(expr)}:\n{self._indent_resolve(code)}'
+                elif block.type == NodeType.ELSEIF:
+                    expr, code = block
+                    r = f'elif {self.resolve_node(expr)}:\n{self._indent_resolve(code)}'
+                elif block.type == NodeType.ELSE:
+                    r = f'else:\n{self._indent_resolve(block.val)}'
                 else:
-                    assert False, f'Unknown block type: {block[0]}'
+                    assert False, f'Unknown block type: {block}'
+                res.append(r)
             return '\n'.join(res) + '\n'*self.NEWLINES_AFTER_IF
 
         # LOOP
-        elif node[0] == 'loop':
-            var, over, code = node[1], node[2], node[3]
+        elif node.type == NodeType.LOOP:
+            var, over, code = node
             return f'for {var} in {self.resolve_node(over)}:\n{self._indent_resolve(code)}' + '\n'*self.NEWLINES_AFTER_LOOP
 
         # VARIABLE ASSIGNMENT
-        elif node[0] == 'var_assign':
-            var = node[1]
-            value = self.resolve_node(node[2])
-            return f'{var} = {value}'
+        elif node.type == NodeType.VAR_ASSIGN:
+            var, val = node
+            return f'{var} = {self.resolve_node(val)}'
 
         # EXPRESSIONS
-        elif node[0] == 'expr_op':
-            op, left, right = node[1:]
+        elif node.type == NodeType.EXPR_OP:
+            op, left, right = node
             assert isinstance(op, str), f'Unknown operator {op}'
             op = {'=': '==', '^': '**', '/': '//'}.get(op, op)
             if op == 'dm':
@@ -153,32 +154,31 @@ class PythonResolver:
             # elif op == '@':  # TODO only problem if both sides are ints. fix later
             else:  # all other operators
                 return f'{self.resolve_node(left)} {op} {self.resolve_node(right)}'
-        elif node[0] == 'unary':
-            op, expr = node[1:]
+        elif node.type == NodeType.UNARY:
+            op, expr = node
             if op == '!':
                 return f'~{self.resolve_node(expr)}'
             return f'{op}{self.resolve_node(expr)}'
-        elif node[0] == 'hash':  # len
-            return f'len({self.resolve_node(node[1])})'
-        elif node[0] == 'seq':
-            assert isinstance(node[1], list), f'Expected list of expressions, got {node[1]}'
+        elif node.type == NodeType.HASH:  # len
+            return f'len({self.resolve_node(node.val)})'
+        elif node.type == NodeType.SEQ:
             seq_class = CONST['seq']
-            elems = ", ".join([self.resolve_node(x) for x in node[1]])
+            elems = ", ".join([self.resolve_node(x) for x in node])
             return f'{seq_class}([{elems}])'
-        elif node[0] == 'range':
-            l, r = node[1:]
+        elif node.type == NodeType.RANGE:
+            l, r = node
             l, r = self.resolve_node(l), self.resolve_node(r)
             return f'{CONST["range"]}({l}, {r})'
-        elif node[0] == 'call':
-            nameargs = node[1]
-            assert isinstance(nameargs, list), f'Expected list of strings and expressions, got {nameargs}'
+        elif node.type == NodeType.CALL:
             name, args = [], []
-            for x in nameargs:
-                if isinstance(x, str):
-                    name.append(x)
-                else:  # expression
-                    args.append(str(self.resolve_node(x)))
+            for x in node:
+                if isinstance(x, Node) and x.type == NodeType.CALL_EXPR:  # expression
+                    args.append(self.resolve_node(x.val))
                     name.append('X')
+                elif isinstance(x, str):
+                    name.append(x)
+                else:
+                    assert False, f'Unknown node in call: {x}, parent: {node}'
             name = '_'.join(name)
             assert name in self.defined_functions, f'Unknown function {name} not defined. Currently callable functions: {self.user_defined_functions}'
             return f'{name}({", ".join(args)})' if args else f'{name}()'
