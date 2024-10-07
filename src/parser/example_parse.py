@@ -44,7 +44,8 @@ def main():
   for to_parse in trials:
     try:
       r = pipeline(to_parse, 
-                    do_exec=True, 
+                    do_exec=True,
+                    _do_unsafe_exec=False,
                     verbose_input_str=False, 
                     verbose_lex=False, 
                     verbose_yacc=False, 
