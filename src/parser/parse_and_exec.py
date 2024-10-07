@@ -68,7 +68,6 @@ def safe_exec(r, global_vars=None):
     'output': lambda *args, **kwargs: all_outputs.append((args, kwargs)),
     **(global_vars or {})
   }
-  logging.debug('Executing parsed python:')
   byte_code = ResPy.compile_restricted(
       source=r,
       filename='<inline code>',

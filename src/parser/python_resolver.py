@@ -23,7 +23,12 @@ class PythonResolver:
         self.root: T_elem = root
         self.defined_functions: set[str] = set(CONST['function library'])
         self.user_defined_functions: list[str] = []
-        self.indent_level = 2
+        self.INDENT_LEVEL = 2
+
+        self.NEWLINES_AFTER_IF = 1
+        self.NEWLINES_AFTER_LOOP = 1
+        self.NEWLINES_AFTER_FUNCTION = 1
+        self.NEWLINES_AFTER_FILE = 1
 
     def _check_nested_str(self, node):
         if node is None or isinstance(node, (int, str)):
@@ -34,7 +39,11 @@ class PythonResolver:
         return False
 
     def resolve(self):
-        return self.resolve_node(self.root)
+        result = self.resolve_node(self.root) + '\n'*self.NEWLINES_AFTER_FILE
+        # remove multiple nearby newlines
+        result = list(result.split('\n'))
+        result = [x for i, x in enumerate(result) if i == 0 or x.strip() != '' or result[i-1].strip() != '']
+        return '\n'.join(result)
 
     def _indent_resolve(self, node: T_elem) -> str:
         """Given a node, resolve it and indent it. node to indent: if/elif/else, loop, function"""
@@ -42,7 +51,7 @@ class PythonResolver:
 
     def _indent_str(self, s: str):
         """Indent a string by self.indent_level spaces for each new line"""
-        return '\n'.join(' '*self.indent_level + x for x in s.split('\n'))
+        return '\n'.join(' '*self.INDENT_LEVEL + x for x in s.split('\n'))
 
     def resolve_node(self, node: T_elem) -> str:
         if node is None:
@@ -101,7 +110,7 @@ class PythonResolver:
             func_decorator = CONST['cast_decorator']
             func_def = f'def {name}({", ".join(args)}):'
             func_code = self._indent_resolve(code)
-            return f'{func_decorator}\n{func_def}\n{func_code}'
+            return f'{func_decorator}\n{func_def}\n{func_code}' + '\n'*self.NEWLINES_AFTER_FUNCTION
         elif node[0] == 'result':
             return f'return {self.resolve_node(node[1])}'
 
@@ -119,12 +128,12 @@ class PythonResolver:
                     res.append(f'else:\n{self._indent_resolve(block[1])}')
                 else:
                     assert False, f'Unknown block type: {block[0]}'
-            return '\n'.join(res)
+            return '\n'.join(res) + '\n'*self.NEWLINES_AFTER_IF
 
         # LOOP
         elif node[0] == 'loop':
             var, over, code = node[1], node[2], node[3]
-            return f'for {var} in {self.resolve_node(over)}:\n{self._indent_resolve(code)}'
+            return f'for {var} in {self.resolve_node(over)}:\n{self._indent_resolve(code)}' + '\n'*self.NEWLINES_AFTER_LOOP
 
         # VARIABLE ASSIGNMENT
         elif node[0] == 'var_assign':
