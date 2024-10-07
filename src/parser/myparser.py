@@ -67,7 +67,7 @@ def t_ignore_COMMENT(t):
 
 def t_NUMBER(t):
     r'\d+'
-    t.value = int(t.value)
+    # t.value = int(t.value)  # Convert the string to an integer
     return t
 
 def t_LOWERNAME(t):
@@ -305,7 +305,6 @@ def p_strvar_instring(p):
 def p_funcname_def(p):
     '''
     funcname_def : LOWERNAME
-                |  funcname_def LOWERNAME
                 | OUTPUT
                 | FUNCTION
                 | LOOP
@@ -316,6 +315,7 @@ def p_funcname_def(p):
                 | IF
                 | ELSE
                 | RESULT
+                |  funcname_def LOWERNAME
                 | funcname_def OUTPUT
                 | funcname_def FUNCTION
                 | funcname_def LOOP
@@ -327,12 +327,12 @@ def p_funcname_def(p):
                 | funcname_def ELSE
                 | funcname_def RESULT
     '''
-    if len(p) == 2:
+    assert (len(p) in (2, 3)) and isinstance(p[-1], str), f'UNEXPECTED YACC PARSING funcname_def: {len(p)}, {p}'
+    if len(p) == 2:  # base case
         p[0] = ('funcname_def', p[1])
-    elif len(p) == 3:
+    elif len(p) == 3:  # recursive case
         p[0] = (*p[1], p[2])
     else:
-        # p[0] = (*p[1], ('param', p[2], p[4]))
         assert False, f'{len(p)}, {p}'
 def p_funcname_def_param(p):
     '''
@@ -344,15 +344,15 @@ def p_funcname_def_param(p):
                 |  funcname_def var_name COLON LOWERNAME 
     '''
     if isinstance(p[1], tuple):  # recursive case
-        if len(p) == 3:
+        if len(p) == 3:  # var_name
             param = ('param', p[2])
-        else:
+        else:  # var_name COLON dtype
             param = ('param', p[2], p[4])
         p[0] = (*p[1], param)
     else:  # base case
-        if len(p) == 2:
+        if len(p) == 2:  # var_name
             param = ('param', p[1])
-        else:
+        else:  # var_name COLON dtype
             param = ('param', p[1], p[3])
         p[0] = ('funcname_def', param)
 

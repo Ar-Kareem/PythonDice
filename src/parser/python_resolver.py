@@ -1,7 +1,11 @@
+import logging
+from typing import Union, Sequence
 
-from typing import Union
 
-T_sn = tuple[Union[int, str, "T_sn"], ...]
+logger = logging.getLogger(__name__)
+
+
+T_elem = Union[str, int, None, Sequence["T_elem"]]
 
 CONST = {
     'output': 'output',
@@ -15,28 +19,43 @@ CONST = {
 
 class PythonResolver:
     def __init__(self, root):
-        self.root: T_sn = root
+        assert self._check_nested_str(root), f'Expected nested strings/numbers from yacc, got {root}'
+        self.root: T_elem = root
         self.defined_functions: set[str] = set(CONST['function library'])
         self.user_defined_functions: list[str] = []
+
+    def _check_nested_str(self, node):
+        if node is None or isinstance(node, (int, str)):
+            return True
+        if isinstance(node, Sequence):
+            return all(self._check_nested_str(x) for x in node)
+        logging.error(f'Unexpected node: {node}')
+        return False
 
     def resolve(self):
         result = '\n'.join(map(self.resolve_node, self.root))
         return result
 
-    def resolve_node(self, node, cur_indent=0):
+    def resolve_node(self, node: T_elem, cur_indent=0) -> str:
+        if node is None:
+            return ''
+        assert not isinstance(node, int), f'resovler error, not sure what to do with a number: {node}. All numbers should be a tuple ("number", int)'
 
         # Handle str_obj  |  str_obj which is str or concat_string(str_obj, str_obj) or strvar(str)
         if isinstance(node, str):
             return node
         elif node[0] == 'strvar':
+            assert isinstance(node[1], str), f'Expected string, got {node[1]}'
             return '{' + node[1] + '}'
         elif node[0] == 'concat_string':
             res = self.resolve_node(node[1]) + self.resolve_node(node[2])
             return cleanup_string(res)
 
         elif node[0] == 'number':  # number in an expression
-            return node[1]
+            assert isinstance(node[1], str), f'Expected str of a number, got {node[1]}  type: {type(node[1])}'
+            return str(node[1])
         elif node[0] == 'var':  # variable inside an expression
+            assert isinstance(node[1], str), f'Expected str of a variable, got {node[1]}'
             return node[1]
         elif node[0] == 'group':  # group inside an expression, node[1] is an expression
             return f'({self.resolve_node(node[1])})'
@@ -58,12 +77,15 @@ class PythonResolver:
 
         # FUNCTION:
         elif node[0] == 'function':
-            nameargs, code = node[1][1:], node[2]
+            nameargs, code = node[1], node[2]
+            assert isinstance(nameargs, tuple) and nameargs[0] == 'funcname_def', f'Error in parsing fuction node: {node}'
+            nameargs = nameargs[1:]
             name, args = [], []
-            for x in nameargs:
+            for x in nameargs:  # nameargs is a list of strings and expressions e.g. [attack 3d6 if crit 6d6 and double crit 12d6]
                 if isinstance(x, str):
                     name.append(x)
                 else:
+                    assert isinstance(x, tuple) and x[0] == 'param', f'Error in parsing function node: {node}'
                     DATATYPES = {'s': 'Seq', 'n': 'int', 'd': 'RV'}
                     args.append(f'{x[1]}: {DATATYPES[x[2]]}')
                     name.append('X')
@@ -106,9 +128,8 @@ class PythonResolver:
         # EXPRESSIONS
         elif node[0] == 'expr_op':
             op, left, right = node[1:]
-            op = {
-                '=': '==', '^': '**', '/': '//'
-            }.get(op, op)
+            assert isinstance(op, str), f'Unknown operator {op}'
+            op = {'=': '==', '^': '**', '/': '//'}.get(op, op)
             if op == 'dm':
                 return f'{CONST["roll"]}({self.resolve_node(left)})'
             elif op == 'ndm':
@@ -124,14 +145,17 @@ class PythonResolver:
         elif node[0] == 'hash':  # len
             return f'len({self.resolve_node(node[1])})'
         elif node[0] == 'seq':
-            elems = list(map(str, map(self.resolve_node, node[1])))
-            return f'{CONST["seq"]}([{", ".join(elems)}])' if elems else f'{CONST["seq"]}()'
+            assert isinstance(node[1], list), f'Expected list of expressions, got {node[1]}'
+            seq_class = CONST['seq']
+            elems = ", ".join([self.resolve_node(x) for x in node[1]])
+            return f'{seq_class}([{elems}])'
         elif node[0] == 'range':
             l, r = node[1:]
             l, r = self.resolve_node(l), self.resolve_node(r)
             return f'{CONST["range"]}({l}, {r})'
         elif node[0] == 'call':
             nameargs = node[1]
+            assert isinstance(nameargs, list), f'Expected list of strings and expressions, got {nameargs}'
             name, args = [], []
             for x in nameargs:
                 if isinstance(x, str):
@@ -147,8 +171,8 @@ class PythonResolver:
         else:
             assert False, f'Unknown node: {node}'
 
-def cleanup_string(s):
+def cleanup_string(s: str):
     return s.replace('{', '').replace('}', '')
 
-def indent_str(s, indent):
+def indent_str(s: str, indent: int):
     return '\n'.join(' ' * indent + x for x in s.split('\n'))
