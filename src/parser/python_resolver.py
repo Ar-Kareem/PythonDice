@@ -23,6 +23,7 @@ class PythonResolver:
         self.root: T_elem = root
         self.defined_functions: set[str] = set(CONST['function library'])
         self.user_defined_functions: list[str] = []
+        self.indent_level = 2
 
     def _check_nested_str(self, node):
         if node is None or isinstance(node, (int, str)):
@@ -33,24 +34,30 @@ class PythonResolver:
         return False
 
     def resolve(self):
-        result = '\n'.join(map(self.resolve_node, self.root))
-        return result
+        return self.resolve_node(self.root)
 
-    def resolve_node(self, node: T_elem, cur_indent=0) -> str:
+    def _indent_resolve(self, node: T_elem) -> str:
+        """Given a node, resolve it and indent it. node to indent: if/elif/else, loop, function"""
+        return self._indent_str(self.resolve_node(node))
+
+    def _indent_str(self, s: str):
+        """Indent a string by self.indent_level spaces for each new line"""
+        return '\n'.join(' '*self.indent_level + x for x in s.split('\n'))
+
+    def resolve_node(self, node: T_elem) -> str:
         if node is None:
             return ''
         assert not isinstance(node, int), f'resovler error, not sure what to do with a number: {node}. All numbers should be a tuple ("number", int)'
+        assert not isinstance(node, str), f'resolver error, not sure what to do with a string: {node}. All strings should be a tuple ("string", str|strvar...)'
 
-        # Handle str_obj  |  str_obj which is str or concat_string(str_obj, str_obj) or strvar(str)
-        if isinstance(node, str):
-            return node
+        if node[0] == 'multiline_code':
+            return '\n'.join([self.resolve_node(x) for x in node[1:]])
+
+        elif node[0] == 'string':  # tuple of str or ("strvar", ...)
+            return ''.join([x if isinstance(x, str) else self.resolve_node(x) for x in node[1:]])
         elif node[0] == 'strvar':
-            assert isinstance(node[1], str), f'Expected string, got {node[1]}'
+            assert isinstance(node[1], str), f'Expected string for strvar, got {node[1]}'
             return '{' + node[1] + '}'
-        elif node[0] == 'concat_string':
-            res = self.resolve_node(node[1]) + self.resolve_node(node[2])
-            return cleanup_string(res)
-
         elif node[0] == 'number':  # number in an expression
             assert isinstance(node[1], str), f'Expected str of a number, got {node[1]}  type: {type(node[1])}'
             return str(node[1])
@@ -74,7 +81,6 @@ class PythonResolver:
             name, value = self.resolve_node(name), self.resolve_node(value)
             return CONST['setter'](name, value)
 
-
         # FUNCTION:
         elif node[0] == 'function':
             nameargs, code = node[1], node[2]
@@ -92,32 +98,33 @@ class PythonResolver:
             name = '_'.join(name)
             self.defined_functions.add(name)
             self.user_defined_functions.append(name)
-            res = CONST['cast_decorator'] + '\n'
-            res += f'def {name}({", ".join(args)}):\n'
-            res += '\n'.join([indent_str(self.resolve_node(x, cur_indent+2), cur_indent+2) for x in code])
-            return res + '\n'
+            func_decorator = CONST['cast_decorator']
+            func_def = f'def {name}({", ".join(args)}):'
+            func_code = self._indent_resolve(code)
+            return f'{func_decorator}\n{func_def}\n{func_code}'
         elif node[0] == 'result':
             return f'return {self.resolve_node(node[1])}'
 
-        # CONDITIONALS (IF / LOOP)
-        elif node[0] == 'if':
-            cond, code = node[1], node[2]
-            res = f'if {self.resolve_node(cond)}:\n'
-            res += '\n'.join([indent_str(self.resolve_node(x, cur_indent+2), cur_indent+2) for x in code])
-            rest = node[3:]
-            for i in range(0, len(rest), 2):
-                if rest[i] == 'else':
-                    res += f'\nelse:\n'
-                    res += '\n'.join([indent_str(self.resolve_node(x, cur_indent+2), cur_indent+2) for x in rest[i+1]])
-                elif rest[i] == 'elseif':
-                    res += f'\nelif {self.resolve_node(rest[i+1])}:\n'
-                    res += '\n'.join([indent_str(self.resolve_node(x, cur_indent+2), cur_indent+2) for x in rest[i+2]])
-            return res
+        # CONDITIONALS IF
+        elif node[0] == 'if_elif_else':
+            blocks = node[1:]  # list of tuples ('if', cond, code)+, ('elif', cond, code)*, ('else', code)?  (+: 1+, *: 0+, ?: 0 or 1)
+            res = []
+            for block in blocks:
+                assert isinstance(block, tuple), f'Expected tuple in conditionals, got {block}'
+                if block[0] == 'if':
+                    res.append(f'if {self.resolve_node(block[1])}:\n{self._indent_resolve(block[2])}')
+                elif block[0] == 'elseif':
+                    res.append(f'elif {self.resolve_node(block[1])}:\n{self._indent_resolve(block[2])}')
+                elif block[0] == 'else':
+                    res.append(f'else:\n{self._indent_resolve(block[1])}')
+                else:
+                    assert False, f'Unknown block type: {block[0]}'
+            return '\n'.join(res)
+
+        # LOOP
         elif node[0] == 'loop':
             var, over, code = node[1], node[2], node[3]
-            res = f'for {var} in {self.resolve_node(over)}:\n'
-            res += '\n'.join([indent_str(self.resolve_node(x, cur_indent+2), cur_indent+2) for x in code])
-            return res
+            return f'for {var} in {self.resolve_node(over)}:\n{self._indent_resolve(code)}'
 
         # VARIABLE ASSIGNMENT
         elif node[0] == 'var_assign':
@@ -164,15 +171,8 @@ class PythonResolver:
                     args.append(str(self.resolve_node(x)))
                     name.append('X')
             name = '_'.join(name)
-            assert name in self.defined_functions, f'Unknown function {name} not defined. Currently callable functions: ' + str(self.user_defined_functions)
+            assert name in self.defined_functions, f'Unknown function {name} not defined. Currently callable functions: {self.user_defined_functions}'
             return f'{name}({", ".join(args)})' if args else f'{name}()'
-
 
         else:
             assert False, f'Unknown node: {node}'
-
-def cleanup_string(s: str):
-    return s.replace('{', '').replace('}', '')
-
-def indent_str(s: str, indent: int):
-    return '\n'.join(' ' * indent + x for x in s.split('\n'))
