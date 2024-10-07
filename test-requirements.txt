@@ -1,10 +1,5 @@
 # FOR TESTING ONLY
-pytest
-python-dotenv
 pytest-timeout
 pytest-ordering
-
-coverage
-selenium
 
 RestrictedPython
