@@ -162,7 +162,13 @@ def test_time():
     @randvar.anydice_casting()
     def a(n:int):
         return 0
-    a(roll(100_000))  # type: ignore
+    a(roll(1_000))  # type: ignore
+
+@pytest.mark.run(order=-1)
+@pytest.mark.timeout(5)
+def test_time_memoize():
+    for _ in range(1000):  # ~240 second @ 3.6ghz without memoize | 0.5 second with memoize
+        roll(100, 10)
 
 @pytest.mark.run(order=-1)
 def test_cast_server_error():

@@ -603,14 +603,14 @@ def roll(n: T_isr|str, d: T_isr|None=None) -> RV:
 
 _MEMOIZED_ROLLS = {}
 def _roll_int_rv(n: int, d: RV) -> RV:
-  if (n, d.vals, d.probs) in _MEMOIZED_ROLLS:
-    return _MEMOIZED_ROLLS[(n, d.vals, d.probs)]
   if n < 0:
     return -_roll_int_rv(-n, d)
   if n == 0:
     return RV.from_const(0)
   if n == 1:
     return d
+  if (n, d.vals, d.probs) in _MEMOIZED_ROLLS:
+    return _MEMOIZED_ROLLS[(n, d.vals, d.probs)]
   half = _roll_int_rv(n//2, d)
   full = half+half
   if n%2 == 1:
