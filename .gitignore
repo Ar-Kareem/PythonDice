@@ -1,9 +1,15 @@
 __pycache__
-.pytest_cache
 .vscode
+
+# test files
+.pytest_cache
 .coverage
 coverage_re
 htmlcov
 junit
 log
 coverage.xml
+
+# build files
+dist
+*.egg-info

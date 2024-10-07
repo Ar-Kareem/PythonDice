@@ -1,0 +1,37 @@
+install env: 
+    clone repo and ensure conda is installed in your system
+    `conda env create -f environment.yml`
+    `conda activate pythondice`
+to run tests:
+    `conda activate pythondice`
+    `pip install -r test-requirements.txt`
+    `python -m pytest`
+    to generate test coverage:
+        `pytest --cov --cov-report=html:coverage_re`
+to build package:
+    `conda activate pythondice`
+    `python3 setup.py sdist`
+    `python3 -m twine upload --repository pypi dist/*`
+
+TODO
+    FIX yacc cannot handle empty blocks {}
+    Build Lex Yacc test cases
+
+RV:
+    implement {1,2}@RV (sum multiple k-th order statistics)
+    implement ~
+    FIX __repr__ for RV (in named section) should be string not entire graph
+    add explode_depth options
+    figure out time limiter / implement expansion limit warning in caster
+
+add documentation and demo notebook
+
+
+
+
+
+KNOWN ISSUES:
+    no variable names starting with underscore, RestrictedPython raises errors
+    errors when dealing with the 3 weird operators on ints [(int @ int), #int, !int]
+
+

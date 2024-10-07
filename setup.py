@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
-setup(name='pythondice',
-        version='0.0.1',
-        description='Advanced Calculator for Dice',
-        author='arkareem',
-        packages=['distutils', 'distutils.command'],
-    )
+setup(
+    name='dice_calc',
+    version='0.0.1',
+    author='Ar-Kareem',
+    description='Advanced Calculator for Dice',
+    py_modules=['dice_calc']
+)
