@@ -4,7 +4,7 @@ import randvar
 from randvar import RV, Seq, anydice_casting, output, roll, settings_set
 from parser.parse_and_exec import pipeline as _pipeline
 
-pipeline = lambda code, global_vars={}: _pipeline(code, global_vars=global_vars, do_exec=True, _do_unsafe_exec=False)
+pipeline = lambda code, global_vars={}: _pipeline(code, global_vars=global_vars, do_exec=True, _do_unsafe_exec=False, verbose_parseed_python=False)
 settings_set('RV_IGNORE_ZERO_PROBS', True)
 
 def check(x, expected):
@@ -60,6 +60,44 @@ def test_ands_and_ors(code, res):
     pipeline(code, global_vars={'output': lambda x: check_res(x)})
     assert i == len(res)
 
+@pytest.mark.parametrize("code,res", [
+(r'''
+loop P over {1..3} {
+  loop PP over {5..6} {
+    output PP
+    output PP+10
+  }
+  output 3
+  output 4
+  if (P-1)/2 {
+    output 1003
+  } else if P-1 {
+    output 1002
+  } else {
+    output 1001
+  }
+}
+
+P: 1
+if (P-1)/2 {
+  output 1003
+} else if P-1 {
+  output 1002
+} else if P {
+  output 999
+} else {
+  output 1001
+}
+''', [5, 15, 6, 16, 3, 4, 1001, 5, 15, 6, 16, 3, 4, 1002, 5, 15, 6, 16, 3, 4, 1003, 999]
+),])
+def test_conditionals(code, res):
+    i = 0
+    def check_res(x):
+        nonlocal i
+        check(x, res[i])
+        i += 1
+    pipeline(code, global_vars={'output': lambda x: check_res(x)})
+    assert i == len(res)
 
 @pytest.mark.parametrize("code", [
 r'''
