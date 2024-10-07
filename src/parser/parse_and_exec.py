@@ -2,36 +2,34 @@ import logging
 from . import myparser
 from .python_resolver import PythonResolver
 
-# logger = logging.getLogger(__name__)
-def setup_logging(filename):
-    logging.basicConfig(filename=filename, level=logging.DEBUG, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
-    logging.getLogger().addHandler(logging.StreamHandler())
-setup_logging('./log/parse_and_exec.log')
+
+logger = logging.getLogger(__name__)
+
 
 def parse(to_parse, verbose_lex=False, verbose_yacc=False):
   if to_parse is None or to_parse.strip() == '':
-    logging.debug('Empty string')
+    logger.debug('Empty string')
     return
 
   myparser.lexer.input(to_parse)  # feed the lexer
   tokens = [x for x in myparser.lexer]
 
   for x in myparser.ILLEGAL_CHARS:
-      logging.debug(f'Illegal character {x!r}')
+      logger.debug(f'Illegal character {x!r}')
   myparser.ILLEGAL_CHARS.clear()
 
   if verbose_lex:
-    logging.debug('Tokens:')
+    logger.debug('Tokens:')
     for x in tokens:
-        logging.debug(x)
+        logger.debug(x)
 
   yacc_ret: myparser.Node = myparser.yacc_parser.parse(to_parse)  # generate the AST
   if yacc_ret is None:
-    logging.debug('Parse failed')
+    logger.debug('Parse failed')
     return
   if verbose_yacc:
     for x in yacc_ret:
-      logging.debug('yacc: ' + str(x))
+      logger.debug('yacc: ' + str(x))
   assert isinstance(yacc_ret, myparser.Node), f'Expected Node, got {type(yacc_ret)}'
   return yacc_ret
 
@@ -51,8 +49,8 @@ def safe_exec(r, global_vars=None):
   try:
     import RestrictedPython
   except ModuleNotFoundError:
-      logging.error('RestrictedPython not installer. Run `pip install RestrictedPython`')
-      logging.exception('code did not execute')
+      logger.error('RestrictedPython not installer. Run `pip install RestrictedPython`')
+      logger.exception('code did not execute')
       return
   import RestrictedPython as ResPy
   import RestrictedPython.Guards as Guards
@@ -77,7 +75,7 @@ def safe_exec(r, global_vars=None):
   return all_outputs
 
 def unsafe_exec(r, global_vars=None):
-  logging.warning('Unsafe exec\n'*25)
+  logger.warning('Unsafe exec\n'*25)
   all_outputs = []
   g = {
     **get_lib(), 
@@ -88,13 +86,13 @@ def unsafe_exec(r, global_vars=None):
 
 def pipeline(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False, global_vars=None, _do_unsafe_exec=False):
   if verbose_input_str:
-    logging.debug(f'Parsing:\n{to_parse}')
+    logger.debug(f'Parsing:\n{to_parse}')
   parsed = parse(to_parse, verbose_lex=verbose_lex, verbose_yacc=verbose_yacc)
   if parsed is None:
     return
   r = PythonResolver(parsed).resolve()
   if verbose_parseed_python:
-    logging.debug(f'Parsed python:\n{r}')
+    logger.debug(f'Parsed python:\n{r}')
   if do_exec:
     return safe_exec(r, global_vars=global_vars)
   elif _do_unsafe_exec:

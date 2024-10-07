@@ -65,6 +65,15 @@ import logging
 from .parse_and_exec import pipeline
 from randvar import output
 
+def setup_logger(filename):
+    logging.basicConfig(filename=filename, level=logging.DEBUG, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.getLogger().addHandler(logging.StreamHandler())
+setup_logger('./log/example_parse.log')
+
+
+logger = logging.getLogger(__name__)
+
+
 def main():
   for to_parse in trials:
     try:
@@ -83,8 +92,8 @@ def main():
       for (args, kwargs) in r:
         output(*args, **kwargs)
     except Exception as e:
-      # logging.warning(f'Error in parsing: {to_parse}')
-      logging.exception(e)
+      # logger.warning(f'Error in parsing: {to_parse}')
+      logger.exception(e)
       # pipeline(to_parse, do_exec=False, verbose_input_str=True, verbose_lex=True, verbose_yacc=True, verbose_parseed_python=False)
       return
   print('done')
