@@ -8,10 +8,10 @@ function: another test D:d {
   result: 1
 }
 
-\
+
 function: anotheranother test D {
   result: 1
-}\
+}
 
 function: beast {result: [test]}
 output [beast]

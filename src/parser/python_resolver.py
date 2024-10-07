@@ -95,10 +95,14 @@ class PythonResolver:
             assert isinstance(nameargs, Node) and nameargs.type == NodeType.FUNCNAME_DEF, f'Error in parsing fuction node: {node}'
             func_name, func_args = [], []
             for x in nameargs:  # nameargs is a list of strings and expressions e.g. [attack 3d6 if crit 6d6 and double crit 12d6]
+                assert isinstance(x, str) or (isinstance(x, Node) and x.type in (NodeType.PARAM, NodeType.PARAM_WITH_DTYPE)), f'Error in parsing function node: {node}'
                 if isinstance(x, str):
                     func_name.append(x)
+                elif x.type == NodeType.PARAM:
+                    arg_name = x.val
+                    func_args.append(f'{arg_name}')
+                    func_name.append('X')
                 else:
-                    assert isinstance(x, Node) and x.type in (NodeType.PARAM, NodeType.PARAM_WITH_DTYPE), f'Error in parsing function node: {node}'
                     arg_name, arg_dtype = x
                     assert isinstance(arg_dtype, str), f'Expected string for arg_dtype, got {arg_dtype}'
                     arg_dtype = {'s': 'Seq', 'n': 'int', 'd': 'RV'}.get(arg_dtype, arg_dtype)
