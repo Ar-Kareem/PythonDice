@@ -349,13 +349,13 @@ output 1@2d6 named "most significant digit"
 function: anotheranother test D {
   result: 1
 }
-function: D anotheranother test D {
+function: D anotheranother test B {
   result: 1
 }
 function: D {
   result: 1
 }
-function: D D {
+function: D B {
   result: 1
 }
 ''',
