@@ -346,6 +346,18 @@ set "position order" to "highest first" \ the default behavior \
 
 output 1@3d6 named "highest die"
 output 1@2d6 named "most significant digit"
+function: anotheranother test D {
+  result: 1
+}
+function: D anotheranother test D {
+  result: 1
+}
+function: D {
+  result: 1
+}
+function: D D {
+  result: 1
+}
 ''',
 r'''
 output [absolute 1]

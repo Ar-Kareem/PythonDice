@@ -136,12 +136,13 @@ class NodeType(Enum):
     ELSE = 'else'
     ELSEIF = 'elseif'
     VAR_ASSIGN = 'var_assign'
-    VAR_NAME = 'var_name'
+
     STRING = 'string'
     STRVAR = 'strvar'
     FUNCNAME_DEF = 'funcname_def'
     PARAM = 'param'
     PARAM_WITH_DTYPE = 'param_with_dtype'
+
     EXPR_OP = 'expr_op'
     UNARY = 'unary'
     HASH = 'hash'
@@ -153,7 +154,6 @@ class NodeType(Enum):
     CALL = 'call'
     CALL_EXPR = 'call_expr'
 
-from typing import Sequence
 class Node:
     def __init__(self, nodetype: NodeType, *children: 'str|Node'):
         assert isinstance(nodetype, NodeType), f'Expected NodeType, got {nodetype}'
@@ -169,8 +169,6 @@ class Node:
     def val(self) -> 'str|Node':
         assert len(self.vals) == 1, f'Expected 1 child, got {len(self.vals)}'
         return self.vals[0]
-    def __getitem__(self, i) -> 'str|Node':
-        return self.vals[i]
     def __repr__(self):
         return f'<Node {self.type}: {self.vals}>'
 
