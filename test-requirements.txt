@@ -1,4 +1,5 @@
 # FOR TESTING ONLY
+pytest-cov
 pytest-timeout
 pytest-ordering
 
