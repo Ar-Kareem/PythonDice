@@ -287,8 +287,8 @@ output 1d1
 ''',
 r'''
 output {2*3..4}
-__A_ : 2 + 3 * {2, {}} / 5
-output __A_ 
+Z__A_ : 2 + 3 * {2, {}} / 5
+output Z__A_ 
 output 2d2
 output 1
 if 1 {if 1 {A:1 A:1}}
