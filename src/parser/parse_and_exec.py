@@ -48,6 +48,12 @@ def get_lib():
   return rv_lib_dict
 
 def safe_exec(r, global_vars=None):
+  try:
+    import RestrictedPython
+  except ModuleNotFoundError:
+      logging.error('RestrictedPython not installer. Run `pip install RestrictedPython`')
+      logging.exception('code did not execute')
+      return
   import RestrictedPython as ResPy
   import RestrictedPython.Guards as Guards
   import RestrictedPython.Eval as Eval

@@ -2,11 +2,10 @@ import pytest
 
 import randvar
 from randvar import RV, Seq, anydice_casting, output, roll, settings_set
-from parser.parse_and_exec import pipeline
+from parser.parse_and_exec import pipeline as _pipeline
 
-
+pipeline = lambda code, global_vars={}: _pipeline(code, global_vars=global_vars, do_exec=True, _do_unsafe_exec=False)
 settings_set('RV_IGNORE_ZERO_PROBS', True)
-bv = (0, 1)
 
 def check(x, expected):
     print(x)
@@ -22,6 +21,7 @@ def check(x, expected):
             assert a == b, f'expected {b} got {a}'
 
 
+bv = (0, 1)
 @pytest.mark.parametrize("code,res", [
 ('''
 output ((1d4-1) | (1d2-1))
