@@ -1,4 +1,4 @@
-from randvar import roll
+from .randvar import roll
 
 class __D_BASE:
   def __mul__(self, other):

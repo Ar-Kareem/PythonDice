@@ -1,3 +1,5 @@
+from enum import Enum
+
 from .ply.lex import lex
 from .ply.yacc import yacc
 
@@ -121,7 +123,6 @@ lexer = lex()
 
 
 # --- Parser
-from enum import Enum
 class NodeType(Enum):
     MULTILINE_CODE = 'multiline_code'
     SINGLE_CODE = 'single_code'

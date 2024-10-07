@@ -1,5 +1,5 @@
 # recreations of functions in https://anydice.com/docs/function-library/
-from randvar import Seq, RV, roll, anydice_casting
+from .randvar import Seq, RV, roll, anydice_casting
 
 # BASE FUNCTIONS
 

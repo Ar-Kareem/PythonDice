@@ -3,11 +3,11 @@
 import operator
 import math
 from typing import Callable, Iterable, Union
-from itertools import zip_longest, product, combinations_with_replacement
+from itertools import zip_longest, product, combinations_with_replacement, accumulate
 import inspect
 from collections import defaultdict
 
-import utils
+from . import utils
 
 
 T_if = int|float
@@ -150,7 +150,6 @@ class RV:
     vals_probs = tuple((v, p/s) for v, p in zip(self.vals, self.probs))
     if cdf_cut > 0:  # cut the bottom vals/probs and when stop total cut probs is less than cdf_cut
       sorted_vals_probs = sorted(vals_probs, key=lambda x: x[1])
-      from itertools import accumulate
       accumelated_probs = tuple(accumulate(sorted_vals_probs, lambda x, y: (y[0], x[1]+y[1]), initial=(0, 0)))
       vals_to_cut = set(v for v, p in accumelated_probs if p < cdf_cut)
       vals_probs = tuple((v, p) for v, p in vals_probs if v not in vals_to_cut)
@@ -159,7 +158,6 @@ class RV:
   def get_cdf(self):
     '''Get CDF as RV where CDF(x) = P(X <= x)'''
     cdf_vals = self.vals
-    from itertools import accumulate
     cdf_probs = accumulate(self.probs)
     return RV(cdf_vals, cdf_probs)
 

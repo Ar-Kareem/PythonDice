@@ -1,3 +1,8 @@
+import logging
+
+from .parse_and_exec import pipeline
+from ..randvar import output
+
 
 trials = [
 r'''
@@ -60,10 +65,6 @@ B: 2
 
 '''
 ]
-
-import logging
-from .parse_and_exec import pipeline
-from randvar import output
 
 def setup_logger(filename):
     logging.basicConfig(filename=filename, level=logging.DEBUG, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')

@@ -4,8 +4,12 @@ from setuptools import setup
 
 setup(
     name='dice_calc',
-    version='0.0.1',
+    version='0.0.4',
     author='Ar-Kareem',
     description='Advanced Calculator for Dice',
-    py_modules=['dice_calc']
+    package_dir={'dice_calc': 'src'},
+    packages=['dice_calc'],    
+
+
+
 )

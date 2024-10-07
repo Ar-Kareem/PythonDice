@@ -1,5 +1,4 @@
 import logging
-from typing import Union, Sequence
 
 from .myparser import Node, NodeType
 
