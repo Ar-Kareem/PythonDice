@@ -97,3 +97,5 @@ def pipeline(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False,
     return safe_exec(r, global_vars=global_vars)
   elif _do_unsafe_exec:
     return unsafe_exec(r, global_vars=global_vars)
+  else:
+    return r

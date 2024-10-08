@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='dice_calc',
-    version='0.0.9',
+    version='0.0.10',
     author='Ar-Kareem',
     description='Advanced Calculator for Dice',
     package_dir={
