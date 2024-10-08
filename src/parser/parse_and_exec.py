@@ -35,9 +35,9 @@ def parse(to_parse, verbose_lex=False, verbose_yacc=False):
 
 def get_lib():
   import math, itertools, random, functools
-  from randvar import RV, Seq, anydice_casting, output, roll, settings_set
-  from utils import myrange
-  from funclib import absolute as absolute_X, contains as X_contains_X, count_in as count_X_in_X, explode as explode_X, highest_N_of_D as highest_X_of_X, lowest_N_of_D as lowest_X_of_X, middle_N_of_D as middle_X_of_X, highest_of_N_and_N as highest_of_X_and_X, lowest_of_N_and_N as lowest_of_X_and_X, maximum_of as maximum_of_X, reverse as reverse_X, sort as sort_X
+  from ..randvar import RV, Seq, anydice_casting, output, roll, settings_set
+  from ..utils import myrange
+  from ..funclib import absolute as absolute_X, contains as X_contains_X, count_in as count_X_in_X, explode as explode_X, highest_N_of_D as highest_X_of_X, lowest_N_of_D as lowest_X_of_X, middle_N_of_D as middle_X_of_X, highest_of_N_and_N as highest_of_X_and_X, lowest_of_N_and_N as lowest_of_X_and_X, maximum_of as maximum_of_X, reverse as reverse_X, sort as sort_X
   rv_lib_dict = {
     'math': math, 'itertools': itertools, 'random': random, 'functools': functools,
     'RV': RV, 'Seq': Seq, 'anydice_casting': anydice_casting, 'roll': roll, 'myrange': myrange, 'settings_set': settings_set, 'output': output,

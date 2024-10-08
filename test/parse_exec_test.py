@@ -1,8 +1,8 @@
 import pytest
 
-import randvar
-from randvar import RV, Seq, anydice_casting, output, roll, settings_set
-from parser.parse_and_exec import pipeline as _pipeline
+import src.randvar
+from src.randvar import RV, Seq, anydice_casting, output, roll, settings_set
+from src.parser.parse_and_exec import pipeline as _pipeline
 
 pipeline = lambda code, global_vars={}: _pipeline(code, global_vars=global_vars, do_exec=True, _do_unsafe_exec=False, verbose_parseed_python=False)
 settings_set('RV_IGNORE_ZERO_PROBS', True)

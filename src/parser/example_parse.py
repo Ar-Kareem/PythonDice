@@ -1,7 +1,7 @@
 import logging
 
-from .parse_and_exec import pipeline
-from ..randvar import output
+from src.parser.parse_and_exec import pipeline  # from "anything else" breaks
+from src.randvar import output
 
 
 trials = [

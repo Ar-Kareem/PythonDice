@@ -1,8 +1,8 @@
 import pytest
 import math
 
-import randvar
-from randvar import RV, Seq, roll, output
+from src import randvar
+from src.randvar import RV, Seq, roll, output
 
 
 @pytest.fixture(autouse=True)

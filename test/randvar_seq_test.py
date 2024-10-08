@@ -1,8 +1,8 @@
 from typing import Iterable
 import pytest
 
-import randvar
-from randvar import Seq, RV, roll
+from src import randvar
+from src.randvar import Seq, RV, roll
 
 
 @pytest.fixture(autouse=True)
