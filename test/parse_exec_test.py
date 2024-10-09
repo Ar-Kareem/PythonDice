@@ -397,7 +397,31 @@ output [lowest of 1 and 1]
 output [maximum of 2d3]
 output [reverse {1..4}]
 output [sort {1..4}]
-'''
+''',
+r'''
+function: a {result: 1}
+
+output [a]
+
+function: call b {result: [b]+1}
+function: b {result: 2}
+output [call b]
+''',
 ])
 def test_running(code):
     pipeline(code)
+
+
+@pytest.mark.parametrize("code", [
+r'''
+function: a {result: 1}
+
+output [a]
+
+function: call b {result: [b]+1}
+output [call b]
+''',
+])
+def test_FAIL_code(code):
+    with pytest.raises(Exception):
+      pipeline(code)

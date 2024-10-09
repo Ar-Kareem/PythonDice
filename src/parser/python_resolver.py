@@ -22,6 +22,7 @@ class PythonResolver:
         self.root = root
         self.defined_functions: set[str] = set(CONST['function library'])
         self.user_defined_functions: list[str] = []
+        self.called_functions: set[str] = set()
         self.INDENT_LEVEL = 2
 
         self.NEWLINES_AFTER_IF = 1
@@ -37,6 +38,10 @@ class PythonResolver:
 
     def resolve(self):
         result = self.resolve_node(self.root) + '\n'*self.NEWLINES_AFTER_FILE
+        # check if all functions are defined
+        for f_name in self.called_functions:
+            assert f_name in self.defined_functions, f'Unknown function {f_name} not defined. Currently callable functions: {self.user_defined_functions}'
+
         # remove multiple nearby newlines
         result = list(result.split('\n'))
         result = [x for i, x in enumerate(result) if i == 0 or x.strip() != '' or result[i-1].strip() != '']
@@ -180,7 +185,7 @@ class PythonResolver:
                 else:
                     assert False, f'Unknown node in call: {x}, parent: {node}'
             name = '_'.join(name)
-            assert name in self.defined_functions, f'Unknown function {name} not defined. Currently callable functions: {self.user_defined_functions}'
+            self.called_functions.add(name)
             return f'{name}({", ".join(args)})' if args else f'{name}()'
 
         else:
