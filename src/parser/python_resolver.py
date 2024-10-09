@@ -20,9 +20,11 @@ class PythonResolver:
     def __init__(self, root: Node):
         assert self._check_nested_str(root), f'Expected nested strings/None/Node from yacc, got {root}'
         self.root = root
-        self.defined_functions: set[str] = set(CONST['function library'])
-        self.user_defined_functions: list[str] = []
-        self.called_functions: set[str] = set()
+        self._defined_functions: set[str] = set(CONST['function library'])
+        self._user__defined_functions: list[str] = []
+        self._called_functions: set[str] = set()
+        self._output_counter = 0
+
         self.INDENT_LEVEL = 2
 
         self.NEWLINES_AFTER_IF = 1
@@ -39,8 +41,9 @@ class PythonResolver:
     def resolve(self):
         result = self.resolve_node(self.root) + '\n'*self.NEWLINES_AFTER_FILE
         # check if all functions are defined
-        for f_name in self.called_functions:
-            assert f_name in self.defined_functions, f'Unknown function {f_name} not defined. Currently callable functions: {self.user_defined_functions}'
+        for f_name in self._called_functions:
+            assert f_name in self._defined_functions, f'Unknown function {f_name} not defined. Currently callable functions: {self._user__defined_functions}'
+        assert self._output_counter > 0, 'No outputs made. Did you forget to call "output expr"?'
 
         # remove multiple nearby newlines
         result = list(result.split('\n'))
@@ -78,9 +81,11 @@ class PythonResolver:
 
         # OUTPUT:
         elif node.type == NodeType.OUTPUT:
+            self._output_counter += 1
             params = self.resolve_node(node.val)
             return f'{CONST["output"]}({params})'
         elif node.type == NodeType.OUTPUT_NAMED:
+            self._output_counter += 1
             params, name = node
             params, name = self.resolve_node(params), self.resolve_node(name)
             return f'{CONST["output"]}({params}, named=f"{name}")'
@@ -110,8 +115,8 @@ class PythonResolver:
                     func_args.append(f'{arg_name}: {arg_dtype}')
                     func_name.append('X')
             func_name = '_'.join(func_name)
-            self.defined_functions.add(func_name)
-            self.user_defined_functions.append(func_name)
+            self._defined_functions.add(func_name)
+            self._user__defined_functions.append(func_name)
             func_decorator = CONST['cast_decorator']
             func_def = f'def {func_name}({", ".join(func_args)}):'
             func_code = self._indent_resolve(code)
@@ -185,7 +190,7 @@ class PythonResolver:
                 else:
                     assert False, f'Unknown node in call: {x}, parent: {node}'
             name = '_'.join(name)
-            self.called_functions.add(name)
+            self._called_functions.add(name)
             return f'{name}({", ".join(args)})' if args else f'{name}()'
 
         else:

@@ -275,6 +275,7 @@ output 1d6 + 1d6 named "hello[A][B ]"
 ''',
 r'''
 A: 2d6
+output 1
 ''',
 r'''
 A: 1 >= 2
@@ -421,6 +422,9 @@ output [a]
 function: call b {result: [b]+1}
 output [call b]
 ''',
+r'''
+A: 1
+'''  # no output should error
 ])
 def test_FAIL_code(code):
     with pytest.raises(Exception):
