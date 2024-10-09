@@ -6,8 +6,12 @@ from typing import Callable, Iterable, Union
 from itertools import zip_longest, product, combinations_with_replacement, accumulate
 import inspect
 from collections import defaultdict
+import logging
 
 from . import utils
+
+
+logger = logging.getLogger(__name__)
 
 
 T_if = int|float
@@ -477,17 +481,17 @@ def anydice_casting(verbose=False):
 
       hard_params = {} # update parameters that are easy to update, keep the hard ones for later
       combined_args = list(enumerate(args)) + list(kwargs.items())
-      if verbose: print('#args', len(combined_args))
+      if verbose: logger.debug('#args', len(combined_args))
       for k, arg_val in combined_args:
         arg_name = k if isinstance(k, str) else (arg_names[k] if k < len(arg_names) else None)  # get the name of the parameter (args or kwargs)
         if arg_name not in param_annotations:  # only look for annotated parameters
-          if verbose: print('no anot', k)
+          if verbose: logger.debug('no anot', k)
           continue
         expected_type = param_annotations[arg_name]
         actual_type = type(arg_val)
         new_val = None
         if expected_type not in (int, Seq, RV):
-          if verbose: print('not int seq rv', k)
+          if verbose: logger.debug('not int seq rv', k)
           continue
         casted_iter_to_seq = False
         if isinstance(arg_val, Iterable) and not isinstance(arg_val, Seq):  # if val is iter then need to convert to Seq
@@ -504,21 +508,21 @@ def anydice_casting(verbose=False):
           new_val = Seq([arg_val])
         elif (expected_type, actual_type) == (Seq, RV):
           hard_params[k] = (arg_val, expected_type)
-          if verbose: print('EXPL', k)
+          if verbose: logger.debug('EXPL', k)
           continue
         elif (expected_type, actual_type) == (RV, int):
           new_val = RV.from_const(arg_val)  # type: ignore
         elif (expected_type, actual_type) == (RV, Seq):
           new_val = RV.from_seq(arg_val)
         elif not casted_iter_to_seq:  # no cast made and one of the two types is not known, no casting needed
-          if verbose: print('no cast', k, expected_type, actual_type)
+          if verbose: logger.debug('no cast', k, expected_type, actual_type)
           continue
         if isinstance(k, str):
           kwargs[k] = new_val
         else:
           args[k] = new_val
-        if verbose: print('cast', k)
-      if verbose: print('hard', list(hard_params.keys()))
+        if verbose: logger.debug('cast', k)
+      if verbose: logger.debug('hard', list(hard_params.keys()))
       if not hard_params:
         return func(*args, **kwargs)
 
@@ -623,7 +627,7 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   if sum_ <= sum_limit:
     return rv
   normalizing_const = int(10e10 * sum_ // sum_limit)
-  print(f'WARNING reducing probabilities | sum limit {sum_limit}, sum{sum_:.1g}, NORMALIZING BY {normalizing_const:.1g}')
+  logger.debug(f'WARNING reducing probabilities | sum limit {sum_limit}, sum{sum_:.1g}, NORMALIZING BY {normalizing_const:.1g}')
   # EPS = 1/lim  where lim is very large int, thus EPS is very small
   # below will round up any P(X=x) < EPS to 0
   rv.probs = tuple(p//normalizing_const for p in rv.probs)
@@ -654,6 +658,6 @@ def output(rv: T_isr, named=None, show_pdf=True, blocks_width=None, print_=True,
       result += '\n' + f"{v:>{max_val_len}}: {100*p:>5.2f}  " + ('█'*round(p * blocks))
     result += '\n' + '-' * (blocks_width + 8)
   if print_:
-    print(result)
+    logger.debug(result)
   else:
     return result

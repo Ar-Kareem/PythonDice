@@ -9,8 +9,7 @@ r'''
 function: a {result: 1d6}
 function: b D:d {result: D+1}
 B: 1d5
-output [a] + [b B]
-'''
+output [a] + [b B] named '''
 ]
 
 def setup_logger(filename):
@@ -38,14 +37,14 @@ def main(trials=trials):
         logger.debug('Yacc Illegal tokens found: ' + str(lexer.YACC_ILLEGALs))
         continue
       python_str = parse_and_exec.do_resolve(yacc_ret)
-      print(python_str)
+      logger.debug(python_str)
       r = parse_and_exec.safe_exec(python_str, global_vars={})
       for (args, kwargs) in r:
         output(*args, **kwargs, blocks_width=50)
     except Exception as e:
       logger.exception(e)
       return
-  # print('done')
+  # logger.debug('done')
 
 if __name__ == '__main__':
   main()

@@ -27,7 +27,7 @@ def pipeline(to_parse, global_vars={}):
 settings_set('RV_IGNORE_ZERO_PROBS', True)
 
 def check(x, expected):
-    print(x)
+    logger.debug(x)
     assert type(x) == type(expected), f'types expected {type(expected)} got {type(x)}'
     if not isinstance(x, tuple):
         x = [x]
