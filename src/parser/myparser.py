@@ -1,8 +1,12 @@
 from enum import Enum
+import logging
+
 
 from .ply.lex import lex
 from .ply.yacc import yacc
 
+
+logger = logging.getLogger(__name__)
 
 
 # --- LEX Tokenizer
@@ -527,9 +531,11 @@ def p_call_elements_expr(p):
         p[0] = Node(NodeType.CALL, wrapped)
 
 def p_error(p):
+    if not p:
+        logger.error('Syntax error BUT NONE')
+        return
     col = find_column(p.lexer.lexdata, p.lexpos)
     p.lexer.YACC_ILLEGALs.append((p.value, p.lexpos, p.lineno, col))
-    print(f'Illegal token {p} {p.__dict__}')
 
 
 

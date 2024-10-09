@@ -6,10 +6,12 @@ from src.randvar import output
 
 trials = [
 r'''
+
 function: a {result: 1d6}
-function: b D:d {result: D+1}
-B: 1d5
-output [a] + [b B] named '''
+function: b D:d {
+  result: D=
+
+'''
 ]
 
 def setup_logger(filename):
@@ -24,6 +26,7 @@ logger = logging.getLogger(__name__)
 def main(trials=trials):
   for to_parse in trials:
     try:
+      # print('Parsing:', to_parse)
       if to_parse is None or to_parse.strip() == '':
         logger.debug('Empty string')
         continue
@@ -35,6 +38,13 @@ def main(trials=trials):
       yacc_ret = parse_and_exec.do_yacc(to_parse, lexer, yaccer)
       if lexer.YACC_ILLEGALs:
         logger.debug('Yacc Illegal tokens found: ' + str(lexer.YACC_ILLEGALs))
+        replaced = to_parse
+        for x in lexer.YACC_ILLEGALs:
+          replaced = replaced[:x[1]] + 'X' + replaced[x[1]+1:]
+        logger.debug(f'Replaced illegal tokens with X: {replaced}')
+        continue
+      if yacc_ret is None:
+        logger.debug('Parse failed')
         continue
       python_str = parse_and_exec.do_resolve(yacc_ret)
       logger.debug(python_str)

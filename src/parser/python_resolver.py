@@ -32,7 +32,7 @@ class PythonResolver:
     def _check_nested_str(self, node):
         if isinstance(node, Node):
             return all(x is None or isinstance(x, str) or self._check_nested_str(x) for x in node)
-        logger.error(f'Unexpected node: {node} with children nodes {node.vals}')
+        logger.error(f'Unexpected node: {node} with children nodes {node.vals if node else ""}')
         return False
 
     def resolve(self):
