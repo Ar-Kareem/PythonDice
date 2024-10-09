@@ -7,8 +7,9 @@ from src.randvar import output
 trials = [
 r'''
 function: a {result: 1d6}
-function: b {}
-output [a]
+function: b D:d {result: D+1}
+B: 1d5
+output [a] + [b B]
 '''
 ]
 

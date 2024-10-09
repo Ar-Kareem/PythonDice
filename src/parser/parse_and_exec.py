@@ -87,7 +87,20 @@ def safe_exec(r, global_vars=None):
     '__builtins__': ResPy.safe_builtins,
     '_getiter_': Eval.default_guarded_getiter, 
     '_iter_unpack_sequence_': Guards.guarded_iter_unpack_sequence,
-    '_getattr_': getattr,
+    # '_getattr_': getattr,
+    'getattr': Guards.safer_getattr,
+
+    # To use classes in Python 3
+    #     __metaclass__ must be set. Set it to type to use no custom metaclass.
+    #     __name__ must be set. As classes need a namespace to be defined in. It is the name of the module the class is defined in. You might set it to an arbitrary string.
+    '__metaclass__': type,
+    '__name__': 'restricted namespace',
+    # needed to assign to lists and dicts
+    '_write_': Guards.full_write_guard,
+
+    '_getiter_ ': Eval.default_guarded_getiter,
+    '_getitem_': Eval.default_guarded_getitem,
+
 
     **_get_lib(),
     'output': lambda *args, **kwargs: all_outputs.append((args, kwargs)),

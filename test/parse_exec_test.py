@@ -69,6 +69,12 @@ output {1}&1d2
 ),('''
 output 1d2&{1}
 ''', [RV(bv, (0, 1))]
+),('''
+output d-1
+output d+1
+A: 3d6
+output d#A
+''', [RV([-1], [1]), RV([1], [1]), RV([1, 2, 3], [1, 1, 1])]
 ),])
 def test_ands_and_ors(code, res):
     i = 0
