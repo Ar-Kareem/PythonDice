@@ -6,8 +6,9 @@ from src.randvar import output
 
 trials = [
 r'''
-function: a {result: 1}
-1 + a * 3
+function: a {result: 1d6}
+function: b {}
+output [a]
 '''
 ]
 
@@ -36,6 +37,7 @@ def main(trials=trials):
         logger.debug('Yacc Illegal tokens found: ' + str(lexer.YACC_ILLEGALs))
         continue
       python_str = parse_and_exec.do_resolve(yacc_ret)
+      print(python_str)
       r = parse_and_exec.safe_exec(python_str, global_vars={})
       for (args, kwargs) in r:
         output(*args, **kwargs, blocks_width=50)

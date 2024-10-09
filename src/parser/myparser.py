@@ -168,6 +168,8 @@ class Node:
     def with_child(self, child: 'str|Node'):  # for recursive parsing
         self.vals.append(child)
         return self
+    def __len__(self):
+        return len(self.vals)
     def __iter__(self):
         return iter(self.vals)
     @property
@@ -191,6 +193,14 @@ def p_multiline_code(p):
         p[0] = p[1].with_child(p[2])
     else:  # base case
         p[0] = Node(NodeType.MULTILINE_CODE, p[1])
+
+def p_multiline_code_empty(p):
+    'multiline_code : empty'
+    p[0] = Node(NodeType.MULTILINE_CODE)
+
+def p_empty(p):
+    'empty :'
+    pass
 
 def p_single_code(p):
     '''

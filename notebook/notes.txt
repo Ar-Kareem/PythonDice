@@ -10,11 +10,15 @@ to run tests:
         `pytest --cov --cov-report=html:coverage_re`
 to build package:
     `conda activate pythondice`
+    `rm dist/*`
     `python3 setup.py sdist`
     `python3 -m twine upload --repository pypi dist/*`
+    rm dist/* && python3 setup.py sdist && python3 -m twine upload --repository pypi dist/*
+
+
+
 
 TODO
-    FIX yacc cannot handle empty blocks {}
     Build Lex Yacc test cases
 
 RV:

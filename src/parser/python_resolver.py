@@ -55,7 +55,7 @@ class PythonResolver:
         assert not isinstance(node, str), f'resolver error, not sure what to do with a string: {node}. All strings should be a Node ("string", str|strvar...)'
 
         if node.type == NodeType.MULTILINE_CODE:
-            return '\n'.join([self.resolve_node(x) for x in node])
+            return '\n'.join([self.resolve_node(x) for x in node]) if len(node) > 0 else 'pass'
 
         elif node.type == NodeType.STRING:  # Node of str or ("strvar", ...)
             return ''.join([x if isinstance(x, str) else self.resolve_node(x) for x in node])
