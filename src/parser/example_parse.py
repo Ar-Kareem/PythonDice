@@ -7,9 +7,11 @@ from src.randvar import output
 trials = [
 r'''
 
-function: a {result: 1d6}
-function: b D:d {
-  result: D=
+
+loop P over {1..5} {
+ output 1 named "INLOOP%[P]%"
+}
+
 
 '''
 ]

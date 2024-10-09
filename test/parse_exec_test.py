@@ -408,9 +408,27 @@ function: call b {result: [b]+1}
 function: b {result: 2}
 output [call b]
 ''',
+r'''
+set "explode depth" to 1
+AAA: 1
+set "explode depth" to AAA
+loop AAAA over {1..5} {
+  set "explode depth" to AAAA
+}
+loop DEPTH over {1..5} {
+  set "explode depth" to DEPTH
+}
+output 1
+''',
+r'''
+loop P over {1..5} {
+ output 1 named "INLOOP%[P]%"
+}
+'''
 ])
 def test_running(code):
-    pipeline(code)
+    r = pipeline(code)
+    assert r is not None
 
 
 @pytest.mark.parametrize("code", [

@@ -12,7 +12,7 @@ CONST = {
     'roll': 'roll',
     'range': 'myrange',
     'cast_decorator': '@anydice_casting()',
-    'setter': lambda name, value: f'settings_set("{name}", "{value}")',
+    'setter': lambda name, value: f'settings_set({name}, {value})',
     'function library': ('absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X'),
 }
 
@@ -66,7 +66,7 @@ class PythonResolver:
             return '\n'.join([self.resolve_node(x) for x in node]) if len(node) > 0 else 'pass'
 
         elif node.type == NodeType.STRING:  # Node of str or ("strvar", ...)
-            return ''.join([x if isinstance(x, str) else self.resolve_node(x) for x in node])
+            return 'f"' + ''.join([x if isinstance(x, str) else self.resolve_node(x) for x in node]) + '"'
         elif node.type == NodeType.STRVAR:
             assert isinstance(node.val, str), f'Expected string for strvar, got {node.val}'
             return '{' + node.val + '}'
@@ -88,7 +88,7 @@ class PythonResolver:
             self._output_counter += 1
             params, name = node
             params, name = self.resolve_node(params), self.resolve_node(name)
-            return f'{CONST["output"]}({params}, named=f"{name}")'
+            return f'{CONST["output"]}({params}, named={name})'
 
         elif node.type == NodeType.SET:
             name, value = node

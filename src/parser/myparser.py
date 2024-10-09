@@ -224,6 +224,7 @@ def p_single_code(p):
 
                 | RESULT COLON expression
                 | SET string TO string
+                | SET string TO expression
     '''
     if p[1] == 'output':
         if len(p) == 3:
