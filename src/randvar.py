@@ -30,12 +30,15 @@ DEFAULT_SETTINGS = {
   'DEFAULT_OUTPUT_WIDTH': 180,  # default width of output
 
   'position order': 'highest first',  # 'highest first' or 'lowest first'
+  'explode depth': 2,  # can only be set to a positive integer (the default is 2)
 }
 SETTINGS = DEFAULT_SETTINGS.copy()
 
 def settings_set(name, value):
   if name == "position order":
     assert value in ("highest first", "lowest first"), 'position order must be "highest first" or "lowest first"'
+  elif name == "explode depth":
+    assert isinstance(value, int) and value > 0, '"explode depth" can only be set to a positive integer (the default is 2) got ' + str(value)
   elif name in ('RV_TRUNC', 'RV_IGNORE_ZERO_PROBS'):
     if isinstance(value, str):
       assert value.lower() in ('true', 'false'), 'value must be "True" or "False"'

@@ -1,5 +1,5 @@
 # recreations of functions in https://anydice.com/docs/function-library/
-from .randvar import Seq, RV, roll, anydice_casting
+from .randvar import Seq, RV, roll, anydice_casting, SETTINGS
 
 # BASE FUNCTIONS
 
@@ -35,7 +35,9 @@ def maximum_of(DIE:RV):
     return 1@reverse(Seq(DIE))
 
 @anydice_casting()
-def explode(DIE:RV, depth=2):
+def explode(DIE:RV, depth=None):
+    if depth is None:
+        depth = SETTINGS['explode depth']
     MAX = maximum_of(DIE)
     return _explode_helper(DIE, MAX, ORIG_DIE=DIE, depth=depth)  # type: ignore
 
