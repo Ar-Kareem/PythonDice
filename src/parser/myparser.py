@@ -89,8 +89,9 @@ def t_begin_instring(t):
     t.lexer.begin('instring') # Starts 'instring' state
 
 t_instring_INSTRING_VAR = r'\[[A-Z]+\]'
-t_instring_INSTRING_NONVAR = r'\[[^"[]*'
-t_instring_INSTRING_ANY = r'[^"[]+'
+strbody = r'[^\n"[]'
+t_instring_INSTRING_NONVAR = rf'\[{strbody}*'
+t_instring_INSTRING_ANY = rf'{strbody}+'
 
 def t_instring_end(t):
     r'"'
@@ -99,7 +100,7 @@ def t_instring_end(t):
 
 
 # Ignored token with an action associated with it
-def t_ANY_ignore_newline(t):
+def t_INITIAL_ignore_newline(t):
     r'\n+'
     t.lexer.lineno += t.value.count('\n')
 
@@ -109,6 +110,12 @@ def t_ANY_error(t):
     t.lexer.LEX_ILLEGAL_CHARS.append((t.value[0], t.lexpos, t.lexer.lineno, col_pos))
     t.lexer.skip(1)
 
+# EOF handling rule if "instring" state is active then illegal
+def t_ANY_eof(t):
+    if t.lexer.current_state() == 'instring':
+        col_pos = find_column(t.lexer.lexdata, t.lexpos)
+        t.lexer.LEX_ILLEGAL_CHARS.append(('Non-closed string', t.lexpos, t.lexer.lineno, col_pos))
+    return None
 
 def find_column(inp, lexpos):
     line_start = inp.rfind('\n', 0, lexpos) + 1
