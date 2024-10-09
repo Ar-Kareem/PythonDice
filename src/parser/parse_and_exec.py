@@ -1,39 +1,66 @@
 import logging
 from . import myparser
+from .myparser import Node
 from .python_resolver import PythonResolver
 
 
 logger = logging.getLogger(__name__)
 
+def build_lex_yacc():
+  lexer, yaccer = myparser.build_lex_yacc()
+  lexer.LEX_ILLEGAL_CHARS = []
+  lexer.YACC_ILLEGALs = []
+  return lexer, yaccer
 
-def parse(to_parse, verbose_lex=False, verbose_yacc=False):
-  if to_parse is None or to_parse.strip() == '':
-    logger.debug('Empty string')
-    return
-
-  myparser.lexer.input(to_parse)  # feed the lexer
-  tokens = [x for x in myparser.lexer]
-
-  for x in myparser.ILLEGAL_CHARS:
-      logger.debug(f'Illegal character {x!r}')
-  myparser.ILLEGAL_CHARS.clear()
-
+def do_lex(to_parse, lexer, verbose_lex=False):
+  lexer.input(to_parse)  # feed the lexer
+  tokens = [x for x in lexer]
+  # lexed_text = to_parse
+  # for x in lexer.LEX_ILLEGAL_CHARS:
+  #   logger.debug(f'Illegal character {x[0]!r} at {x[1]} {x[2]} {x[3]}')
+  #   lexed_text = lexed_text[:x[1]] + '_' + lexed_text[x[1]+1:]
   if verbose_lex:
     logger.debug('Tokens:')
     for x in tokens:
         logger.debug(x)
 
-  yacc_ret: myparser.Node = myparser.yacc_parser.parse(to_parse)  # generate the AST
+
+def do_yacc(to_parse, lexer, yaccer, verbose_yacc=False):
+  yacc_ret: Node = yaccer.parse(to_parse, lexer=lexer)  # generate the AST
+  if verbose_yacc and yacc_ret:
+    for x in yacc_ret:
+      logger.debug('yacc: ' + str(x))
+  return yacc_ret
+
+
+def do_resolve(yacc_ret, verbose_parseed_python=False):
+  r = PythonResolver(yacc_ret).resolve()
+  if verbose_parseed_python:
+    logger.debug(f'Parsed python:\n{r}')
+  return r
+
+
+def parse(to_parse, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False):
+  if to_parse is None or to_parse.strip() == '':
+    logger.debug('Empty string')
+    return
+
+  lexer, yaccer = build_lex_yacc()
+
+  do_lex(to_parse, lexer, verbose_lex=verbose_lex)
+  illegal_chars = lexer.LEX_ILLEGAL_CHARS
+  if illegal_chars:
+    logger.debug('Illegal characters found: ' + str(illegal_chars))
+
+  yacc_ret = do_yacc(to_parse, lexer, yaccer, verbose_yacc=verbose_yacc)
   if yacc_ret is None:
     logger.debug('Parse failed')
     return
-  if verbose_yacc:
-    for x in yacc_ret:
-      logger.debug('yacc: ' + str(x))
-  assert isinstance(yacc_ret, myparser.Node), f'Expected Node, got {type(yacc_ret)}'
-  return yacc_ret
 
-def get_lib():
+  assert isinstance(yacc_ret, Node), f'Expected Node, got {type(yacc_ret)}'
+  return do_resolve(yacc_ret, verbose_parseed_python=verbose_parseed_python)
+
+def _get_lib():
   import math, itertools, random, functools
   from ..randvar import RV, Seq, anydice_casting, output, roll, settings_set
   from ..utils import myrange
@@ -51,7 +78,7 @@ def safe_exec(r, global_vars=None):
   except ModuleNotFoundError:
       logger.error('RestrictedPython not installer. Run `pip install RestrictedPython`')
       logger.exception('code did not execute')
-      return
+      return []
   import RestrictedPython as ResPy
   import RestrictedPython.Guards as Guards
   import RestrictedPython.Eval as Eval
@@ -62,7 +89,7 @@ def safe_exec(r, global_vars=None):
     '_iter_unpack_sequence_': Guards.guarded_iter_unpack_sequence,
     '_getattr_': getattr,
 
-    **get_lib(),
+    **_get_lib(),
     'output': lambda *args, **kwargs: all_outputs.append((args, kwargs)),
     **(global_vars or {})
   }
@@ -78,24 +105,8 @@ def unsafe_exec(r, global_vars=None):
   logger.warning('Unsafe exec\n'*25)
   all_outputs = []
   g = {
-    **get_lib(), 
+    **_get_lib(), 
     'output': lambda *args, **kwargs: all_outputs.append((args, kwargs)),
     **(global_vars or {})}
   exec(r, g)
   return all_outputs
-
-def pipeline(to_parse, do_exec=True, verbose_input_str=False, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False, global_vars=None, _do_unsafe_exec=False):
-  if verbose_input_str:
-    logger.debug(f'Parsing:\n{to_parse}')
-  parsed = parse(to_parse, verbose_lex=verbose_lex, verbose_yacc=verbose_yacc)
-  if parsed is None:
-    return
-  r = PythonResolver(parsed).resolve()
-  if verbose_parseed_python:
-    logger.debug(f'Parsed python:\n{r}')
-  if do_exec:
-    return safe_exec(r, global_vars=global_vars)
-  elif _do_unsafe_exec:
-    return unsafe_exec(r, global_vars=global_vars)
-  else:
-    return r

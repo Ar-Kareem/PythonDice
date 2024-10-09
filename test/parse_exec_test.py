@@ -1,10 +1,29 @@
 import pytest
 
-import src.randvar
-from src.randvar import RV, Seq, anydice_casting, output, roll, settings_set
-from src.parser.parse_and_exec import pipeline as _pipeline
+from src.randvar import RV, settings_set
+from src.parser import parse_and_exec
 
-pipeline = lambda code, global_vars={}: _pipeline(code, global_vars=global_vars, do_exec=True, _do_unsafe_exec=False, verbose_parseed_python=False)
+import logging
+
+logger = logging.getLogger(__name__)
+
+def pipeline(to_parse, global_vars={}):
+  if to_parse is None or to_parse.strip() == '':
+    logger.debug('Empty string')
+    return
+  lexer, yaccer = parse_and_exec.build_lex_yacc()
+  parse_and_exec.do_lex(to_parse, lexer)
+  if lexer.LEX_ILLEGAL_CHARS:
+    logger.debug('Lex Illegal characters found: ' + str(lexer.LEX_ILLEGAL_CHARS))
+    return
+  yacc_ret = parse_and_exec.do_yacc(to_parse, lexer, yaccer)
+  if lexer.YACC_ILLEGALs:
+    logger.debug('Yacc Illegal tokens found: ' + str(lexer.YACC_ILLEGALs))
+    return
+  python_str = parse_and_exec.do_resolve(yacc_ret)
+  r = parse_and_exec.safe_exec(python_str, global_vars=global_vars)
+  return r
+
 settings_set('RV_IGNORE_ZERO_PROBS', True)
 
 def check(x, expected):

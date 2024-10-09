@@ -3,14 +3,16 @@ from enum import Enum
 from .ply.lex import lex
 from .ply.yacc import yacc
 
-# --- Tokenizer
 
-# All tokens must be named in advance.
 
+# --- LEX Tokenizer
+
+# states for the lexer
 states = (
     ('instring','exclusive'),
 )
 
+# All tokens must be named in advance.
 _reserved = ('output','function','loop','over','named','set','to','if','else','result')
 reserved = {k: k.upper() for k in _reserved}
 
@@ -26,7 +28,7 @@ tokens = [ 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
             ] + list(reserved.values())
 
 # Ignored characters
-t_ignore = ' \t\n'
+t_ignore = ' \t'
 t_instring_ignore = ''
 
 # Token matching rules are written as regexs
@@ -102,14 +104,16 @@ def t_ANY_ignore_newline(t):
     t.lexer.lineno += t.value.count('\n')
 
 # Error handler for illegal characters
-ILLEGAL_CHARS = []
 def t_ANY_error(t):
-    print(f'Illegal character {t.value[0]!r}')
-    ILLEGAL_CHARS.append(t.value[0])
+    col_pos = find_column(t.lexer.lexdata, t.lexpos)
+    t.lexer.LEX_ILLEGAL_CHARS.append((t.value[0], t.lexpos, t.lexer.lineno, col_pos))
     t.lexer.skip(1)
 
-# Build the lexer object
-lexer = lex()
+
+def find_column(inp, lexpos):
+    line_start = inp.rfind('\n', 0, lexpos) + 1
+    return (lexpos - line_start) + 1
+
 
 
 
@@ -175,6 +179,8 @@ class Node:
 
 
 
+
+start = 'multiline_code'
 
 def p_multiline_code(p):
     '''
@@ -504,7 +510,13 @@ def p_call_elements_expr(p):
         p[0] = Node(NodeType.CALL, wrapped)
 
 def p_error(p):
-    print(f'Syntax error at {p.value!r}')
+    col = find_column(p.lexer.lexdata, p.lexpos)
+    p.lexer.YACC_ILLEGALs.append((p.value, p.lexpos, p.lineno, col))
+    print(f'Illegal token {p} {p.__dict__}')
 
-# Build the parser
-yacc_parser = yacc()
+
+
+def build_lex_yacc():
+    lexer = lex()
+    yaccer = yacc()
+    return lexer, yaccer
