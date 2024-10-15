@@ -14,6 +14,7 @@ from . import utils
 logger = logging.getLogger(__name__)
 
 
+# TYPE DEFINITIONS
 T_if = int|float
 T_ifs = T_if|Iterable['T_ifs']  # recursive type
 T_is = int|Iterable['T_is']  # recursive type
@@ -24,10 +25,13 @@ T_ifsr = Union[T_ifs, 'RV']
 
 T_s = Iterable['T_ifs']  # same as T_ifs but excludes int and float (not iterable)
 
+
+# SETTINGS
 DEFAULT_SETTINGS = {
   'RV_TRUNC': False,  # if True, then RV will automatically truncate values to ints (replicate anydice behavior)
   'RV_IGNORE_ZERO_PROBS': False,  # if True, then RV remove P=0 vals when creating RVs (False by default in anydice)
   'DEFAULT_OUTPUT_WIDTH': 180,  # default width of output
+  'DEFAULT_PRINT_FN': print,  # default print function
 
   'position order': 'highest first',  # 'highest first' or 'lowest first'
   'explode depth': 2,  # can only be set to a positive integer (the default is 2)
@@ -46,6 +50,8 @@ def settings_set(name, value):
     assert isinstance(value, bool), 'value must be a boolean'
   elif name == 'DEFAULT_OUTPUT_WIDTH':
     assert isinstance(value, int) and value > 0, 'DEFAULT_OUTPUT_WIDTH must be a positive integer'
+  elif name == 'DEFAULT_PRINT_FN':
+    assert callable(value), 'DEFAULT_PRINT_FN must be a callable'
   else:
     assert False, f'invalid setting name: {name}'
   SETTINGS[name] = value
@@ -53,6 +59,7 @@ def settings_set(name, value):
 def settings_reset():
   SETTINGS.clear()
   SETTINGS.update(DEFAULT_SETTINGS)
+
 
 class RV:
   def __init__(self, vals: Iterable[float], probs: Iterable[int], truncate=None):
@@ -639,7 +646,7 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   return rv
 
 
-def output(rv: T_isr, named=None, show_pdf=True, blocks_width=None, print_=True, cdf_cut=0):
+def output(rv: T_isr, named=None, show_pdf=True, blocks_width=None, print_=True, print_fn=None, cdf_cut=0):
   if isinstance(rv, int) or isinstance(rv, Iterable) or isinstance(rv, bool):
     rv = RV.from_seq([rv])
   assert isinstance(rv, RV), 'rv must be a RV'
@@ -663,6 +670,9 @@ def output(rv: T_isr, named=None, show_pdf=True, blocks_width=None, print_=True,
       result += '\n' + f"{v:>{max_val_len}}: {100*p:>5.2f}  " + ('█'*round(p * blocks))
     result += '\n' + '-' * (blocks_width + 8)
   if print_:
-    print(result)
+    if print_fn is None:
+      SETTINGS['DEFAULT_PRINT_FN'](result)
+    else:
+      print_fn(result)
   else:
     return result
