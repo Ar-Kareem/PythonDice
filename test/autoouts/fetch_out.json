@@ -19,6 +19,16 @@
       "inp": "\noutput 1d6\noutput 1d2\noutput 1d4 named \"1d4 now\"\noutput 1d2 named \"1d2 now\"\noutput 1d3\n",
       "out": "{\"distributions\":{\"data\":[[[1,16.6666666667],[2,16.6666666667],[3,16.6666666667],[4,16.6666666667],[5,16.6666666667],[6,16.6666666667]],[[1,50],[2,50]],[[1,25],[2,25],[3,25],[4,25]],[[1,50],[2,50]],[[1,33.3333333333],[2,33.3333333333],[3,33.3333333333]]],\"labels\":[\"output 1\",\"output 2\",\"1d4 now\",\"1d2 now\",\"output 5\"],\"minX\":1,\"maxX\":6,\"minY\":0,\"maxY\":50}}",
       "time": "2024-10-15T16:37:07.063329"
+    },
+    {
+      "inp": "\noutput (! 2)>3\noutput ! (2>3)\noutput 2 > !3\noutput ! 2>3\n",
+      "out": "{\"distributions\":{\"data\":[[[0,100]],[[1,100]],[[1,100]],[[0,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-15T19:38:29.988176"
+    },
+    {
+      "inp": "\noutput ! 5\noutput ! 0\noutput ! -5\noutput ! (1 > 2)\noutput ! (1 < 2)\n",
+      "out": "{\"distributions\":{\"data\":[[[0,100]],[[1,100]],[[0,100]],[[1,100]],[[0,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\",\"output 5\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-15T19:40:05.080243"
     }
   ]
 }
