@@ -75,6 +75,9 @@ output d+1
 A: 3d6
 output d#A
 ''', [RV([-1], [1]), RV([1], [1]), RV([1, 2, 3], [1, 1, 1])]
+),('''
+output 2 * 2 @ 2d2
+''', [RV([2, 4], [3, 1])]
 ),])
 def test_ands_and_ors(code, res):
     i = 0
