@@ -9,11 +9,15 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name='dice_calc',
-    version='0.2.7',
+    version='0.2.8',
+    python_requires='>=3.10.0',
     author='Ar-Kareem',
+    maintainer='Ar-Kareem',
     description='Advanced Calculator for Dice',
     long_description=long_description,
     long_description_content_type='text/markdown',
+    url='https://github.com/Ar-Kareem/PythonDice/',
+    license='MIT',
     package_dir={
         # main package 'src'
         'dice_calc': 'src',
