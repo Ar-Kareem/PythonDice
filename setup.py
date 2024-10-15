@@ -9,7 +9,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name='dice_calc',
-    version='0.2.8',
+    version='0.2.9',
     python_requires='>=3.10.0',
     author='Ar-Kareem',
     maintainer='Ar-Kareem',
