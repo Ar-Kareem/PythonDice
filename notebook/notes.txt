@@ -20,7 +20,7 @@ to build package:
 
 TODO
     Build Lex Yacc test cases
-
+    yacc line number for errors wrong
 RV:
     implement {1,2}@RV (sum multiple k-th order statistics)
     implement ~

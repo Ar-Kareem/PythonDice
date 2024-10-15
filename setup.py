@@ -9,7 +9,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name='dice_calc',
-    version='0.1.9',
+    version='0.2.0',
     author='Ar-Kareem',
     description='Advanced Calculator for Dice',
     long_description=long_description,
