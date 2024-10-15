@@ -9,7 +9,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name='dice_calc',
-    version='0.2.4',
+    version='0.2.5',
     author='Ar-Kareem',
     description='Advanced Calculator for Dice',
     long_description=long_description,
@@ -25,7 +25,7 @@ setup(
     packages=['dice_calc', 'dice_calc.parser', 'dice_calc.parser.ply'],
 
 )
-#build/public            rm dist/* && python3 setup.py sdist && python3 -m twine upload --repository pypi dist/*
+#build and pypi push            rm dist/* && python3 setup.py sdist && python3 -m twine upload --repository pypi dist/*
 
 
 

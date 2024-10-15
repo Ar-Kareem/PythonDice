@@ -3,10 +3,13 @@ This is a python package that includes a simple to use and powerful dice probabi
 
 This package offers features and capabilities to calculate probabilities of arbitrary dice scripts including full capabilities of `anydice.com`. 
 
-Additionaly, separate to the engine, this package includes an easy-to-use custom built compiler that translates any valid `anydice.com` code into runnable python code.
+Additionaly, this package includes the first* custom built compiler that translates almost any** valid `anydice.com` code into runnable python code.
 
-This project is still in very early development but everything mentioned above should be complete. (project started October 2024)
+This project is still in early development but everything mentioned above is complete. (project started October 2024)
 
+\* as far as we know
+
+\*\* very few edge cases mentioned at the end
 
 # Installation
 
@@ -15,6 +18,10 @@ This project is still in very early development but everything mentioned above s
 This package has no dependencies.
 
 # Basic Usage
+
+If you are familiar with the `anydice.com` language then you should skip to section `compiling anydice.com code` which automatically converts the provided `anydice` code to this packages code thus teaching you all the nuances of this package.
+
+The examples below are **not comprehensive at all**. They just show very basic use cases of our package.
 
 ### Example #1: 
 Let's roll a single d20 dice (a d20 is a regular twenty sided-die)
@@ -299,9 +306,13 @@ function: convert SUM:n {
 output [convert [highest 3 of 6d{1..9, 1000}]] named "6k3 exploded after keeping"
 """
 
-print(compile_anydice(EXAMPLE_CODE))
+code = compile_anydice(EXAMPLE_CODE)
+print(f'compile retured type:{type(code)}\n')
+print(code)
 ```
 
+    compile retured type:<class 'str'>
+    
     @anydice_casting()
     def convert_X(SUM: int):
       if SUM >= 1000:
@@ -343,31 +354,117 @@ output(convert_X(highest_X_of_X(3, roll(6, Seq([myrange(1, 9), 1000])))), named=
       8:  0.04  
       9:  0.09  
      10:  0.17  
-     11:  0.29  
-     12:  0.48  
+     11:  0.29  █
+     12:  0.48  █
      13:  0.76  █
-     14:  1.12  █
-     15:  1.62  █
-     16:  2.22  ██
-     17:  2.92  ██
-     18:  3.71  ███
-     19:  4.55  ████
-     20:  5.31  ████
-     21:  6.00  █████
-     22:  6.40  █████
-     23:  6.51  █████
-     24:  6.20  █████
-     25:  5.61  ████
-     26:  4.65  ████
-     27:  3.78  ███
-     28:  3.14  ██
-     29:  3.45  ███
-     30:  3.40  ███
-     31:  3.32  ███
-     32:  3.16  ██
-     33:  2.93  ██
-     34:  2.60  ██
-     35:  2.21  ██
-     36:  1.78  █
+     14:  1.12  ██
+     15:  1.62  ███
+     16:  2.22  ████
+     17:  2.92  █████
+     18:  3.71  ███████
+     19:  4.55  ████████
+     20:  5.31  █████████
+     21:  6.00  ███████████
+     22:  6.40  ███████████
+     23:  6.51  ████████████
+     24:  6.20  ███████████
+     25:  5.61  ██████████
+     26:  4.65  ████████
+     27:  3.78  ███████
+     28:  3.14  ██████
+     29:  3.45  ██████
+     30:  3.40  ██████
+     31:  3.32  ██████
+     32:  3.16  ██████
+     33:  2.93  █████
+     34:  2.60  █████
+     35:  2.21  ████
+     36:  1.78  ███
     ... output cropped ...
     
+
+Or you can do it all in one line
+
+
+```python
+from dice_calc.parser.parse_and_exec import compile_anydice, _get_lib
+
+EXAMPLE_CODE = """
+function: convert SUM:n {
+ if SUM >= 1000 {
+  TENSROLLED: SUM / 1000
+  result: SUM - TENSROLLED * 990 + TENSROLLED d [explode d10]
+ }
+ result: SUM
+}
+
+output [convert [highest 3 of 6d{1..9, 1000}]] named "6k3 exploded after keeping"
+"""
+
+exec(compile_anydice(EXAMPLE_CODE), _get_lib())
+```
+
+    6k3 exploded after keeping 26.53 ± 8.32
+      3:  0.00  
+      4:  0.00  
+      5:  0.00  
+      6:  0.01  
+      7:  0.02  
+      8:  0.04  
+      9:  0.09  
+     10:  0.17  
+     11:  0.29  █
+     12:  0.48  █
+     13:  0.76  █
+     14:  1.12  ██
+     15:  1.62  ███
+     16:  2.22  ████
+     17:  2.92  █████
+     18:  3.71  ███████
+     19:  4.55  ████████
+     20:  5.31  █████████
+     21:  6.00  ███████████
+     22:  6.40  ███████████
+     23:  6.51  ████████████
+     24:  6.20  ███████████
+     25:  5.61  ██████████
+     26:  4.65  ████████
+     27:  3.78  ███████
+     28:  3.14  ██████
+     29:  3.45  ██████
+     30:  3.40  ██████
+     31:  3.32  ██████
+     32:  3.16  ██████
+     33:  2.93  █████
+     34:  2.60  █████
+     35:  2.21  ████
+     36:  1.78  ███
+    ... output cropped ...
+    
+
+Note that calls to the built-in python function `exec` executes arbitrary code and could be dangerous if malicious code is run. Only run `exec` on code you trust.
+
+`compile_anydice` was developed to only generate safe code, but no garuntees are made.
+
+## compile_anydice edge cases
+
+The `compile_anydice` function was a large part of this project. Under the hood it is a custom compiler built using Python's implementation of `lex` and `yacc` provided by [`PLY (Python Lex-Yacc)`](https://github.com/dabeaz/ply).
+
+As far as we tested, almost all valid `anydice` code worked perfectly using our compiler, except for very few intentionally ignored subsets of `anydice` code mentioned below:
+
+
+1. **Code that includes the expression `#int`**: in `anydice`, if you perform this operation it returns the number of digits in the integer (i.e. `#X` is equivalent to the Python code `int(math.log10(X))`). This is awkward syntax and is intentionally ignored as you really should avoid using `#int`. In the rare cases that you do use it, replace that part with `int(math.log10(X))` in the compiled code manually.
+
+   - The fix for this is simple, instead of resolving the `#` character to the built-in `len`, we would resolve it to a custom function `mylen`. The function would return `len` unless the input is a number in which case it returns `int(math.log10(X))`. This is ignored to avoid having the generated code having more ambiguous functions as `mylen` (`myrange` was enough)
+
+2. **Code that includes the expression `int @ int`**: in `anydice`, if you you perform the `N @ M` operation where both are ints, it returns the `N-th` digit of `M` which is a weird syntax and has very few legitimate use cases. The `@` symbol in Python calls the `__matmul__` function (which is obviously implemented for both custom objects, RV and Seq). However, calling `__matmul__` on an `int` and `int` would raise a `TypeError`
+
+   - The fix for this is simple but very annoying. The solution would be to implement our own function `mymatmul(p1, p2)` which returns `p1 @ p2` unless both are ints in which case it would return `int(str(p2)[p1-1])`. This is annoying because it would resolve all instances of `P1 @ P2` in anydice code (frequently occurring) to the ugly syntax `mymatmul(p1, p2)` instead of literally the same `P1 @ P2`. And the only reason to use this nasty syntax is to properly handle a very rare case of `int @ int`.
+
+3. **Limit on global function depth**: As mentioned in the [Anydice Documentation](https://anydice.com/docs/functions/), functions can only support a limited number of nested function calls until results are truncated. By default, this value is 10. You can try this by running the code `function: r {result: 1 + [r]} output [r]` which will yield `10` despite theoretically running indefinitely. Additionally, running the following `function: hello {result: [r]} output [hello]` yields `9` yet it's logically equivelant to the previous function. Thus, in `anydice`, a function's result depends on *where* it was called which is strange behavior and is bad programming. If this is *really* what you want then pass a `depth` variable and decrement it until it reaches zero and stop the recursion with a 0. 
+
+   - Note: the `explode` function provided in this pacakges `funclib` is **correctly implemented** including a limit on its depth. Additionally,  `set "maximum function depth" to X` is **correctly implemented**. The limit on `explode` is trivially implemented using a decrementing `depth` counter as suggested above. If you need a similar behavior in your custom functions you should do the same.
+
+   - The solution to this for a single function is trivial, track a `depth` variable. The solution for all arbitrary functions is not complex; Simply having a decorator track the current stack level using a global `CUR_DEPTH` variable and refuse to call the function if `CUR_DEPTH` reaches `MAX_DEPTH`. This is yet to be implemented but could be depending on if it's needed 
+
+If you discover any code that behaves differently when run on `anydice.com` and when run here using `compile_anydice` then please report it to us as an issue so we can keep improving this package.
