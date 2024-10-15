@@ -2,11 +2,18 @@
 
 from setuptools import setup
 
+# read the contents of your README file
+from pathlib import Path
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
+
 setup(
     name='dice_calc',
-    version='0.1.5',
+    version='0.1.9',
     author='Ar-Kareem',
     description='Advanced Calculator for Dice',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     package_dir={
         # main package 'src'
         'dice_calc': 'src',
