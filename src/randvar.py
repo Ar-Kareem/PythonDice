@@ -44,6 +44,8 @@ def settings_set(name, value):
       assert value.lower() in ('true', 'false'), 'value must be "True" or "False"'
       value = value.lower() == 'true'
     assert isinstance(value, bool), 'value must be a boolean'
+  elif name == 'DEFAULT_OUTPUT_WIDTH':
+    assert isinstance(value, int) and value > 0, 'DEFAULT_OUTPUT_WIDTH must be a positive integer'
   else:
     assert False, f'invalid setting name: {name}'
   SETTINGS[name] = value
