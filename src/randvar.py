@@ -663,6 +663,6 @@ def output(rv: T_isr, named=None, show_pdf=True, blocks_width=None, print_=True,
       result += '\n' + f"{v:>{max_val_len}}: {100*p:>5.2f}  " + ('█'*round(p * blocks))
     result += '\n' + '-' * (blocks_width + 8)
   if print_:
-    logger.debug(result)
+    print(result)
   else:
     return result
