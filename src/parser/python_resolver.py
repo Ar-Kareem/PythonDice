@@ -161,7 +161,8 @@ class PythonResolver:
                 return f'{CONST["roll"]}({self.resolve_node(left)})'
             elif op == 'ndm':
                 return f'{CONST["roll"]}({self.resolve_node(left)}, {self.resolve_node(right)})'
-            # elif op == '@':  # TODO only problem if both sides are ints. fix later
+            elif op == '@':  # TODO currently a problem when both sides are ints. fix later
+                return f'({self.resolve_node(left)} {op} {self.resolve_node(right)})'  # wrap in parentheses to take precedence over multiplication
             else:  # all other operators
                 return f'{self.resolve_node(left)} {op} {self.resolve_node(right)}'
         elif node.type == NodeType.UNARY:
