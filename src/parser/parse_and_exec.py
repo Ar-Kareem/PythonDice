@@ -126,7 +126,7 @@ def safe_exec(r, global_vars=None):
   return all_outputs
 
 def unsafe_exec(r, global_vars=None):
-  logger.warning('Unsafe exec\n'*25)
+  # logger.warning('Unsafe exec\n'*25)
   all_outputs = []
   g = {
     **_get_lib(), 
