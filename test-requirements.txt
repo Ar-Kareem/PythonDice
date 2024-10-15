@@ -3,4 +3,6 @@ pytest-cov
 pytest-timeout
 pytest-ordering
 
+python-dotenv
+
 RestrictedPython

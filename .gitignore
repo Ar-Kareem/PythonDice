@@ -13,3 +13,5 @@ coverage.xml
 # build files
 dist
 *.egg-info
+
+*.secret
