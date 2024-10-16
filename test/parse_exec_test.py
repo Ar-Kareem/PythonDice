@@ -40,8 +40,11 @@ def check(x, expected):
             assert a == b, f'expected {b} got {a}'
 
 
+
+
+
 bv = (0, 1)
-@pytest.mark.parametrize("code,res", [
+lst = [
 ('''
 output ((1d4-1) | (1d2-1))
 ''', [RV(bv, (125, 875))]
@@ -88,7 +91,8 @@ output 2 * 2 @ 2d2
 # output B
 # ''', [RV([11], [1]), RV([10], [1])]
 ), 
-])
+]
+@pytest.mark.parametrize("code,res", lst)
 def test_ands_and_ors(code, res):
     i = 0
     def check_res(x):
@@ -98,7 +102,7 @@ def test_ands_and_ors(code, res):
     pipeline(code, global_vars={'output': lambda x: check_res(x)})
     assert i == len(res)
 
-@pytest.mark.parametrize("code,res", [
+lst = [
 (r'''
 loop P over {1..3} {
   loop PP over {5..6} {
@@ -127,7 +131,8 @@ if (P-1)/2 {
   output 1001
 }
 ''', [5, 15, 6, 16, 3, 4, 1001, 5, 15, 6, 16, 3, 4, 1002, 5, 15, 6, 16, 3, 4, 1003, 999]
-),])
+),]
+@pytest.mark.parametrize("code,res", lst)
 def test_conditionals(code, res):
     i = 0
     def check_res(x):
@@ -137,7 +142,7 @@ def test_conditionals(code, res):
     pipeline(code, global_vars={'output': lambda x: check_res(x)})
     assert i == len(res)
 
-@pytest.mark.parametrize("code", [
+lst = [
 r'''
 function: balanced RANK:n from FIVE:s {
  SIXTH: 72 - FIVE
@@ -438,13 +443,14 @@ loop P over {1..5} {
  output 1 named "INLOOP%[P]%"
 }
 '''
-])
+]
+@pytest.mark.parametrize("code", lst)
 def test_running(code):
     r = pipeline(code)
     assert r is not None
 
 
-@pytest.mark.parametrize("code", [
+lst = [
 r'''
 function: a {result: 1}
 
@@ -456,7 +462,8 @@ output [call b]
 r'''
 A: 1
 '''  # no output should error
-])
+]
+@pytest.mark.parametrize("code", lst)
 def test_FAIL_code(code):
     with pytest.raises(Exception):
       pipeline(code)
