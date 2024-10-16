@@ -18,6 +18,9 @@ SKIP_VERSION = {  # tests to skip only for specific versions of compilers
 }  # TODO: remove this when implemented
 COMP_EPS = 1e-5
 
+# specify test names below and run: pytest test/test_fetch.py -k test_cherrypick
+CHERRYPICK = set(['output_strings_1', 'output_strings_2', 'output_strings_3', ])
+
 data = json.loads((Path(__file__).parent / 'autoouts' / 'fetch_out.json').read_text())['data']
 code_resp_pairs = [(x['inp'], x['out'], x.get('name', None)) for x in data]
 
@@ -119,6 +122,21 @@ def test_all_fetch_v1(inp_code,anydice_resp,name):
 code_resp_pairs_v2 = [x for x in code_resp_pairs if 'v2' not in SKIP_VERSION.get(x[2], [])]
 @pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs_v2)
 def test_all_fetch_v2(inp_code,anydice_resp,name):
+  anydice_resp = json.loads(anydice_resp)
+  i = 0
+  def check_res(x, named):
+    nonlocal i
+    assert named is None or named == anydice_resp['distributions']['labels'][i], f'i:{i}| named does not match expected. expected: {anydice_resp["distributions"]["labels"][i]}, got: {named}'
+    check(x, anydice_resp['distributions']['data'][i], i)
+    i += 1
+  pipeline(inp_code, version=2, global_vars={'output': lambda x, named=None: check_res(x, named)})
+  # assert False, f'inp_code: {inp_code}, anydice_resp: {anydice_resp}'
+
+
+
+code_resp_pairs_picked = [x for x in code_resp_pairs if x[2] in CHERRYPICK]
+@pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs_picked)
+def test_cherrypick(inp_code,anydice_resp,name):
   anydice_resp = json.loads(anydice_resp)
   i = 0
   def check_res(x, named):
