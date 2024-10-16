@@ -1,8 +1,9 @@
+from typing import Iterable, Sequence
 import pytest
 import logging
 import json
 from pathlib import Path
-import numpy as np
+import copy
 
 from src.randvar import RV, Seq
 from src.parser import parse_and_exec
@@ -10,11 +11,43 @@ from src.parser import parse_and_exec
 
 logger = logging.getLogger(__name__)
 
-COMP_EPS = 1e-10
+TO_EXCLUDE = set()
+COMP_EPS = 1e-5
 
 data = json.loads((Path(__file__).parent / 'fetch_out.json').read_text())['data']
-code_resp_pairs = [(x['inp'], x['out']) for x in data]
+code_resp_pairs = [(x['inp'], x['out']) for x in data if x.get('name', None) not in TO_EXCLUDE]
 
+
+class cust_np_array:
+  def __init__(self, x):
+    self.x = x
+    self.shape = []
+    _s = x
+    while isinstance(_s, Sequence):
+      self.shape.append(len(_s))
+      _s = _s[0]
+  def __add__(self, other: float):  # dummy add just to fudge single element
+    x = copy.deepcopy(self.x)
+    _s = x
+    for i in range(len(self.shape)-1):
+      _s = _s[0]
+    _s[0] += other
+    return cust_np_array(x)
+
+def all_close(a: cust_np_array, b: cust_np_array, atol):
+  assert len(a.shape) == len(b.shape), f'{a.shape}, {b.shape}'
+  assert a.shape == b.shape, f'{a.shape}, {b.shape}'
+  return sum_diff_iterable(a.x, b.x) < atol
+def sum_diff_iterable(a: Sequence, b: Sequence):
+  tot = 0
+  for x, y in zip(a, b):
+    if isinstance(x, Sequence) and isinstance(y, Sequence):
+      tot += sum_diff_iterable(x, y)
+    elif isinstance(x, (int, float)) and isinstance(y, (int, float)):
+      tot += abs(x - y)
+    else:
+      assert False, f'UNKNOWN PARAMS! x: {x}, y: {y}'
+  return tot
 
 def pipeline(to_parse, global_vars={}):
   if to_parse is None or to_parse.strip() == '':
@@ -40,14 +73,13 @@ def check(inp: RV|Seq|int, expected):
   if not isinstance(inp, RV):
     inp = RV.from_seq([inp])
   x = [[v, p*100] for v, p in inp.get_vals_probs()]
-  x = np.array(x)
-  expected = np.array(expected)
-  assert len(x) == len(expected), f'A: {x}, B: {expected}'
-  assert x.shape == expected.shape, f'A: {x}, B: {expected}'
-  assert not np.allclose(x, expected+0.001, atol=COMP_EPS), f'How is allcose true here???'
-  assert np.allclose(x, expected, atol=COMP_EPS), f'A: {x}, B: {expected} np diff: {np.abs(x - expected)}'
+  cust_x = cust_np_array(x)
+  cust_expected = cust_np_array(expected)
+  assert cust_x.shape == cust_expected.shape, f'A: {x}, B: {expected}'
+  assert not all_close(cust_x, cust_expected+0.01, atol=COMP_EPS), f'How is allcose true here???'
+  assert all_close(cust_x, cust_expected, atol=COMP_EPS), f'A: {x}, B: {expected} diff: {sum_diff_iterable(x, expected)}'
   # for a, b in zip(x, expected):
-    # assert np.allclose(a, b, atol=COMP_EPS), f'A and B: {a}, {b} np diff: {np.abs(np.array(a) - np.array(b))}'
+    # assert all_close(a, b, atol=COMP_EPS), f'A and B: {a}, {b} np diff: {np.abs(np.array(a) - np.array(b))}'
 
 
 @pytest.mark.parametrize("inp_code,anydice_resp", code_resp_pairs)

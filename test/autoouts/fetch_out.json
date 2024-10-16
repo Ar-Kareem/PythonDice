@@ -23,12 +23,14 @@
     {
       "inp": "\noutput (! 2)>3\noutput ! (2>3)\noutput 2 > !3\noutput ! 2>3\n",
       "out": "{\"distributions\":{\"data\":[[[0,100]],[[1,100]],[[1,100]],[[0,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
-      "time": "2024-10-15T19:38:29.988176"
+      "time": "2024-10-15T19:38:29.988176",
+      "name": "testing_not_on_int"
     },
     {
       "inp": "\noutput ! 5\noutput ! 0\noutput ! -5\noutput ! (1 > 2)\noutput ! (1 < 2)\n",
       "out": "{\"distributions\":{\"data\":[[[0,100]],[[1,100]],[[0,100]],[[1,100]],[[0,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\",\"output 5\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
-      "time": "2024-10-15T19:40:05.080243"
+      "time": "2024-10-15T19:40:05.080243",
+      "name": "testing_not_on_int"
     }
   ]
 }
