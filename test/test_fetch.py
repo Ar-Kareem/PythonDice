@@ -1,4 +1,4 @@
-from typing import Iterable, Sequence
+from typing import Sequence
 import pytest
 import logging
 import json
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 TO_EXCLUDE = set(['testing_not_on_int'])  # TODO: remove this when implemented
 COMP_EPS = 1e-5
 
-data = json.loads((Path(__file__).parent / 'fetch_out.json').read_text())['data']
+data = json.loads((Path(__file__).parent / 'autoouts' / 'fetch_out.json').read_text())['data']
 code_resp_pairs = [(x['inp'], x['out']) for x in data if x.get('name', None) not in TO_EXCLUDE]
 
 
