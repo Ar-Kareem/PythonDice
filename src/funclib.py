@@ -83,7 +83,7 @@ def lowest_of_N_and_N(A:int, B:int):
 def sort_VANILLA_SLOW(SEQUENCE:Seq):
     SORTED = Seq()
     for P in range(1, len(SEQUENCE)+1):
-        SORTED = _sort_helper_add_N_to_S(P@SEQUENCE, SORTED)
+        SORTED = _sort_helper_add_N_to_S(P@SEQUENCE, SORTED)  # type: ignore
     return SORTED
 
 @anydice_casting()
