@@ -8,6 +8,9 @@ to run tests:
     `python -m pytest`
     to generate test coverage:
         `pytest --cov --cov-report=html:coverage_re`
+    to add new tests:
+        add anydice code in `.\test\autoouts\fetch_in.py`
+        `python .\test\autoouts\fetch.py`
 to build package:
     `conda activate pythondice`
     `rm dist/*`

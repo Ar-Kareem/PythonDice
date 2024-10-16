@@ -11,7 +11,10 @@ from src.parser import parse_and_exec
 
 logger = logging.getLogger(__name__)
 
-TO_EXCLUDE = set(['testing_not_on_int'])  # TODO: remove this when implemented
+TO_EXCLUDE = set([
+  'testing_not_on_int',
+  'testing_maximum_function_depth',
+])  # TODO: remove this when implemented
 COMP_EPS = 1e-5
 
 data = json.loads((Path(__file__).parent / 'autoouts' / 'fetch_out.json').read_text())['data']

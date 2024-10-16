@@ -194,8 +194,204 @@ output
 named "Great-weapon fighting"
 
 ''',
-'''
+# https://anydice.com/program/2d89a
+r'''
+\ 
+ANYDICE Code for the Virtually Real RPG.  
+Released under CC-SA by Virtually Real Games 2023
+As examples of custom exploding dice systems.
+\
+ 
+\ Initializers \
 
+CRIT: 0                    \ A crit is rolling a 0 \
+MAXDICE: 5                 \ 5 is the max dice we ever add \
+INSPILEVEL: 1              \ How many inspiration levels to output \
+SHORTLEVEL: 1              \ How many penalty levels to output \
+
+set "maximum function depth" to MAXDICE
+
+\ 
+Virtually Real skill system separates training from experience.
+The number in the square brackets is your training, the number of
+dice to roll.  Your experience in the skill determine's the modifier.
+
+The number of dice to roll is as follows :
+        [1]     Secondary skill, untrained
+        [2]     Primary Skill, trained
+        [3]     Advanced (master craftsman, olympic atheletes)
+        [4]     Supernatural (non-human; need [3] in the attribute)
+        [5]     Deific (divine; need [4] or [5] in the attribute)
+
+Brilliant results will roll an extra d6 on the following natural rolls,
+the last column shows the normal critical failure results.
+
+        [1]     6               1
+        [2]     12              2
+        [3]     17,18           3
+        [4]     22-24           4
+        [5]     27-30           5,6
+
+If the extra/exploded die is a 6, add +2 to the total and roll another die.
+If you keep rolling 6's, keep adding 2 and roll another die.
+If it wasn't a 6, on rolls of
+        [1]     Don't add anything more
+        [2+]    Add the result on the die and stop
+
+Most positional / tactical modifiers are presented in the book and
+are fixed-value modifiers.  The curve and chances of brilliant or
+critical results do not change.  The min, max, and average values
+change by the modifier.  In practice, this will be a skill level
+and possibly 1 other modifier.
+
+Ardor is used for special interests such as skill aspects or "home"
+geography & history, your own culture, favorite weapon, etc.  Ardor
+is long-term, specific, non-situational source of "inspiration".
+Situational modifiers may add other sources of inspiration.  
+
+Inspiration is a somewhat random bonus that adds just under 2, but 
+additional sources of inspiration give steadily lower benefits. Any
+source of inspiration will slowly decrease critical failure rates
+and increase your chances of a brilliant.  
+
+A shortcoming is the reverse of inspiration.  Shortcomings mainly
+come from the condition chart, applied to most combat rolls. Use 
+shortcomings and inspiration for random situational modifiers where 
+precision is unavailable or undesirable.  
+
+Add +1 die per source of inspiration and drop the lowest die rolled.  Add
++1 to the critical range (total, not per source).
+
+Shortcomings come from conditions on the condition chart and also
+from some backgrounds and situational penalties.  It's the reverse of
+inspiration.  Note that positional and other combat modifiers give
+flat bonuses and penalties to the roll itself.  While skill level
+bonuses are not applied to critical failures, other flat bonuses are.
+Add +1 die per shortcoming and subtract the highest die.
+
+You can have Inspirations and Shortcomings on the same roll.
+See the very end of the table for examples where heavy condition
+code modifiers might apply large numbers of shortcomings, and
+note how applying inspiration affects the roll.
+
+NOTE: The results shown are die roll results.  Your skill LEVEL
+and any fixed modifiers are added if the result is not critical.
+This is then compared to the target number.  Degrees of success
+matter!
+\
+
+\ What rolls are brilliant for this many dice \ 
+function: brilliant of DICE:d {
+  MAX: [maximum of DICE] +2
+  if MAX = 8 { result: { 6 } } 
+  BR: {}
+  loop N over {1..#DICE} {
+    if N = 1 {
+      BR: BR
+    }
+    else {
+      BR: {BR, MAX-N}
+    }
+  }
+  result: {BR}
+}
+
+\ returns the set of critical rolls for this many dice \
+function: critical plus LEVEL:n of DICE:d {
+  if #DICE > 4 { 
+    LEVEL: LEVEL+1 
+  }
+  else { 
+    CRIT: {#DICE} 
+  }
+  N: #DICE
+  loop S over {1 .. LEVEL} {
+    N: N+1
+    CRIT: {CRIT,N}
+  }
+  result: CRIT  
+}
+
+\ explode helper for [2]+ dice rolls \
+function: explodeb ROLLEDVALUE:n {
+ if ROLLEDVALUE = 6 { 
+   result: 2 + [explodeb d6] 
+ }
+  else {
+    result: ROLLEDVALUE
+  }
+}
+
+\ explode helper for [1] die rolls \
+function: explodec ROLLEDVALUE:n {
+  if ROLLEDVALUE = 6 { result: 2 + [explodec d6] }
+  result: 0
+}
+
+\ The new explode function with crit and brilliant ranges \
+function: explode ROLLEDVALUE:n crit CRITR:s bril BRIL:s {
+if ROLLEDVALUE = CRITR { result: CRIT }
+ if BRIL = 6 &  ROLLEDVALUE = 6 { result: ROLLEDVALUE + [ explodec d6 ] }
+ if ROLLEDVALUE = BRIL { result: ROLLEDVALUE + [explodeb d6] }
+ result: ROLLEDVALUE
+}
+
+\ My replacement explode function, wrapping the above \
+function: explode DICE:d {
+  if #DICE = 1 {
+    result: [explode DICE crit 1 bril 6]
+  }
+  result: [explode DICE crit [critical plus 0 of DICE] bril [brilliant of DICE]]
+}
+
+\ Middle x values of a roll with start and end \
+function: mid NUM:n start PENALTY:n of SET:s {
+ S: [sort SET]
+ R: {}
+ START: PENALTY+1
+ END: NUM+PENALTY
+ loop P over {START..END} {
+  R: {P@S, R}
+ }
+ result: R
+}
+
+\ Shortcoming + Inspiration \
+function: complex DICE:d bonus BONUS:n penalty SHORT:n {
+  TOTALDICE: #(DICE) + BONUS + SHORT
+  NEWCRIT: BONUS
+  \if NEWCRIT > (SHORT+1) {
+    NEWCRIT: (SHORT+1)
+  }\
+  if BONUS > 0 {
+    NEWCRIT: 1
+  }
+  result: [explode [mid #(DICE) start SHORT of TOTALDICEd6] crit [critical plus NEWCRIT of DICE] bril [brilliant of DICE]]
+}
+
+\ Main Program \
+
+loop N over {1..MAXDICE} {
+  TEST: Nd6
+
+  \ List shortcomings in reverse order \
+  loop S over {1..SHORTLEVEL} {
+    REVERSE: SHORTLEVEL-S+1
+    output [complex TEST bonus 0 penalty REVERSE] named "[TEST] [REVERSE]s 0i"
+  }
+  output [complex TEST bonus 0 penalty 0] named "Exploding [TEST]"
+  loop S over {1..INSPILEVEL} {
+    output [complex TEST bonus S penalty 0] named "[TEST] 0s [S]i"
+  }
+}
+
+\ Special stuff 2d6 with various bonuses/inspiration and shortcomings/penalties\
+
+loop P over {0..4} {
+  loop B over {0..4} {
+    output [complex 2d6 bonus B penalty P] named "2d6 [P]s [B]i"
+  }
+}
 ''',
 '''
 
