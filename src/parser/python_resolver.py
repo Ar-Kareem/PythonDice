@@ -11,8 +11,8 @@ CONST = {
     'seq': 'Seq',
     'roll': 'roll',
     'range': 'myrange',
-    'func_decorator': '@anydice_casting()',  # without func depth limit
-    # 'func_decorator': '@max_func_depth()\n@anydice_casting()',  # with func depth limit
+    # 'func_decorator': '@anydice_casting()',  # without func depth limit
+    'func_decorator': '@max_func_depth()\n@anydice_casting()',  # with func depth limit
     'setter': lambda name, value: f'settings_set({name}, {value})',
     'function library': ('absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X'),
 }
