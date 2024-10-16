@@ -7,7 +7,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def pipeline(to_parse, global_vars={}, flags=None):
+def pipeline(to_parse, version, global_vars={}):
+  if version == 1:  # regular
+    flags = None
+  elif version == 2:  # the very ugly local scope fix
+    flags = {'COMPILER_FLAG_NON_LOCAL_SCOPE': True}
+  else:
+    assert False, f'Unknown version {version}'
+
   if to_parse is None or to_parse.strip() == '':
     logger.debug('Empty string')
     return
@@ -81,15 +88,6 @@ output d#A
 ),('''
 output 2 * 2 @ 2d2
 ''', [RV([2, 4], [3, 1])]
-# ),('''
-# function: rolla {
-#   B: B + 1
-#   result: B
-# }
-# B: 10
-# output [rolla]
-# output B
-# ''', [RV([11], [1]), RV([10], [1])]
 ), 
 ]
 @pytest.mark.parametrize("code,res", lst)
@@ -99,8 +97,19 @@ def test_ands_and_ors(code, res):
         nonlocal i
         check(x, res[i])
         i += 1
-    pipeline(code, global_vars={'output': lambda x: check_res(x)})
+    pipeline(code, version=1, global_vars={'output': lambda x: check_res(x)})
     assert i == len(res)
+
+@pytest.mark.parametrize("code,res", lst)
+def test_ands_and_orsv2(code, res):
+    i = 0
+    def check_res(x):
+        nonlocal i
+        check(x, res[i])
+        i += 1
+    pipeline(code, version=2, global_vars={'output': lambda x: check_res(x)})
+    assert i == len(res)
+
 
 lst = [
 (r'''
@@ -139,8 +148,19 @@ def test_conditionals(code, res):
         nonlocal i
         check(x, res[i])
         i += 1
-    pipeline(code, global_vars={'output': lambda x: check_res(x)})
+    pipeline(code, version=1, global_vars={'output': lambda x: check_res(x)})
     assert i == len(res)
+
+@pytest.mark.parametrize("code,res", lst)
+def test_conditionalsv2(code, res):
+    i = 0
+    def check_res(x):
+        nonlocal i
+        check(x, res[i])
+        i += 1
+    pipeline(code, version=2, global_vars={'output': lambda x: check_res(x)})
+    assert i == len(res)
+
 
 lst = [
 r'''
@@ -446,8 +466,15 @@ loop P over {1..5} {
 ]
 @pytest.mark.parametrize("code", lst)
 def test_running(code):
-    r = pipeline(code)
+    r = pipeline(code, version=1)
     assert r is not None
+
+
+@pytest.mark.parametrize("code", lst)
+def test_runningv2(code):
+    r = pipeline(code, version=2)
+    assert r is not None
+
 
 
 lst = [
@@ -466,4 +493,38 @@ A: 1
 @pytest.mark.parametrize("code", lst)
 def test_FAIL_code(code):
     with pytest.raises(Exception):
-      pipeline(code)
+      pipeline(code, version=1)
+
+@pytest.mark.parametrize("code", lst)
+def test_FAIL_codev2(code):
+    with pytest.raises(Exception):
+      pipeline(code, version=2)
+
+
+unbound_var_code = [
+('''
+function: rolla {
+  B: B + 1
+  result: B
+}
+B: 10
+output [rolla]
+output B
+''', [11, 10]),
+
+]
+
+@pytest.mark.parametrize("code, res", unbound_var_code)
+def test_scope_fail(code, res):
+    with pytest.raises(Exception):
+      pipeline(code, version=1)
+
+@pytest.mark.parametrize("code, res", unbound_var_code)
+def test_scope_success(code, res):
+    i = 0
+    def check_res(x):
+        nonlocal i
+        check(x, res[i])
+        i += 1
+    pipeline(code, version=2, global_vars={'output': lambda x: check_res(x)})
+    assert i == len(res)

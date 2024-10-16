@@ -27,6 +27,13 @@ class PythonResolver:
         self._output_counter = 0
         self.flags = flags or {}
 
+        flags = self.flags.copy()  # make sure no weird flags are passed
+        # this flag is for a very nasty behaviour in anydice where a functions variables are a temporary copy of the callers variables; see https://anydice.com/program/394f0 and https://anydice.com/program/394f1 for the ugly behaviour
+        # handling this is very ugly, we pass around a dictionary of all the code's variables and copy it for each function call
+        # this makes the output code look unpleasant as every variable is accessed as dict['VAR'] instead of just VAR.
+        self._COMPILER_FLAG_NON_LOCAL_SCOPE = flags.pop('COMPILER_FLAG_NON_LOCAL_SCOPE', False)
+
+        assert not flags, f'Unknown flags: {flags}'
 
         self.INDENT_LEVEL = 2
 
@@ -42,7 +49,9 @@ class PythonResolver:
         return False
 
     def resolve(self):
-        result = self.resolve_node(self.root) + '\n'*self.NEWLINES_AFTER_FILE
+        result = ''
+        if self._COMPILER_FLAG_NON_LOCAL_SCOPE: result += 'vars = {}\n\n'
+        result += self.resolve_node(self.root) + '\n'*self.NEWLINES_AFTER_FILE
         # check if all functions are defined
         for f_name in self._called_functions:
             assert f_name in self._defined_functions, f'Unknown function {f_name} not defined. Currently callable functions: {self._user__defined_functions}'
@@ -72,12 +81,14 @@ class PythonResolver:
             return 'f"' + ''.join([x if isinstance(x, str) else self.resolve_node(x) for x in node]) + '"'
         elif node.type == NodeType.STRVAR:
             assert isinstance(node.val, str), f'Expected string for strvar, got {node.val}'
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: return "{vars['" + node.val + "']}"
             return '{' + node.val + '}'
         elif node.type == NodeType.NUMBER:  # number in an expression
             assert isinstance(node.val, str), f'Expected str of a number, got {node.val}  type: {type(node.val)}'
             return str(node.val)
         elif node.type == NodeType.VAR:  # variable inside an expression
             assert isinstance(node.val, str), f'Expected str of a variable, got {node.val}'
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: return f"vars['{node.val}']"
             return node.val
         elif node.type == NodeType.GROUP:  # group inside an expression, node.val is an expression
             return f'({self.resolve_node(node.val)})'
@@ -102,27 +113,32 @@ class PythonResolver:
         elif node.type == NodeType.FUNCTION:
             nameargs, code = node
             assert isinstance(nameargs, Node) and nameargs.type == NodeType.FUNCNAME_DEF, f'Error in parsing fuction node: {node}'
-            func_name, func_args = [], []
+            func_name, func_args, func_arg_names = [], [], []
             for x in nameargs:  # nameargs is a list of strings and expressions e.g. [attack 3d6 if crit 6d6 and double crit 12d6]
                 assert isinstance(x, str) or (isinstance(x, Node) and x.type in (NodeType.PARAM, NodeType.PARAM_WITH_DTYPE)), f'Error in parsing function node: {node}'
                 if isinstance(x, str):
                     func_name.append(x)
                 elif x.type == NodeType.PARAM:
                     arg_name = x.val
-                    func_args.append(f'{arg_name}')
+                    func_args.append(arg_name)
+                    func_arg_names.append(arg_name)
                     func_name.append('X')
                 else:
                     arg_name, arg_dtype = x
                     assert isinstance(arg_dtype, str), f'Expected string for arg_dtype, got {arg_dtype}'
                     arg_dtype = {'s': 'Seq', 'n': 'int', 'd': 'RV'}.get(arg_dtype, arg_dtype)
                     func_args.append(f'{arg_name}: {arg_dtype}')
+                    func_arg_names.append(arg_name)
                     func_name.append('X')
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: func_args.append('vars')
             func_name = '_'.join(func_name)
             self._defined_functions.add(func_name)
             self._user__defined_functions.append(func_name)
             func_decorator = CONST['func_decorator']
             func_def = f'def {func_name}({", ".join(func_args)}):'
-            func_code = self._indent_resolve(code)
+            func_code = ''
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: func_code += self._indent_str('vars = vars.copy(); ' + '; '.join([f'vars["{n}"] = {n}' for n in func_arg_names])) + '\n'
+            func_code += self._indent_resolve(code)
             return f'{func_decorator}\n{func_def}\n{func_code}' + '\n'*self.NEWLINES_AFTER_FUNCTION
         elif node.type == NodeType.RESULT:
             return f'return {self.resolve_node(node.val)}'
@@ -148,11 +164,16 @@ class PythonResolver:
         # LOOP
         elif node.type == NodeType.LOOP:
             var, over, code = node
-            return f'for {var} in {self.resolve_node(over)}:\n{self._indent_resolve(code)}' + '\n'*self.NEWLINES_AFTER_LOOP
+            res_header = f'for {var} in {self.resolve_node(over)}:'
+            res_code = ''
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: res_code += self._indent_str(f"vars['{var}'] = {var}") + '\n'  # I hate this but it must happen
+            res_code += self._indent_resolve(code)
+            return res_header + '\n' + res_code + '\n'*self.NEWLINES_AFTER_LOOP
 
         # VARIABLE ASSIGNMENT
         elif node.type == NodeType.VAR_ASSIGN:
             var, val = node
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: return f"vars['{var}'] = {self.resolve_node(val)}"
             return f'{var} = {self.resolve_node(val)}'
 
         # EXPRESSIONS
@@ -193,6 +214,7 @@ class PythonResolver:
                     name.append(x)
                 else:
                     assert False, f'Unknown node in call: {x}, parent: {node}'
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: args.append('vars')
             name = '_'.join(name)
             self._called_functions.add(name)
             return f'{name}({", ".join(args)})' if args else f'{name}()'

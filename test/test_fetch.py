@@ -52,7 +52,14 @@ def sum_diff_iterable(a: Sequence, b: Sequence):
       assert False, f'UNKNOWN PARAMS! x: {x}, y: {y}'
   return tot
 
-def pipeline(to_parse, global_vars={}, flags=None):
+def pipeline(to_parse, version, global_vars={}):
+  if version == 1:  # regular
+    flags = None
+  elif version == 2:  # the very ugly local scope fix
+    flags = {'COMPILER_FLAG_NON_LOCAL_SCOPE': True}
+  else:
+    assert False, f'Unknown version {version}'
+
   if to_parse is None or to_parse.strip() == '':
     logger.debug('Empty string')
     return
@@ -85,8 +92,9 @@ def check(inp: RV|Seq|int, expected):
     # assert all_close(a, b, atol=COMP_EPS), f'A and B: {a}, {b} np diff: {np.abs(np.array(a) - np.array(b))}'
 
 
+
 @pytest.mark.parametrize("inp_code,anydice_resp", code_resp_pairs)
-def test_all_fetch(inp_code,anydice_resp):
+def test_all_fetch_v1(inp_code,anydice_resp):
   anydice_resp = json.loads(anydice_resp)
   i = 0
   def check_res(x, named):
@@ -94,6 +102,17 @@ def test_all_fetch(inp_code,anydice_resp):
     assert named is None or named == anydice_resp['distributions']['labels'][i]
     check(x, anydice_resp['distributions']['data'][i])
     i += 1
+  pipeline(inp_code, version=1, global_vars={'output': lambda x, named=None: check_res(x, named)})
 
-  pipeline(inp_code, global_vars={'output': lambda x, named=None: check_res(x, named)})
+
+@pytest.mark.parametrize("inp_code,anydice_resp", code_resp_pairs)
+def test_all_fetch_v2(inp_code,anydice_resp):
+  anydice_resp = json.loads(anydice_resp)
+  i = 0
+  def check_res(x, named):
+    nonlocal i
+    assert named is None or named == anydice_resp['distributions']['labels'][i]
+    check(x, anydice_resp['distributions']['data'][i])
+    i += 1
+  pipeline(inp_code, version=2, global_vars={'output': lambda x, named=None: check_res(x, named)})
   # assert False, f'inp_code: {inp_code}, anydice_resp: {anydice_resp}'
