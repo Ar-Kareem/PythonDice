@@ -393,43 +393,61 @@ loop P over {0..4} {
   }
 }
 ''',
-'''
+r'''
+function: rec {
+  result: [rec]+1
+}
+output [rec]
+
+set "maximum function depth" to 42
+function: rec {
+  result: [rec]+1
+}
+output [rec]
+''',
+r'''
+A: 1d6
+output 0 named "[A]"
+A: 2d1
+output 0 named "[A]"
+A: 2d{1}
+output 0 named "[A]"
+A: 2d(2d2)
+output 0 named "[A]"
+A: 2d(1d2)
+output 0 named "[A]"
+''',
+r'''
 
 ''',
-'''
+r'''
 
 ''',
-'''
+r'''
 
 ''',
-'''
+r'''
 
 ''',
-'''
+r'''
 
 ''',
-'''
+r'''
 
 ''',
-'''
+r'''
 
 ''',
-'''
+r'''
 
 ''',
-'''
+r'''
 
 ''',
-'''
+r'''
 
 ''',
-'''
-
-''',
-'''
-
-''',
-'''
+r'''
 
 ''',
 ]
