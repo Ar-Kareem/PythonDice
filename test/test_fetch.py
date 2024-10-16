@@ -14,8 +14,7 @@ logger = logging.getLogger(__name__)
 
 SKIP_VERSION = {  # tests to skip only for specific versions of compilers
   'testing_not_on_int': ['v1', 'v2'],
-  'testing_maximum_function_depth': ['v1', 'v2'],  # v1 permeneantly does not support this
-  'output_strings': ['v1', 'v2'],
+  'testing_maximum_function_depth': ['v1'],  # v1 permeneantly does not support this
 }  # TODO: remove this when implemented
 COMP_EPS = 1e-5
 
