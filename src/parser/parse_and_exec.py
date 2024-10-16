@@ -33,8 +33,8 @@ def do_yacc(to_parse, lexer, yaccer, verbose_yacc=False):
   return yacc_ret
 
 
-def do_resolve(yacc_ret, verbose_parseed_python=False):
-  r = PythonResolver(yacc_ret).resolve()
+def do_resolve(yacc_ret, verbose_parseed_python=False, flags=None):
+  r = PythonResolver(yacc_ret, flags=flags).resolve()
   if verbose_parseed_python:
     logger.debug(f'Parsed python:\n{r}')
   return r
@@ -72,14 +72,14 @@ def _get_lib():
   }
   return rv_lib_dict
 
-def compile_anydice(to_parse):
+def compile_anydice(to_parse, flags=None):
   assert to_parse is not None and to_parse.strip() != '', 'Empty input'
   lexer, yaccer = build_lex_yacc()
   do_lex(to_parse, lexer)
   assert not lexer.LEX_ILLEGAL_CHARS, 'Lex Illegal characters found: ' + str(lexer.LEX_ILLEGAL_CHARS)
   yacc_ret = do_yacc(to_parse, lexer, yaccer)
   assert not lexer.YACC_ILLEGALs and yacc_ret is not None, 'Yacc Illegal tokens found: ' + str(lexer.YACC_ILLEGALs)
-  python_str = do_resolve(yacc_ret)
+  python_str = do_resolve(yacc_ret, flags=flags)
   return python_str
 
 

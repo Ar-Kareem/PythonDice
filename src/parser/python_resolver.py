@@ -18,13 +18,15 @@ CONST = {
 }
 
 class PythonResolver:
-    def __init__(self, root: Node):
+    def __init__(self, root: Node, flags=None):
         assert self._check_nested_str(root), f'Expected nested strings/None/Node from yacc, got {root}'
         self.root = root
         self._defined_functions: set[str] = set(CONST['function library'])
         self._user__defined_functions: list[str] = []
         self._called_functions: set[str] = set()
         self._output_counter = 0
+        self.flags = flags or {}
+
 
         self.INDENT_LEVEL = 2
 

@@ -52,7 +52,7 @@ def sum_diff_iterable(a: Sequence, b: Sequence):
       assert False, f'UNKNOWN PARAMS! x: {x}, y: {y}'
   return tot
 
-def pipeline(to_parse, global_vars={}):
+def pipeline(to_parse, global_vars={}, flags=None):
   if to_parse is None or to_parse.strip() == '':
     logger.debug('Empty string')
     return
@@ -65,7 +65,7 @@ def pipeline(to_parse, global_vars={}):
   if lexer.YACC_ILLEGALs:
     logger.debug('Yacc Illegal tokens found: ' + str(lexer.YACC_ILLEGALs))
     return
-  python_str = parse_and_exec.do_resolve(yacc_ret)
+  python_str = parse_and_exec.do_resolve(yacc_ret, flags=flags)
   r = parse_and_exec.safe_exec(python_str, global_vars=global_vars)
   return r
 
