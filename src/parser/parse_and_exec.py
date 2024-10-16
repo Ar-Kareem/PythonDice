@@ -40,26 +40,6 @@ def do_resolve(yacc_ret, verbose_parseed_python=False, flags=None):
   return r
 
 
-def parse(to_parse, verbose_lex=False, verbose_yacc=False, verbose_parseed_python=False):
-  if to_parse is None or to_parse.strip() == '':
-    logger.debug('Empty string')
-    return
-
-  lexer, yaccer = build_lex_yacc()
-
-  do_lex(to_parse, lexer, verbose_lex=verbose_lex)
-  illegal_chars = lexer.LEX_ILLEGAL_CHARS
-  if illegal_chars:
-    logger.debug('Illegal characters found: ' + str(illegal_chars))
-
-  yacc_ret = do_yacc(to_parse, lexer, yaccer, verbose_yacc=verbose_yacc)
-  if yacc_ret is None:
-    logger.debug('Parse failed')
-    return
-
-  assert isinstance(yacc_ret, Node), f'Expected Node, got {type(yacc_ret)}'
-  return do_resolve(yacc_ret, verbose_parseed_python=verbose_parseed_python)
-
 def _get_lib():
   import math, itertools, random, functools
   from ..randvar import RV, Seq, anydice_casting, max_func_depth, output, roll, settings_set
