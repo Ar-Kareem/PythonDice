@@ -522,10 +522,44 @@ loop PB over {-3,-1,0,1,3} {
   output 0 named "[PB]d[PA]=[A]"
 }
 ''',
+# __STR__ (SEQ, SEQ)
 r'''
+function: a I:n {
+  result: {I}
+}
+loop PA over {-3,-1,0,1,3} {
+  loop PB over {-3,-1,0,1,3} {
+    A: [a PA] d [a PB]
+    output 0 named "a [PA]d[PB]=[A]"
+  }
+}
 
+function: aa I:n {
+  result: {-1, I}
+}
+loop PA over {-3,-1,0,1,3} {
+  loop PB over {-3,-1,0,1,3} {
+    A: [aa PA] d [aa PB]
+    output 0 named "a [PA]d[PB]=[A]"
+  }
+}
 ''',
+# __STR__ RV (too bored to write more)
 r'''
+A: 2 d ({1} d ({1} d 2))
+output 0 named "[A]"
+
+A: 2 d (1 d (1 d 2))
+output 0 named "[A]"
+
+function: g I:n {
+  if I <= 2 {result: 0}
+  result: 1
+}
+A: [g 1d4]
+output 0 named "[A]"
+A: 2 d A
+output 0 named "[A]"
 
 ''',
 r'''

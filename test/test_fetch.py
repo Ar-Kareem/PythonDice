@@ -19,7 +19,7 @@ SKIP_VERSION = {  # tests to skip only for specific versions of compilers
 COMP_EPS = 1e-5
 
 # specify test names below and run: pytest test/test_fetch.py -k test_cherrypick
-CHERRYPICK = set(['output_strings_1', 'output_strings_2', 'output_strings_3', ])
+CHERRYPICK = set(['output_strings_1', 'output_strings_2', 'output_strings_3', 'output_strings_4', 'output_strings_5', 'output_strings'])
 
 data = json.loads((Path(__file__).parent / 'autoouts' / 'fetch_out.json').read_text())['data']
 code_resp_pairs = [(x['inp'], x['out'], x.get('name', None)) for x in data]
@@ -63,7 +63,7 @@ def pipeline(to_parse, version, global_vars={}):
     flags = {'COMPILER_FLAG_NON_LOCAL_SCOPE': True}
   else:
     assert False, f'Unknown version {version}'
-
+  # logger.warning(f'Parsing:\n{to_parse}')
   if to_parse is None or to_parse.strip() == '':
     logger.debug('Empty string')
     return
@@ -141,7 +141,17 @@ def test_cherrypick(inp_code,anydice_resp,name):
   i = 0
   def check_res(x, named):
     nonlocal i
-    assert named is None or named == anydice_resp['distributions']['labels'][i], f'i:{i}| named does not match expected. expected: {anydice_resp["distributions"]["labels"][i]}, got: {named}'
+    label = anydice_resp['distributions']['labels'][i]
+    # logger.warning(str(i) + ' ' + str(named))
+    if named is not None:
+      assert str(named) == str(label)
+      assert type(named) == type(label)
+      # assert '2d2' == '2d{?}', 'WHAT? ' + named + ' ' + label + ' ' + str(len(str(named))) + ' ' + str(len(str(label)))
+      assert str(named) == str(label), f'i:{i}| named does not match expected. expected: {label}, got: {named}'
+      assert str(named) == str(label), f'i:{i}| named does not match expected. expected: {label}, got: {named}'
+      assert len(str(named)) == len(str(label)), f'i:{i}| named does not match expected. expected: {label}, got: {named}'
+      # assert 'what is going on' == 'i dont know'
+
     check(x, anydice_resp['distributions']['data'][i], i)
     i += 1
   pipeline(inp_code, version=2, global_vars={'output': lambda x, named=None: check_res(x, named)})
