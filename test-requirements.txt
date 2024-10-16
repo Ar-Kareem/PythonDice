@@ -3,6 +3,8 @@ pytest-cov
 pytest-timeout
 pytest-ordering
 
+# for fetching results to automate test results
 python-dotenv
+requests
 
 RestrictedPython
