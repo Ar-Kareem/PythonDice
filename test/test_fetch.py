@@ -5,20 +5,21 @@ import json
 from pathlib import Path
 import copy
 
-from src.randvar import RV, Seq
+from src.randvar import RV, Seq, settings_reset
 from src.parser import parse_and_exec
 
 
 logger = logging.getLogger(__name__)
 
-TO_EXCLUDE = set([
-  'testing_not_on_int',
-  'testing_maximum_function_depth',
-])  # TODO: remove this when implemented
+SKIP_VERSION = {  # tests to skip only for specific versions of compilers
+  'testing_not_on_int': ['v1', 'v2'],
+  'testing_maximum_function_depth': ['v1', 'v2'],  # v1 permeneantly does not support this
+  'output_strings': ['v1', 'v2'],
+}  # TODO: remove this when implemented
 COMP_EPS = 1e-5
 
 data = json.loads((Path(__file__).parent / 'autoouts' / 'fetch_out.json').read_text())['data']
-code_resp_pairs = [(x['inp'], x['out']) for x in data if x.get('name', None) not in TO_EXCLUDE]
+code_resp_pairs = [(x['inp'], x['out'], x.get('name', None)) for x in data]
 
 
 class cust_np_array:
@@ -73,10 +74,11 @@ def pipeline(to_parse, version, global_vars={}):
     logger.debug('Yacc Illegal tokens found: ' + str(lexer.YACC_ILLEGALs))
     return
   python_str = parse_and_exec.do_resolve(yacc_ret, flags=flags)
+  logger.warning('\n'.join(f'{i+1}: {x}' for i, x in enumerate(python_str.split('\n'))))
   r = parse_and_exec.safe_exec(python_str, global_vars=global_vars)
   return r
 
-def check(inp: RV|Seq|int, expected):
+def check(inp: RV|Seq|int, expected, i):
   # clear (null, null) from expected
   expected = [x for x in expected if x != [None, None]]
   # assert not expected, expected
@@ -87,32 +89,42 @@ def check(inp: RV|Seq|int, expected):
   cust_expected = cust_np_array(expected)
   assert cust_x.shape == cust_expected.shape, f'A: {x}, B: {expected}'
   assert not all_close(cust_x, cust_expected+0.01, atol=COMP_EPS), f'How is allcose true here???'
-  assert all_close(cust_x, cust_expected, atol=COMP_EPS), f'A: {x}, B: {expected} diff: {sum_diff_iterable(x, expected)}'
+  assert all_close(cust_x, cust_expected, atol=COMP_EPS), f'i:{i}|ME: {x}, ONLINE: {expected} diff: {sum_diff_iterable(x, expected)}'
   # for a, b in zip(x, expected):
     # assert all_close(a, b, atol=COMP_EPS), f'A and B: {a}, {b} np diff: {np.abs(np.array(a) - np.array(b))}'
 
 
 
-@pytest.mark.parametrize("inp_code,anydice_resp", code_resp_pairs)
-def test_all_fetch_v1(inp_code,anydice_resp):
+
+
+
+@pytest.fixture(autouse=True)
+def fixture_settings_reset():
+    settings_reset()
+
+
+code_resp_pairs_v1 = [x for x in code_resp_pairs if 'v1' not in SKIP_VERSION.get(x[2], [])]
+@pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs_v1)
+def test_all_fetch_v1(inp_code,anydice_resp,name):
   anydice_resp = json.loads(anydice_resp)
   i = 0
   def check_res(x, named):
     nonlocal i
-    assert named is None or named == anydice_resp['distributions']['labels'][i]
-    check(x, anydice_resp['distributions']['data'][i])
+    assert named is None or named == anydice_resp['distributions']['labels'][i], f'i:{i}| named does not match expected. expected: {anydice_resp["distributions"]["labels"][i]}, got: {named}'
+    check(x, anydice_resp['distributions']['data'][i], i)
     i += 1
   pipeline(inp_code, version=1, global_vars={'output': lambda x, named=None: check_res(x, named)})
 
 
-@pytest.mark.parametrize("inp_code,anydice_resp", code_resp_pairs)
-def test_all_fetch_v2(inp_code,anydice_resp):
+code_resp_pairs_v2 = [x for x in code_resp_pairs if 'v2' not in SKIP_VERSION.get(x[2], [])]
+@pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs_v2)
+def test_all_fetch_v2(inp_code,anydice_resp,name):
   anydice_resp = json.loads(anydice_resp)
   i = 0
   def check_res(x, named):
     nonlocal i
-    assert named is None or named == anydice_resp['distributions']['labels'][i]
-    check(x, anydice_resp['distributions']['data'][i])
+    assert named is None or named == anydice_resp['distributions']['labels'][i], f'i:{i}| named does not match expected. expected: {anydice_resp["distributions"]["labels"][i]}, got: {named}'
+    check(x, anydice_resp['distributions']['data'][i], i)
     i += 1
   pipeline(inp_code, version=2, global_vars={'output': lambda x, named=None: check_res(x, named)})
   # assert False, f'inp_code: {inp_code}, anydice_resp: {anydice_resp}'
