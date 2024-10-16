@@ -32,9 +32,11 @@ DEFAULT_SETTINGS = {
   'RV_IGNORE_ZERO_PROBS': False,  # if True, then RV remove P=0 vals when creating RVs (False by default in anydice)
   'DEFAULT_OUTPUT_WIDTH': 180,  # default width of output
   'DEFAULT_PRINT_FN': print,  # default print function
+  'INTERNAL_CURR_DEPTH': 0,  # internal use only, for max_func_depth decorator
 
   'position order': 'highest first',  # 'highest first' or 'lowest first'
   'explode depth': 2,  # can only be set to a positive integer (the default is 2)
+  'maximum function depth': 10  # can only be set to a positive integer (the default is 10)
 }
 SETTINGS = DEFAULT_SETTINGS.copy()
 
@@ -43,6 +45,8 @@ def settings_set(name, value):
     assert value in ("highest first", "lowest first"), 'position order must be "highest first" or "lowest first"'
   elif name == "explode depth":
     assert isinstance(value, int) and value > 0, '"explode depth" can only be set to a positive integer (the default is 2) got ' + str(value)
+  elif name == "maximum function depth":
+    assert isinstance(value, int) and value > 0, '"maximum function depth" can only be set to a positive integer (the default is 10) got ' + str(value)
   elif name in ('RV_TRUNC', 'RV_IGNORE_ZERO_PROBS'):
     if isinstance(value, str):
       assert value.lower() in ('true', 'false'), 'value must be "True" or "False"'
@@ -574,6 +578,23 @@ def anydice_casting(verbose=False):
         res_vals.append(val)
         res_probs.append(prob)
       return RV.from_rvs(rvs=res_vals, weights=res_probs)
+    return wrapper
+  return decorator
+
+def max_func_depth(depth=None):
+  # decorator to limit the depth of the function calls
+  depth = depth if depth is not None else SETTINGS['maximum function depth']
+  def decorator(func):
+    def wrapper(*args, **kwargs):
+      if SETTINGS['INTERNAL_CURR_DEPTH'] >= depth:
+        msg = f'The maximum function depth was exceeded, results are truncated.'
+        logger.warning(msg)
+        print(msg)
+        return 0
+      SETTINGS['INTERNAL_CURR_DEPTH'] += 1
+      res = func(*args, **kwargs)
+      SETTINGS['INTERNAL_CURR_DEPTH'] -= 1
+      return res
     return wrapper
   return decorator
 

@@ -11,7 +11,8 @@ CONST = {
     'seq': 'Seq',
     'roll': 'roll',
     'range': 'myrange',
-    'cast_decorator': '@anydice_casting()',
+    'func_decorator': '@anydice_casting()',  # without func depth limit
+    # 'func_decorator': '@max_func_depth()\n@anydice_casting()',  # with func depth limit
     'setter': lambda name, value: f'settings_set({name}, {value})',
     'function library': ('absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X'),
 }
@@ -117,7 +118,7 @@ class PythonResolver:
             func_name = '_'.join(func_name)
             self._defined_functions.add(func_name)
             self._user__defined_functions.append(func_name)
-            func_decorator = CONST['cast_decorator']
+            func_decorator = CONST['func_decorator']
             func_def = f'def {func_name}({", ".join(func_args)}):'
             func_code = self._indent_resolve(code)
             return f'{func_decorator}\n{func_def}\n{func_code}' + '\n'*self.NEWLINES_AFTER_FUNCTION
