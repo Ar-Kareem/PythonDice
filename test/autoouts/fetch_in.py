@@ -417,14 +417,110 @@ output 0 named "[A]"
 A: 2d(1d2)
 output 0 named "[A]"
 ''',
+# # __STR__ (INT, INT)
 r'''
-
+loop PA over {-3,-1,0,1,3} {
+  loop PB over {-3,-1,0,1,3} {
+    A: PA d PB
+    output 0 named "[PA]d[PB]=[A]"
+  }
+}
 ''',
+# __STR__ (SEQ, INT)
 r'''
-
+PA: {}
+loop PB over {-3,-1,0,1,3} {
+  A: PA d PB
+  output 0 named "[PA]d[PB]=[A]"
+}
+PA: {-2}
+loop PB over {-3,-1,0,1,3} {
+  A: PA d PB
+  output 0 named "[PA]d[PB]=[A]"
+}
+PA: {-1}
+loop PB over {-3,-1,0,1,3} {
+  A: PA d PB
+  output 0 named "[PA]d[PB]=[A]"
+}
+PA: {0}
+loop PB over {-3,-1,0,1,3} {
+  A: PA d PB
+  output 0 named "[PA]d[PB]=[A]"
+}
+PA: {1}
+loop PB over {-3,-1,0,1,3} {
+  A: PA d PB
+  output 0 named "[PA]d[PB]=[A]"
+}
+PA: {2}
+loop PB over {-3,-1,0,1,3} {
+  A: PA d PB
+  output 0 named "[PA]d[PB]=[A]"
+}
+PA: {-2,2}
+loop PB over {-3,-1,0,1,3} {
+  A: PA d PB
+  output 0 named "[PA]d[PB]=[A]"
+}
+PA: {-2,-2}
+loop PB over {-3,-1,0,1,3} {
+  A: PA d PB
+  output 0 named "[PA]d[PB]=[A]"
+}
+PA: {2,2}
+loop PB over {-3,-1,0,1,3} {
+  A: PA d PB
+  output 0 named "[PA]d[PB]=[A]"
+}
 ''',
+# __STR__ (INT, SEQ)
 r'''
-
+PA: {}
+loop PB over {-3,-1,0,1,3} {
+  A: PB d PA
+  output 0 named "[PB]d[PA]=[A]"
+}
+PA: {-2}
+loop PB over {-3,-1,0,1,3} {
+  A: PB d PA
+  output 0 named "[PB]d[PA]=[A]"
+}
+PA: {-1}
+loop PB over {-3,-1,0,1,3} {
+  A: PB d PA
+  output 0 named "[PB]d[PA]=[A]"
+}
+PA: {0}
+loop PB over {-3,-1,0,1,3} {
+  A: PB d PA
+  output 0 named "[PB]d[PA]=[A]"
+}
+PA: {1}
+loop PB over {-3,-1,0,1,3} {
+  A: PB d PA
+  output 0 named "[PB]d[PA]=[A]"
+}
+PA: {2}
+loop PB over {-3,-1,0,1,3} {
+  A: PB d PA
+  output 0 named "[PB]d[PA]=[A]"
+}
+PA: {-2,2}
+loop PB over {-3,-1,0,1,3} {
+  A: PB d PA
+  output 0 named "[PB]d[PA]=[A]"
+}
+PA: {-2,-2}
+loop PB over {-3,-1,0,1,3} {
+  A: PB d PA
+  output 0 named "[PB]d[PA]=[A]"
+}
+PA: {2,2}
+loop PB over {-3,-1,0,1,3} {
+  A: PB d PA
+  output 0 named "[PB]d[PA]=[A]"
+}
 ''',
 r'''
 
