@@ -78,7 +78,17 @@ output d#A
 ),('''
 output 2 * 2 @ 2d2
 ''', [RV([2, 4], [3, 1])]
-),])
+),('''
+function: rolla {
+  B: B + 1
+  result: B
+}
+B: 10
+output [rolla]
+output B
+''', [RV([11], [1]), RV([10], [1])]
+), 
+])
 def test_ands_and_ors(code, res):
     i = 0
     def check_res(x):
