@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import copy
 
+import src.randvar
 from src.randvar import RV, Seq, settings_reset
 from src.parser import parse_and_exec
 
@@ -104,6 +105,7 @@ def check(inp: RV|Seq|int, expected, i):
 @pytest.fixture(autouse=True)
 def fixture_settings_reset():
     settings_reset()
+    src.randvar._MEMOIZED_ROLLS = {}
 
 
 code_resp_pairs_v1 = [x for x in code_resp_pairs if 'v1' not in SKIP_VERSION.get(x[2], [])]
@@ -142,15 +144,8 @@ def test_cherrypick(inp_code,anydice_resp,name):
   def check_res(x, named):
     nonlocal i
     label = anydice_resp['distributions']['labels'][i]
-    # logger.warning(str(i) + ' ' + str(named))
-    if named is not None:
-      assert str(named) == str(label)
-      assert type(named) == type(label)
-      # assert '2d2' == '2d{?}', 'WHAT? ' + named + ' ' + label + ' ' + str(len(str(named))) + ' ' + str(len(str(label)))
-      assert str(named) == str(label), f'i:{i}| named does not match expected. expected: {label}, got: {named}'
-      assert str(named) == str(label), f'i:{i}| named does not match expected. expected: {label}, got: {named}'
-      assert len(str(named)) == len(str(label)), f'i:{i}| named does not match expected. expected: {label}, got: {named}'
-      # assert 'what is going on' == 'i dont know'
+    logger.warning(str(i) + ' ' + str(named))
+    assert named is None or str(named) == str(label), f'i:{i}| named does not match expected. expected: {label}, got: {named}'
 
     check(x, anydice_resp['distributions']['data'][i], i)
     i += 1

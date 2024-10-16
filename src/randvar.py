@@ -83,6 +83,8 @@ class RV:
     self._source_roll = 1
     self._source_die = self
 
+    self._str_LHS_RHS: tuple[T_if, T_if|str] = (1, '{?}')  # used for __str__
+
   @staticmethod
   def _sort_and_group(vals: Iterable[float], probs: Iterable[int], skip_zero_probs, normalize):
     assert all(isinstance(p, int) and p >= 0 for p in probs), 'probs must be non-negative integers'
@@ -342,6 +344,21 @@ class RV:
   def __trunc__(self):
     return self._apply_operation(math.trunc)
 
+  def __str__(self):
+    # all the nuanced rules are kind of complex; simply took tons of trial and error with pytests for all possible combinations
+    s, d = self._str_LHS_RHS
+    if isinstance(s, float) or isinstance(d, float):  # __str__ doesn't support floats
+      return 'd{?}'
+    LHS = str(abs(s)) if (s is not None and abs(s) > 1) else ''
+    if isinstance(d, int):
+      sign = '' if (s*d) >= 0 else '-'
+      RHS = '{0..0}' if (s*d == 0) else str(abs(d))
+      return sign + LHS + 'd' + RHS
+    if d == '{}':  # rolled an empty seq
+      return 'd{}'
+    elif s == 0:
+      return 'd{0..0}'
+    return LHS + 'd{?}'
   def __repr__(self):
     return output(self, print_=False)
 
@@ -373,8 +390,10 @@ class Seq(Iterable):
   def set_one_indexed(self, one_indexed: bool):
     self._one_indexed = 1 if one_indexed else 0
 
+  def __str__(self):
+    return '{?}'
   def __repr__(self):
-    return str(self._seq)
+    return f'Seq({repr(self._seq)})'
   def __iter__(self):
     return iter(self._seq)
   def __len__(self):
@@ -603,15 +622,45 @@ def _sum_at(orig: Seq, locs: Seq):
   return sum(orig[int(i)] for i in locs)
 
 def roll(n: T_isr|str, d: T_isr|None=None) -> RV:
+  """Roll n dice of d sides
+
+  Args:
+      n (T_isr | str): number of dice to roll, if string then it must be 'ndm' where n and m are integers
+      d (T_isr, optional): number of sides of the dice (or the dice itself). Defaults to None which is equivalent to roll(1, n)
+
+  Returns:
+      RV: RV of the result of rolling n dice of d sides
+  """
   if isinstance(n, str):  # either rolL('ndm') or roll('dm')
     assert d is None, 'if n is a string, then d must be None'
     nm1, nm2 = n.split('d')
     if nm1 == '':
       nm1 = 1
-    return roll(int(nm1), int(nm2))
+    n, d = int(nm1), int(nm2)
 
   if d is None:  # if only one argument, then roll it as a dice once
-    return roll(1, n)
+    n, d = 1, n
+
+  # make sure all iters are Seq
+  if isinstance(d, Iterable) and not isinstance(d, Seq):
+    d = Seq(*d)
+  if isinstance(n, Iterable) and not isinstance(n, Seq):
+    n = Seq(*n)
+  # both arguments are now exactly int|Seq|RV
+  result = _roll(n, d)  # ROLL!
+  # below is only used for the __str__ method
+  _LHS = n if isinstance(n, int) else (n.sum() if isinstance(n, Seq) else 0)
+  if isinstance(d, int):
+    _RHS = d
+  elif isinstance(d, Seq):
+    _RHS = '{}' if len(d) == 0 else '{?}'
+  elif isinstance(d, RV):
+    _d_LHS, _d_RHS = d._str_LHS_RHS
+    _RHS = _d_RHS if _d_LHS == 1 and isinstance(_d_RHS, int) else '{?}'  # so that 2d(1d2) and (2 d (1 d ( {1} d 2))) all evaluate to '2d2'
+  result._str_LHS_RHS = (_LHS, _RHS)
+  return result
+
+def _roll(n: int|Seq|RV, d: int|Seq|RV) -> RV:
   if isinstance(d, int):
     if d > 0:
       d = RV.from_seq(range(1, d+1))
@@ -619,12 +668,10 @@ def roll(n: T_isr|str, d: T_isr|None=None) -> RV:
       d = RV.from_const(0)
     else:
       d = RV.from_seq([range(d, 0)])
-  elif isinstance(d, Iterable):
+  elif isinstance(d, Seq):
     d = RV.from_seq(d)
 
-  if isinstance(n, Iterable):
-    if not isinstance(n, Seq):
-      n = Seq(*n)  # convert to Seq if not already, to flatten and take sum
+  if isinstance(n, Seq):
     s = n.sum()
     assert isinstance(s, int), 'cant roll non-int number of dice'
     return roll(s, d)
