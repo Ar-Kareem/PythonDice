@@ -22,13 +22,9 @@ class PythonResolver:
     def __init__(self, root: Node, flags=None):
         assert self._check_nested_str(root), f'Expected nested strings/None/Node from yacc, got {root}'
         self.root = root
-        self._defined_functions: set[str] = set(CONST['function library'])
-        self._user__defined_functions: list[str] = []
-        self._called_functions: set[str] = set()
-        self._output_counter = 0
-        self.flags = flags or {}
+        self.reset_state()
 
-        flags = self.flags.copy()  # make sure no weird flags are passed
+        flags = flags or {}
         # this flag is for a very nasty behaviour in anydice where a functions variables are a temporary copy of the callers variables; see https://anydice.com/program/394f0 and https://anydice.com/program/394f1 for the ugly behaviour
         # handling this is very ugly, we pass around a dictionary of all the code's variables and copy it for each function call
         # this makes the output code look unpleasant as every variable is accessed as dict['VAR'] instead of just VAR.
@@ -45,6 +41,16 @@ class PythonResolver:
         self.NEWLINES_AFTER_LOOP = 1
         self.NEWLINES_AFTER_FUNCTION = 1
         self.NEWLINES_AFTER_FILE = 1
+
+    def reset_state(self):
+        self._defined_functions: set[str] = set(CONST['function library'])
+        self._user__defined_functions: list[str] = []
+        self._called_functions: set[str] = set()
+        self._output_counter = 0
+        self.result_text: str|None = None
+
+        # some funcs (output, roll, myrange, max func depth, anydice casting, settings set) may cause collisions with user-defined functions and need handling
+        self._funclib_conflicted = False
 
     def _check_nested_str(self, node):
         if isinstance(node, Node):
@@ -64,7 +70,11 @@ class PythonResolver:
         # remove multiple nearby newlines
         result = list(result.split('\n'))
         result = [x for i, x in enumerate(result) if i == 0 or x.strip() != '' or result[i-1].strip() != '']
-        return '\n'.join(result)
+        self.result_text = '\n'.join(result)
+
+    def get_text(self):
+        assert self.result_text is not None, 'No text generated. Call resolve() first'
+        return self.result_text
 
     def _indent_resolve(self, node: 'Node|str') -> str:
         """Given a node, resolve it and indent it. node to indent: if/elif/else, loop, function"""
