@@ -618,10 +618,19 @@ _A: 2
 output _A
 ''',
 r'''
-
+output !(2d4)
+output !(2d0)
+output !(0d4)
+output !(2d(2d(0d3)))
 ''',
 r'''
-
+output !({})
+output !({0})
+output !({0,0})
+output !({-1,1})
+output !({0,-1,1})
+output !({0,-1})
+output !({-2,2})
 ''',
 r'''
 
