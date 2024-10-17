@@ -10,10 +10,6 @@
             "reason": "v1 permeneantly does not support this",
             "flags": ["v1"]
         },
-        "testing_namespace_myrange_collision": {
-            "reason": "implement this ; skipping until implemented",
-            "flags": ["all"]
-        },
         "name_starts_with_underscore": {
             "reason": "safe exec does not support variables starting with underscore ; v2 uses dict for vars so _ are ok",
             "flags": ["v1"]
