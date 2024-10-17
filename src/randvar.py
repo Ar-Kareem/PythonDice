@@ -7,6 +7,7 @@ from itertools import zip_longest, product, combinations_with_replacement, accum
 import inspect
 from collections import defaultdict
 import logging
+import random
 
 from . import utils
 
@@ -751,3 +752,12 @@ def output(rv: T_isr, named=None, show_pdf=True, blocks_width=None, print_=True,
       print_fn(result)
   else:
     return result
+
+def roller(rv: T_isr, count: int|None=None):
+  if isinstance(rv, int) or isinstance(rv, Iterable) or isinstance(rv, bool):
+    rv = RV.from_seq([rv])
+  assert isinstance(rv, RV), 'rv must be a RV'
+  # roll using random.choices
+  if count is None:
+    return random.choices(rv.vals, rv.probs)[0]
+  return tuple(random.choices(rv.vals, rv.probs)[0] for _ in range(count))

@@ -3,13 +3,13 @@ This is a python package that includes a simple to use and powerful dice probabi
 
 This package offers features and capabilities to calculate probabilities of arbitrary dice scripts including full capabilities of `anydice.com`. 
 
-Additionaly, this package includes the first* custom built compiler that translates almost any** valid `anydice.com` code into runnable python code.
+Additionaly, this package includes the first* custom built compiler that translates any** valid `anydice.com` code into runnable python code.
 
 This project is still in early development but everything mentioned above is complete. (project started October 2024)
 
 \* as far as we know
 
-\*\* very rare edge cases mentioned at the end for transparency (e.g. using numbers >$2^{53}$ causes `anydice` to potentially perform incorrect calculations)
+\*\* except very rare edge cases (e.g. using numbers >$2^{53}$ causing `anydice` to potentially perform incorrect/different calculations) mentioned at the end for transparency.
 
 # Installation
 
@@ -206,6 +206,24 @@ output(result)
     ----------------------------------------------------------------------------------------
     
 
+### getting evaluated results (roller)
+
+Any RV object (dice / random variable) can be rolled using the `rolled` function.
+
+
+```python
+from dice_calc import roll, roller
+X = 1 @ roll(2, 20)
+roller(X)  # gets a random value from rolling a d20 with advantage
+```
+
+
+
+
+    13
+
+
+
 ### Complex Example:
 
 Let's try calculating the total damage of the following attack on a boss in an RPG: 
@@ -242,7 +260,7 @@ plt.bar(vals, probs); plt.xlabel('Damage'); plt.ylabel('Probability');
 
 
     
-![png](./README_files/./README_15_0.png)
+![png](./README_files/./README_17_0.png)
     
 
 
@@ -282,7 +300,7 @@ plt.bar(vals, percent); plt.xlabel('Roll'); plt.ylabel('Probability %');
 
 
     
-![png](./README_files/./README_20_0.png)
+![png](./README_files/./README_22_0.png)
     
 
 

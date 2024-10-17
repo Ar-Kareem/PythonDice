@@ -6,4 +6,7 @@ from .randvar import RV, Seq
 from .randvar import anydice_casting, max_func_depth
 
 # core functions
-from .randvar import output, roll, settings_set, settings_reset
+from .randvar import output, roll, settings_set
+
+# helpful functions
+from.randvar import roller, settings_reset
