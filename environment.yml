@@ -1,7 +1,7 @@
 name: pythondice
 dependencies:
   - python==3.12
-  - anaconda
   - pip
   - pip:
     - -r requirements.txt
+    - -r requirements-dev.txt

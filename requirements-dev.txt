@@ -1,0 +1,8 @@
+setuptools
+wheel
+build
+twine
+
+ipykernel
+jupyter
+matplotlib  # plotting inside jupyter notebook for README
