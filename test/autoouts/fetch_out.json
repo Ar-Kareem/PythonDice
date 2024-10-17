@@ -140,6 +140,12 @@
       "out": "{\"distributions\":{\"data\":[[[0,100]],[[1,100]],[[1,100]],[[1,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-17T16:24:22.939857",
       "name": "invert operation on RV"
+    },
+    {
+      "inp": "\nfunction: d {result: 1} \\impossible to call\\\nfunction: d A {result: 1} \\impossible to call\\\nfunction: A:d {result: 1}  \\can call, is just 1 param called A\\\noutput [ d 1 ]\n",
+      "out": "{\"distributions\":{\"data\":[[[1,100]]],\"labels\":[\"output 1\"],\"minX\":1,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-17T16:50:27.477698",
+      "name": "uncallable_function_name_with_space_d_space"
     }
   ]
 }

@@ -633,7 +633,10 @@ output !({0,-1})
 output !({-2,2})
 ''',
 r'''
-
+function: d {result: 1} \impossible to call\
+function: d A {result: 1} \impossible to call\
+function: A:d {result: 1}  \can call, is just 1 param called A\
+output [ d 1 ]
 ''',
 r'''
 
