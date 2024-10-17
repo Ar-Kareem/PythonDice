@@ -367,6 +367,7 @@ def p_funcname_def_param(p):
 
 # Precedence rules to handle associativity and precedence of operators
 precedence = (
+    ('left', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS'),  # Comparison operators
     ('left', 'OR'),            # OR operator (lowest precedence)
     ('left', 'AND'),           # AND operator (higher precedence than OR)
     ('left', 'PLUS', 'MINUS'),
@@ -377,7 +378,6 @@ precedence = (
     ('right', 'HASH_OP'),  # 'HASH' (unary #) operator precedence
     ('right', 'EXCLAMATION'),  # Unary NOT operator (!) precedence
     ('right', 'UMINUS', 'UPLUS'),  # Unary minus and plus have the highest precedence
-    ('left', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS'),  # Comparison operators
 )
 
 # Parsing rules
