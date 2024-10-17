@@ -9,6 +9,10 @@
         "testing_not_on_int": {
             "reason": "implement this ; skipping until implemented",
             "flags": ["all"]
+        },
+        "testing_namespace_myrange_collision": {
+            "reason": "implement this ; skipping until implemented",
+            "flags": ["all"]
         }
     }
 }
