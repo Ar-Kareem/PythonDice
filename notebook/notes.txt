@@ -22,16 +22,18 @@ to build package:
 
 
 TODO
+    make function names have uppercase so that namespace doesnt collide (compiler flag?)
+    implement myint | and turn on test testing_not_on_int
+    make function depth a compiler flag
     Build Lex Yacc test cases
     yacc line number for errors wrong
 RV:
+    FIX __repr__ for RV (in named section) should be string not entire graph
     implement {1,2}@RV (sum multiple k-th order statistics)
     implement ~
-    FIX __repr__ for RV (in named section) should be string not entire graph
-    add explode_depth options
     figure out time limiter / implement expansion limit warning in caster
 
-add documentation and demo notebook
+add more documentation
 
 
 

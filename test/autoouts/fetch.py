@@ -31,7 +31,7 @@ if __name__ == '__main__':
         print('No new inputs to fetch.\nAdd inputs to fetch_in.py')
         sys.exit(0)
 
-    print('TODO:', len(new_inps))
+    print('Code to request:', len(new_inps))
     if input('y to continue: ') != 'y':
         sys.exit(0)
 
