@@ -8,7 +8,7 @@
         },
         "operators_on_ints": {
             "reason": "implement this ; skipping until implemented",
-            "flags": ["all"]
+            "flags": ["v1"]
         },
         "testing_namespace_myrange_collision": {
             "reason": "implement this ; skipping until implemented",

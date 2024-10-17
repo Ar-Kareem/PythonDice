@@ -15,10 +15,6 @@ def build_lex_yacc():
 def do_lex(to_parse, lexer, verbose_lex=False):
   lexer.input(to_parse)  # feed the lexer
   tokens = [x for x in lexer]
-  # lexed_text = to_parse
-  # for x in lexer.LEX_ILLEGAL_CHARS:
-  #   logger.debug(f'Illegal character {x[0]!r} at {x[1]} {x[2]} {x[3]}')
-  #   lexed_text = lexed_text[:x[1]] + '_' + lexed_text[x[1]+1:]
   if verbose_lex:
     logger.debug('Tokens:')
     for x in tokens:
@@ -44,11 +40,13 @@ def _get_lib():
   import math, itertools, random, functools
   from ..randvar import RV, Seq, anydice_casting, max_func_depth, output, roll, settings_set
   from ..utils import myrange
+  from ..utils import mymatmul as myMatmul, mylen as myLen, myinvert as myInvert
   from ..funclib import absolute as absolute_X, contains as X_contains_X, count_in as count_X_in_X, explode as explode_X, highest_N_of_D as highest_X_of_X, lowest_N_of_D as lowest_X_of_X, middle_N_of_D as middle_X_of_X, highest_of_N_and_N as highest_of_X_and_X, lowest_of_N_and_N as lowest_of_X_and_X, maximum_of as maximum_of_X, reverse as reverse_X, sort as sort_X
   rv_lib_dict = {
     'math': math, 'itertools': itertools, 'random': random, 'functools': functools,
     'RV': RV, 'Seq': Seq, 'anydice_casting': anydice_casting, 'max_func_depth': max_func_depth, 'roll': roll, 'myrange': myrange, 'settings_set': settings_set, 'output': output,
     'absolute_X': absolute_X, 'X_contains_X': X_contains_X, 'count_X_in_X': count_X_in_X, 'explode_X': explode_X, 'highest_X_of_X': highest_X_of_X, 'lowest_X_of_X': lowest_X_of_X, 'middle_X_of_X': middle_X_of_X, 'highest_of_X_and_X': highest_of_X_and_X, 'lowest_of_X_and_X': lowest_of_X_and_X, 'maximum_of_X': maximum_of_X, 'reverse_X': reverse_X, 'sort_X': sort_X,
+    'myMatmul': myMatmul, 'myLen': myLen, 'myInvert': myInvert
   }
   return rv_lib_dict
 

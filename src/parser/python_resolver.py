@@ -15,6 +15,7 @@ CONST = {
     'func_decorator': '@max_func_depth()\n@anydice_casting()',  # with func depth limit
     'setter': lambda name, value: f'settings_set({name}, {value})',
     'function library': ('absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X'),
+    'oplib': {'@': 'myMatmul', 'len': 'myLen', '~': 'myInvert'},
 }
 
 class PythonResolver:
@@ -33,6 +34,8 @@ class PythonResolver:
         # this makes the output code look unpleasant as every variable is accessed as dict['VAR'] instead of just VAR.
         # If you plan on understanding this file then please ignore all compiler flags and assume they are all the default value as compiler flags are just edge-cases.
         self._COMPILER_FLAG_NON_LOCAL_SCOPE = flags.pop('COMPILER_FLAG_NON_LOCAL_SCOPE', False)
+        # this flag is to support operators on ints: @, len, and ~.  These operators are rarely used in actual code.
+        self._COMPILER_FLAG_OPERATOR_ON_INT = flags.pop('COMPILER_FLAG_OPERATOR_ON_INT', False)
 
         assert not flags, f'Unknown flags: {flags}'
 
@@ -187,15 +190,18 @@ class PythonResolver:
             elif op == 'ndm':
                 return f'{CONST["roll"]}({self.resolve_node(left)}, {self.resolve_node(right)})'
             elif op == '@':
+                if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"]["@"]}({self.resolve_node(left)}, {self.resolve_node(right)})'
                 return f'({self.resolve_node(left)} {op} {self.resolve_node(right)})'  # wrap in parentheses to take precedence over multiplication
             else:  # all other operators
                 return f'{self.resolve_node(left)} {op} {self.resolve_node(right)}'
         elif node.type == NodeType.UNARY:
             op, expr = node
             if op == '!':
+                if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"]["~"]}({self.resolve_node(expr)})'
                 return f'~{self.resolve_node(expr)}'
             return f'{op}{self.resolve_node(expr)}'
         elif node.type == NodeType.HASH:  # len
+            if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"]["len"]}({self.resolve_node(node.val)})'
             return f'len({self.resolve_node(node.val)})'
         elif node.type == NodeType.SEQ:
             seq_class = CONST['seq']

@@ -24,3 +24,19 @@ def factorial(n: int):
     if n not in _memoized:
         _memoized[n] = n * factorial(n-1) if n > 1 else 1
     return _memoized[n]
+
+
+
+# to handle special cases of operators on int
+def mymatmul(a, b):
+    if isinstance(a, int) and isinstance(b, int):  # special case for int @ int
+        return int(str(b)[a-1]) if (0 <= a-1 < len(str(b))) else 0
+    return a @ b
+def mylen(a):
+    if isinstance(a, int):
+        return len(str(abs(a)))
+    return len(a)
+def myinvert(a):
+    if isinstance(a, int):
+        return 1 if a == 0 else 0
+    return ~a
