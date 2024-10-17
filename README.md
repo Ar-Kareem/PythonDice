@@ -9,7 +9,7 @@ This project is still in early development but everything mentioned above is com
 
 \* as far as we know
 
-\*\* very rare edge cases mentioned at the end for transparency
+\*\* very rare edge cases mentioned at the end for transparency (e.g. using numbers >$2^{53}$ causes `anydice` to potentially perform incorrect calculations)
 
 # Installation
 
@@ -463,7 +463,7 @@ As far as we tested, almost all valid `anydice` code worked perfectly using our 
 
 2. ~~Limit on global function depth.~~ **Update : #2 has been correctly implemented** (currently permenant but will become an optional compiler flag in the future)
 
-3. **(very rare) Naming a fucntion as an illegal reserved keywords**: There are certain keywords that are illegal for function names to be defined as. Those include: `output`, `roll`, `myrange`, `max func depth`, `anydice casting`, `settings set`, or `d`. We do not believe there's any valid reason to name a function with exactly one of those few and exact reserved keywords.
+3. ~~(very rare) Naming a fucntion as an illegal reserved keywords~~ **Update : #3 been correctly implemented ; automatically turns on when a collision is detected by the compiler**
 
 4. **(very rare) MAX_INT is higher in python than in JavaScript**: This is a very rare issue when a number is larger than $2^{53}$. See example we made here: https://anydice.com/program/39567
 

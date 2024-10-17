@@ -17,18 +17,15 @@ CONST = {
     'function library': ('absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X'),
     'oplib': {'@': 'myMatmul', 'len': 'myLen', '~': 'myInvert'},
 }
+_FUNCS_MAY_COLLIDE = set((CONST['output'], CONST['roll'], CONST['range'], 'max_func_depth', 'anydice_casting', 'settings_set'))
 
 class PythonResolver:
     def __init__(self, root: Node, flags=None):
         assert self._check_nested_str(root), f'Expected nested strings/None/Node from yacc, got {root}'
         self.root = root
-        self._defined_functions: set[str] = set(CONST['function library'])
-        self._user__defined_functions: list[str] = []
-        self._called_functions: set[str] = set()
-        self._output_counter = 0
-        self.flags = flags or {}
+        self.reset_state()
 
-        flags = self.flags.copy()  # make sure no weird flags are passed
+        flags = flags or {}
         # this flag is for a very nasty behaviour in anydice where a functions variables are a temporary copy of the callers variables; see https://anydice.com/program/394f0 and https://anydice.com/program/394f1 for the ugly behaviour
         # handling this is very ugly, we pass around a dictionary of all the code's variables and copy it for each function call
         # this makes the output code look unpleasant as every variable is accessed as dict['VAR'] instead of just VAR.
@@ -36,6 +33,8 @@ class PythonResolver:
         self._COMPILER_FLAG_NON_LOCAL_SCOPE = flags.pop('COMPILER_FLAG_NON_LOCAL_SCOPE', False)
         # this flag is to support operators on ints: @, len, and ~.  These operators are rarely used in actual code.
         self._COMPILER_FLAG_OPERATOR_ON_INT = flags.pop('COMPILER_FLAG_OPERATOR_ON_INT', False)
+        # prepends all func defs and func calls with a string to prevent collisions with user-defined functions checked against _FUNCS_MAY_COLLIDE (resolving turns it on when _funclib_conflicted is True and resets resolving)
+        self._COMPILER_FLAG_FUNC_LIB_CONFLICT = flags.pop('COMPILER_FLAG_FUNC_LIB_CONFLICT', False)
 
         assert not flags, f'Unknown flags: {flags}'
 
@@ -45,6 +44,13 @@ class PythonResolver:
         self.NEWLINES_AFTER_LOOP = 1
         self.NEWLINES_AFTER_FUNCTION = 1
         self.NEWLINES_AFTER_FILE = 1
+
+    def reset_state(self):
+        self._defined_functions: set[str] = set(CONST['function library'])
+        self._user__defined_functions: list[str] = []
+        self._called_functions: set[str] = set()
+        self._output_counter = 0
+        self.result_text: str|None = None
 
     def _check_nested_str(self, node):
         if isinstance(node, Node):
@@ -61,10 +67,21 @@ class PythonResolver:
             assert f_name in self._defined_functions, f'Unknown function {f_name} not defined. Currently callable functions: {self._user__defined_functions}'
         assert self._output_counter > 0, 'No outputs made. Did you forget to call "output expr"?'
 
+        if any(f in self._defined_functions for f in _FUNCS_MAY_COLLIDE):  # collision -> reset with flag (if another collision then crash)
+            assert not self._COMPILER_FLAG_FUNC_LIB_CONFLICT, 'Function library conflict despite flag; this should not happen'
+            self._COMPILER_FLAG_FUNC_LIB_CONFLICT = True
+            self.reset_state()
+            self.resolve()
+            return
+
         # remove multiple nearby newlines
         result = list(result.split('\n'))
         result = [x for i, x in enumerate(result) if i == 0 or x.strip() != '' or result[i-1].strip() != '']
-        return '\n'.join(result)
+        self.result_text = '\n'.join(result)
+
+    def get_text(self):
+        assert self.result_text is not None, 'No text generated. Call resolve() first'
+        return self.result_text
 
     def _indent_resolve(self, node: 'Node|str') -> str:
         """Given a node, resolve it and indent it. node to indent: if/elif/else, loop, function"""
@@ -118,6 +135,7 @@ class PythonResolver:
             nameargs, code = node
             assert isinstance(nameargs, Node) and nameargs.type == NodeType.FUNCNAME_DEF, f'Error in parsing fuction node: {node}'
             func_name, func_args, func_arg_names = [], [], []
+            if self._COMPILER_FLAG_FUNC_LIB_CONFLICT: func_name.append('f')
             for x in nameargs:  # nameargs is a list of strings and expressions e.g. [attack 3d6 if crit 6d6 and double crit 12d6]
                 assert isinstance(x, str) or (isinstance(x, Node) and x.type in (NodeType.PARAM, NodeType.PARAM_WITH_DTYPE)), f'Error in parsing function node: {node}'
                 if isinstance(x, str):
@@ -213,6 +231,7 @@ class PythonResolver:
             return f'{CONST["range"]}({l}, {r})'
         elif node.type == NodeType.CALL:
             name, args = [], []
+            if self._COMPILER_FLAG_FUNC_LIB_CONFLICT: name.append('f')
             for x in node:
                 if isinstance(x, Node) and x.type == NodeType.CALL_EXPR:  # expression
                     args.append(self.resolve_node(x.val))

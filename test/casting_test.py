@@ -1,7 +1,7 @@
 import pytest
 
-import src.randvar as randvar
-from src.randvar import RV, Seq, roll, anydice_casting
+import dice_calc.randvar as randvar
+from dice_calc.randvar import RV, Seq, roll, anydice_casting
 
 
 

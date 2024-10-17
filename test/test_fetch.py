@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 import copy
 
-import src.randvar
-from src.randvar import RV, Seq, settings_reset
-from src.parser import parse_and_exec
+import dice_calc.randvar
+from dice_calc.randvar import RV, Seq, settings_reset
+from dice_calc.parser import parse_and_exec
 
 
 logger = logging.getLogger(__name__)
@@ -101,7 +101,7 @@ def check(inp: RV|Seq|int, expected, i):
 @pytest.fixture(autouse=True)
 def fixture_settings_reset():
     settings_reset()
-    src.randvar._MEMOIZED_ROLLS = {}
+    dice_calc.randvar._MEMOIZED_ROLLS = {}
 
 
 # code_resp_pairs_v1 = [x for x in code_resp_pairs if 'v1' not in SKIP_VERSION.get(x[2], [])]

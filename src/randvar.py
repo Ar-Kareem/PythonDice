@@ -334,6 +334,8 @@ class RV:
     return self
   def __neg__(self):
     return 0 - self
+  def __invert__(self):
+    return RV.from_const(1) if (self.vals, self.probs) == ((0, ), (1, )) else RV.from_const(0)
   def __abs__(self):
     return self._apply_operation(abs)
   def __round__(self, n=0):
@@ -399,6 +401,8 @@ class Seq(Iterable):
     return iter(self._seq)
   def __len__(self):
     return len(self._seq)
+  def __invert__(self):
+    return 1 if self.sum() == 0 else 0
   def __getitem__(self, i: int):
     return self._seq[i-self._one_indexed] if 0 <= i-self._one_indexed < len(self._seq) else 0
 

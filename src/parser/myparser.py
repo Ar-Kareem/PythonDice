@@ -343,6 +343,20 @@ def p_funcname_def(p):
         p[0] = p[1].with_child(p[2])
     else:  # base case
         p[0] = Node(NodeType.FUNCNAME_DEF, p[1])
+def p_funcname_def_impossibletocall(p):
+    '''
+    funcname_def : 
+                | D_OP
+                | funcname_def D_OP
+    '''
+    # Good luck calling a function with " d " in the name. It's impossible 
+    # If a function has this in the name then it's impossible to call because a d is evaluated into an expression
+    # however, if a function with this name IS included BUT never called then the code should execute fine. Thus this rule is added
+    # SAME AS ABOVE
+    if isinstance(p[1], Node):  # recursive case
+        p[0] = p[1].with_child(p[2])
+    else:  # base case 
+        p[0] = Node(NodeType.FUNCNAME_DEF, p[1])
 def p_funcname_def_param(p):
     '''
     funcname_def : var_name

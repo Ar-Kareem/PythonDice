@@ -30,7 +30,9 @@ def do_yacc(to_parse, lexer, yaccer, verbose_yacc=False):
 
 
 def do_resolve(yacc_ret, verbose_parseed_python=False, flags=None):
-  r = PythonResolver(yacc_ret, flags=flags).resolve()
+  r = PythonResolver(yacc_ret, flags=flags)
+  r.resolve()
+  r = r.get_text()
   if verbose_parseed_python:
     logger.debug(f'Parsed python:\n{r}')
   return r

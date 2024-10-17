@@ -614,16 +614,29 @@ output !-5
 output !-10
 ''',
 r'''
-
+_A: 2
+output _A
 ''',
 r'''
-
+output !(2d4)
+output !(2d0)
+output !(0d4)
+output !(2d(2d(0d3)))
 ''',
 r'''
-
+output !({})
+output !({0})
+output !({0,0})
+output !({-1,1})
+output !({0,-1,1})
+output !({0,-1})
+output !({-2,2})
 ''',
 r'''
-
+function: d {result: 1} \impossible to call\
+function: d A {result: 1} \impossible to call\
+function: A:d {result: 1}  \can call, is just 1 param called A\
+output [ d 1 ]
 ''',
 r'''
 

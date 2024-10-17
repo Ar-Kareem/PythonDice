@@ -7,6 +7,7 @@ for development:
 to run tests:
     `conda activate ./env`
     `pip install -r requirements-test.txt`
+    `pip install -e . --config-settings editable_mode=strict`
     `python -m pytest`
     to generate test coverage:
         `pytest --cov --cov-report=html:coverage_re`
@@ -25,10 +26,8 @@ to build package:
 
 TODO
     auto __version__ https://packaging.python.org/en/latest/discussions/single-source-version/#single-source-version
-    try ~ on RV and Seqs.
     make resolver wrap () for all operators then make sure all tests pass
     make function names have uppercase so that namespace doesnt collide (if collisions resolve to uppercase and log warning? need to update imports dynamically)
-    implement myint | and turn on test testing_not_on_int
     make function depth a compiler flag?
     Build Lex Yacc test cases
     yacc line number for errors wrong
@@ -42,9 +41,5 @@ add more documentation
 
 
 
-
-KNOWN ISSUES:
-    no variable names starting with underscore, RestrictedPython raises errors
-    errors when dealing with the 3 weird operators on ints [(int @ int), #int, !int]
 
 

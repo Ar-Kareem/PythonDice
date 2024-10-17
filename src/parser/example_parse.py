@@ -1,8 +1,8 @@
 import time
 import logging
 
-import src.parser.parse_and_exec as parse_and_exec  # from "anything else" breaks
-from src.randvar import output
+import dice_calc.parser.parse_and_exec as parse_and_exec  # from "anything else" breaks
+from dice_calc.randvar import output
 
 
 trials = [
