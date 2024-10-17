@@ -1,7 +1,7 @@
 import pytest
 
-from src.randvar import RV, settings_set
-from src.parser import parse_and_exec
+from dice_calc.randvar import RV, settings_set
+from dice_calc.parser import parse_and_exec
 
 import logging
 

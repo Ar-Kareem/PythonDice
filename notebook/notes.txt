@@ -7,6 +7,7 @@ for development:
 to run tests:
     `conda activate ./env`
     `pip install -r requirements-test.txt`
+    `pip install -e . --config-settings editable_mode=strict`
     `python -m pytest`
     to generate test coverage:
         `pytest --cov --cov-report=html:coverage_re`
