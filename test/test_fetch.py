@@ -12,10 +12,7 @@ from src.parser import parse_and_exec
 
 logger = logging.getLogger(__name__)
 
-SKIP_VERSION = {  # tests to skip only for specific versions of compilers
-  'testing_not_on_int': ['v1', 'v2'],
-  'testing_maximum_function_depth': ['v1'],  # v1 permeneantly does not support this
-}  # TODO: remove this when implemented
+SKIP_VERSION = json.loads((Path(__file__).parent / 'glob_test_skip.json').read_text())['tests']
 COMP_EPS = 1e-5
 
 # specify test names below and run: pytest test/test_fetch.py -k test_cherrypick
@@ -107,9 +104,12 @@ def fixture_settings_reset():
     src.randvar._MEMOIZED_ROLLS = {}
 
 
-code_resp_pairs_v1 = [x for x in code_resp_pairs if 'v1' not in SKIP_VERSION.get(x[2], [])]
-@pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs_v1)
+# code_resp_pairs_v1 = [x for x in code_resp_pairs if 'v1' not in SKIP_VERSION.get(x[2], [])]
+@pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs)
 def test_all_fetch_v1(inp_code,anydice_resp,name):
+  v_to_skip = SKIP_VERSION.get(name, {}).get('flags', [])
+  if 'v1' in v_to_skip or 'all' in v_to_skip:
+    pytest.skip(f'Skipping {name} for v1')
   anydice_resp = json.loads(anydice_resp)
   i = 0
   def check_res(x, named):
@@ -120,9 +120,12 @@ def test_all_fetch_v1(inp_code,anydice_resp,name):
   pipeline(inp_code, version=1, global_vars={'output': lambda x, named=None: check_res(x, named)})
 
 
-code_resp_pairs_v2 = [x for x in code_resp_pairs if 'v2' not in SKIP_VERSION.get(x[2], [])]
-@pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs_v2)
+# code_resp_pairs_v2 = [x for x in code_resp_pairs if 'v2' not in SKIP_VERSION.get(x[2], [])]
+@pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs)
 def test_all_fetch_v2(inp_code,anydice_resp,name):
+  v_to_skip = SKIP_VERSION.get(name, {}).get('flags', [])
+  if 'v2' in v_to_skip or 'all' in v_to_skip:
+    pytest.skip(f'Skipping {name} for v2')
   anydice_resp = json.loads(anydice_resp)
   i = 0
   def check_res(x, named):
