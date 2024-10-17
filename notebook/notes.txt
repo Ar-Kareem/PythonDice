@@ -16,9 +16,9 @@ to run tests:
 to build package:
     `conda activate ./env`
     `rm dist/*`
-    `python3 setup.py sdist`
-    `python3 -m twine upload --repository pypi dist/*`
-    rm dist/* && python3 setup.py sdist && python3 -m twine upload --repository pypi dist/*
+    `python -m build --sdist`
+    `python -m twine upload --repository pypi dist/*`
+    rm dist/* && python -m build --sdist && python -m twine upload --repository pypi dist/*
 
 
 
