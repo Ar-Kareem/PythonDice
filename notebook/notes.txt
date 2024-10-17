@@ -1,10 +1,12 @@
-install env: 
+for development: 
     clone repo and ensure conda is installed in your system
-    `conda env create -f environment.yml`
-    `conda activate pythondice`
+    `conda env create --prefix ./env -f environment.yml`
+    `conda activate ./env`
+    `pip install -e .`
+    # for jupyter notebooks
 to run tests:
-    `conda activate pythondice`
-    `pip install -r test-requirements.txt`
+    `conda activate ./env`
+    `pip install -r requirements-test.txt`
     `python -m pytest`
     to generate test coverage:
         `pytest --cov --cov-report=html:coverage_re`
@@ -12,7 +14,7 @@ to run tests:
         add anydice code in `.\test\autoouts\fetch_in.py`
         `python .\test\autoouts\fetch.py`
 to build package:
-    `conda activate pythondice`
+    `conda activate ./env`
     `rm dist/*`
     `python3 setup.py sdist`
     `python3 -m twine upload --repository pypi dist/*`
@@ -22,6 +24,7 @@ to build package:
 
 
 TODO
+    auto __version__ https://packaging.python.org/en/latest/discussions/single-source-version/#single-source-version
     make function names have uppercase so that namespace doesnt collide (compiler flag?)
     implement myint | and turn on test testing_not_on_int
     make function depth a compiler flag

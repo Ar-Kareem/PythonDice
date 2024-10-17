@@ -1,6 +1,10 @@
 __pycache__
 .vscode
 
+# conda environment
+env/
+env-linux/
+
 # test files
 .pytest_cache
 .coverage
