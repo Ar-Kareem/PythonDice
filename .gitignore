@@ -17,5 +17,7 @@ coverage.xml
 # build files
 dist
 *.egg-info
+# for pip install -e . --config-settings editable_mode=strict
+build/  
 
 *.secret

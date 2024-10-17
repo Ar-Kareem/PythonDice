@@ -1,9 +1,9 @@
 for development: 
     clone repo and ensure conda is installed in your system
+    # you can multiple env's for different platforms i.e. ./env-linux and ./env-win etc.
     `conda env create --prefix ./env -f environment.yml`
     `conda activate ./env`
-    `pip install -e .`
-    # for jupyter notebooks
+    `pip install -e . --config-settings editable_mode=strict`
 to run tests:
     `conda activate ./env`
     `pip install -r requirements-test.txt`
