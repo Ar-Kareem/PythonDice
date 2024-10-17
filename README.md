@@ -15,7 +15,7 @@ This project is still in early development but everything mentioned above is com
 
 `pip install dice-calc`
 
-This package has no dependencies.
+This package has no dependencies. Requires `Python >= 3.10`
 
 # Basic Usage
 
@@ -28,9 +28,9 @@ Let's roll a single d20 dice (a d20 is a regular twenty sided-die)
 
 
 ```python
-from dice_calc.randvar import roll
+from dice_calc import roll, output
 X = roll(20)
-print(X)
+output(X)
 ```
 
     10.5 ± 5.77
@@ -64,9 +64,9 @@ Let's roll two d6 dice (a d6 is a regular six sided-die)
 
 
 ```python
-from dice_calc.randvar import roll
+from dice_calc import roll, output
 X = roll(2, 6)  # or roll(6) + roll(6)
-print(X)
+output(X)
 ```
 
     7.0 ± 2.42
@@ -90,9 +90,9 @@ What about rolling a D20 plus a D6?
 
 
 ```python
-from dice_calc.randvar import roll
+from dice_calc import roll, output
 X = roll(20) + roll(6)
-print(X)
+output(X)
 ```
 
     14.0 ± 6.01
@@ -129,9 +129,9 @@ What about the probability distribution of rolling two D20's with advantage (i.e
 
 
 ```python
-from dice_calc.randvar import roll
+from dice_calc import roll, output
 X = 1 @ roll(2, 20)
-print(X)
+output(X)
 ```
 
     13.82 ± 4.71
@@ -165,11 +165,11 @@ Rolling a D20 with advantage + two D6's + 5
 
 
 ```python
-from dice_calc.randvar import roll
+from dice_calc import roll, output
 D20_adv = 1 @ roll(2, 20)
 two_D6 = roll(2, 6)
 result = D20_adv + two_D6 + 5
-print(result)
+output(result)
 ```
 
     25.82 ± 5.29
@@ -216,7 +216,7 @@ Let's try calculating the total damage of the following attack on a boss in an R
 
 
 ```python
-from dice_calc.randvar import roll, anydice_casting
+from dice_calc import roll, anydice_casting
 
 @anydice_casting()
 def calculate(to_hit_roll: int, save_roll: int):  # type hinting as int REQUIRED!!!
@@ -242,17 +242,21 @@ plt.bar(vals, probs); plt.xlabel('Damage'); plt.ylabel('Probability');
 
 
     
-![png](README_files/README_15_0.png)
+![png](./README_files/./README_15_0.png)
     
 
 
 Notice how we used the decorator `@anydice_casting` to use `if` conditions on dice inside of a custom function. Typehinting the input to `int` is required, the engine knows that you want to calculate the function many times based on all possible combinations of the input random variable.
 
+The three valid typehints that the decorator `@anydice_casting` looks for are `: int`, `: Seq`, `: RV` which are equivelant to the 3 types `:n`, `:s`, and `:d` respectively in `anydice`. The casting done by `@anydice_casting` is exactly how casting is done in the `anydice` language. For more info on that please read the [documentation `functions -> Parameter types` in the `anydice` docs](https://anydice.com/docs/functions/) .
+
+Note: `Seq` and `RV` are imported from `dice_calc.randvar`
+
 # Getting probabilities as dict 
 
 
 ```python
-from dice_calc.randvar import roll
+from dice_calc import roll
 X = 1 @ roll(2, 20)  # D20 with advantage
 pdf = dict(X.get_vals_probs())
 print(pdf)
@@ -266,7 +270,7 @@ print(pdf)
 
 
 ```python
-from dice_calc.randvar import roll
+from dice_calc import roll
 X = 1 @ roll(2, 20) + 8  # D20 with advantage + 8
 
 # plotting code
@@ -278,7 +282,7 @@ plt.bar(vals, percent); plt.xlabel('Roll'); plt.ylabel('Probability %');
 
 
     
-![png](README_files/README_20_0.png)
+![png](./README_files/./README_20_0.png)
     
 
 
@@ -292,7 +296,7 @@ We convert it using the function `compile_anydice` and then execute it using our
 
 
 ```python
-from dice_calc.parser.parse_and_exec import compile_anydice
+from dice_calc.parser import compile_anydice
 
 EXAMPLE_CODE = """
 function: convert SUM:n {
@@ -313,6 +317,7 @@ print(code)
 
     compile retured type:<class 'str'>
     
+    @max_func_depth()
     @anydice_casting()
     def convert_X(SUM: int):
       if SUM >= 1000:
@@ -328,11 +333,12 @@ print(code)
 
 ```python
 # IMPORT EVERYTHING
-from dice_calc.randvar import RV, Seq, anydice_casting, output, roll, settings_set
+from dice_calc import RV, Seq, anydice_casting, max_func_depth, output, roll, settings_set
 from dice_calc.utils import myrange
 from dice_calc.funclib import absolute as absolute_X, contains as X_contains_X, count_in as count_X_in_X, explode as explode_X, highest_N_of_D as highest_X_of_X, lowest_N_of_D as lowest_X_of_X, middle_N_of_D as middle_X_of_X, highest_of_N_and_N as highest_of_X_and_X, lowest_of_N_and_N as lowest_of_X_and_X, maximum_of as maximum_of_X, reverse as reverse_X, sort as sort_X
 
 # EXECUTE CODE FROM COMPILE_ANYDICE
+@max_func_depth()
 @anydice_casting()
 def convert_X(SUM: int):
   if SUM >= 1000:
@@ -387,7 +393,7 @@ Or you can do it all in one line
 
 
 ```python
-from dice_calc.parser.parse_and_exec import compile_anydice, _get_lib
+from dice_calc.parser import compile_anydice, _get_lib
 
 EXAMPLE_CODE = """
 function: convert SUM:n {
@@ -413,32 +419,32 @@ exec(compile_anydice(EXAMPLE_CODE), _get_lib())
       8:  0.04  
       9:  0.09  
      10:  0.17  
-     11:  0.29  █
-     12:  0.48  █
+     11:  0.29  
+     12:  0.48  
      13:  0.76  █
-     14:  1.12  ██
-     15:  1.62  ███
-     16:  2.22  ████
-     17:  2.92  █████
-     18:  3.71  ███████
-     19:  4.55  ████████
-     20:  5.31  █████████
-     21:  6.00  ███████████
-     22:  6.40  ███████████
-     23:  6.51  ████████████
-     24:  6.20  ███████████
-     25:  5.61  ██████████
-     26:  4.65  ████████
-     27:  3.78  ███████
-     28:  3.14  ██████
-     29:  3.45  ██████
-     30:  3.40  ██████
-     31:  3.32  ██████
-     32:  3.16  ██████
-     33:  2.93  █████
-     34:  2.60  █████
-     35:  2.21  ████
-     36:  1.78  ███
+     14:  1.12  █
+     15:  1.62  █
+     16:  2.22  ██
+     17:  2.92  ██
+     18:  3.71  ███
+     19:  4.55  ████
+     20:  5.31  ████
+     21:  6.00  █████
+     22:  6.40  █████
+     23:  6.51  █████
+     24:  6.20  █████
+     25:  5.61  ████
+     26:  4.65  ████
+     27:  3.78  ███
+     28:  3.14  ██
+     29:  3.45  ███
+     30:  3.40  ███
+     31:  3.32  ███
+     32:  3.16  ██
+     33:  2.93  ██
+     34:  2.60  ██
+     35:  2.21  ██
+     36:  1.78  █
     ... output cropped ...
     
 
