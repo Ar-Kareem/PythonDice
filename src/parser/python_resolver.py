@@ -31,6 +31,7 @@ class PythonResolver:
         # this flag is for a very nasty behaviour in anydice where a functions variables are a temporary copy of the callers variables; see https://anydice.com/program/394f0 and https://anydice.com/program/394f1 for the ugly behaviour
         # handling this is very ugly, we pass around a dictionary of all the code's variables and copy it for each function call
         # this makes the output code look unpleasant as every variable is accessed as dict['VAR'] instead of just VAR.
+        # If you plan on understanding this file then please ignore all compiler flags and assume they are all the default value as compiler flags are just edge-cases.
         self._COMPILER_FLAG_NON_LOCAL_SCOPE = flags.pop('COMPILER_FLAG_NON_LOCAL_SCOPE', False)
 
         assert not flags, f'Unknown flags: {flags}'

@@ -463,7 +463,7 @@ As far as we tested, almost all valid `anydice` code worked perfectly using our 
 
    - The global fix for these is either to resolve the operators to our own custom functions or possibly wrap all int's with a custom int wrapper that implements these dunder methods. e.g.`len`would be `mylen`, `~` would be `myneg`, and `@` would be `mymatmul` to handle the case of primitive `int`'s are used. Or to wrap every number `N` with a custom int wrapper `i(N)` such that `2 + 3 - 4 @ 5 + #6` would become `i(2) + i(3) - i(4) @ i(5) + len(i(6))` which correctly implements the operators. Both solutions make the syntax very ugly and makes all output code less readable just to handle the rare edge-cases. Note that these changes cannot be selectively applied at compile-time only when `int`'s are involved because the compiler doesn't know if the operands are `int`'s to apply the special-case or `Seq`/`RV`where no changes are needed.
 
-2. **Naming a fucntion as an illegal reserved keywords**: There are certain keywords that are illegal for function names to be defined as. Those include: `output`, `roll`, `myrange`, `max func depth`, `anydice casting`, `settings set`. We do not believe there's any valid reason to name a function with exactly one of those 6 reserved keywords.
+2. **Naming a fucntion as an illegal reserved keywords**: There are certain keywords that are illegal for function names to be defined as. Those include: `output`, `roll`, `myrange`, `max func depth`, `anydice casting`, `settings set`, or `d`. We do not believe there's any valid reason to name a function with exactly one of those 7 reserved keywords.
 
 3. ~~Limit on global function depth.~~ **Update : #3 has been correctly implemented.**
 
