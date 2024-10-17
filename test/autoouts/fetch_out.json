@@ -88,6 +88,12 @@
       "out": "{\"distributions\":{\"data\":[[[0,100]],[[0,100]],[[0,100]],[[0,100]]],\"labels\":[\"2d2\",\"2d2\",\"d{?}\",\"2d{?}\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-16T13:21:07.744660",
       "name": "output_strings_5"
+    },
+    {
+      "inp": "\nfunction: myrange {\nresult: 2\n}\noutput [myrange]\noutput {1..4}\n",
+      "out": "{\"distributions\":{\"data\":[[[2,100]],[[1,25],[2,25],[3,25],[4,25]]],\"labels\":[\"output 1\",\"output 2\"],\"minX\":1,\"maxX\":4,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-17T03:38:48.727897",
+      "name": "testing_namespace_myrange_collision"
     }
   ]
 }

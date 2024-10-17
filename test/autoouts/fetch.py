@@ -21,7 +21,7 @@ def get_anydice_resp(inp, C):
     import requests
     return requests.post('https://anydice.com/calculator_limited.php', {'program': inp}, cookies={'anydice': C})
 
-if __name__ == '__main__':
+def main():
     cur_dir = Path(__file__).parent
     fetch_out = json.loads((cur_dir / 'fetch_out.json').read_text())
     done_inps_set = set([x['inp'] for x in fetch_out['data']])
@@ -44,3 +44,7 @@ if __name__ == '__main__':
 
     with open(cur_dir / 'fetch_out.json', 'w') as f:
         json.dump(fetch_out, f, indent=2)
+
+
+if __name__ == '__main__':
+    main()

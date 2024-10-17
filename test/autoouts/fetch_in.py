@@ -563,7 +563,11 @@ output 0 named "[A]"
 
 ''',
 r'''
-
+function: myrange {
+result: 2
+}
+output [myrange]
+output {1..4}
 ''',
 r'''
 
@@ -581,3 +585,21 @@ r'''
 
 ''',
 ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# so that you can simply run this code using vanilla vscode's code runner
+if __name__ == '__main__':
+  from fetch import main
+  main()
