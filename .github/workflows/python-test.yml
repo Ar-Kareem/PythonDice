@@ -8,10 +8,10 @@ on:
       - master
 
 jobs:
-  build-linux:
+  test-linux:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 5
+      max-parallel: 1
 
     steps:
       - uses: actions/checkout@v4
