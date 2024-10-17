@@ -570,7 +570,8 @@ output [myrange]
 output {1..4}
 ''',
 r'''
-
+A: 1 d (1 d (1 d 2))
+output 1@A named "[A]"
 ''',
 r'''
 

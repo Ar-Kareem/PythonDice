@@ -94,6 +94,11 @@
       "out": "{\"distributions\":{\"data\":[[[2,100]],[[1,25],[2,25],[3,25],[4,25]]],\"labels\":[\"output 1\",\"output 2\"],\"minX\":1,\"maxX\":4,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-17T03:38:48.727897",
       "name": "testing_namespace_myrange_collision"
+    },
+    {
+      "inp": "\nA: 1 d (1 d (1 d 2))\noutput 1@A named \"[A]\"\n",
+      "out": "{\"distributions\":{\"data\":[[[1,50],[2,50]]],\"labels\":[\"d2\"],\"minX\":1,\"maxX\":2,\"minY\":0,\"maxY\":50}}",
+      "time": "2024-10-17T11:58:54.361879"
     }
   ]
 }
