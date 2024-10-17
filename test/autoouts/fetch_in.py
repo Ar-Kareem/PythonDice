@@ -586,6 +586,64 @@ output 1 @ [sort 5d6]
 output 1 @ [a]
 ''',
 r'''
+output #-100
+output #-10
+output #-9
+output #-1
+output #0
+output #7
+output #78
+output #789
+''',
+r'''
+output -2 @ 789
+output -1 @ 789
+output 0 @ 789
+output 1 @ 789
+output 2 @ 789
+output 3 @ 789
+output 4 @ 789
+output 5 @ 789
+''',
+r'''
+output !10
+output !1
+output !0
+output !-1
+output !-5
+output !-10
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
 
 ''',
 r'''
