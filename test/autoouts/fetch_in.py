@@ -574,10 +574,16 @@ A: 1 d (1 d (1 d 2))
 output 1@A named "[A]"
 ''',
 r'''
-
-''',
-r'''
-
+function: a {
+result: [sort 5d6]
+}
+output 1 @ 5d6
+output 1 @ [sort 5d6]
+function: sort D:d {
+result: D
+}
+output 1 @ [sort 5d6]
+output 1 @ [a]
 ''',
 r'''
 
