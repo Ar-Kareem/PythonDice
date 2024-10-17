@@ -9,7 +9,7 @@ This project is still in early development but everything mentioned above is com
 
 \* as far as we know
 
-\*\* very few edge cases mentioned at the end
+\*\* very rare edge cases mentioned at the end for transparency
 
 # Installation
 
@@ -459,13 +459,13 @@ The `compile_anydice` function was a large part of this project. Under the hood 
 As far as we tested, almost all valid `anydice` code worked perfectly using our compiler, except for very few intentionally ignored subsets of `anydice` code mentioned below:
 
 
-1. **Code that includes the three operators (`!`, `#`, and `@`) on default `int`'s and nothing else.**: in `anydice`, the operators `!`, `#`, and `@` can be used on ints to perform awkward operations. If you perform the `#int` operator it returns the number of digits in the integer (i.e. `#X` is equivalent to the Python code `int(math.log10(X))+1` except `#0 == 1`). The `N @ M` operator on ints returns `int(str(p2)[p1-1])`. This is awkward syntax and is intentionally ignored as you really should avoid using `#int`. In the rare cases that you do use it, replace that part with `int(math.log10(X))+1` in the compiled code manually. If you you perform the `int @ int` operation on two ints `N` and `M`, it returns the `N-th` digit of `M` which is also weird syntax and has very few legitimate use cases. The `@` symbol in Python calls the `__matmul__` function raises a `TypeError` when both types are `int`'s and can't be avoided trivially.
+1. ~~certain operators on ints and nothing else.~~ **Update : #1 has been correctly implemented** (as an optional compiler flag)
 
-   - The global fix for these is either to resolve the operators to our own custom functions or possibly wrap all int's with a custom int wrapper that implements these dunder methods. e.g.`len`would be `mylen`, `~` would be `myneg`, and `@` would be `mymatmul` to handle the case of primitive `int`'s are used. Or to wrap every number `N` with a custom int wrapper `i(N)` such that `2 + 3 - 4 @ 5 + #6` would become `i(2) + i(3) - i(4) @ i(5) + len(i(6))` which correctly implements the operators. Both solutions make the syntax very ugly and makes all output code less readable just to handle the rare edge-cases. Note that these changes cannot be selectively applied at compile-time only when `int`'s are involved because the compiler doesn't know if the operands are `int`'s to apply the special-case or `Seq`/`RV`where no changes are needed.
+2. ~~Limit on global function depth.~~ **Update : #2 has been correctly implemented** (currently permenant but will become an optional compiler flag in the future)
 
-2. **Naming a fucntion as an illegal reserved keywords**: There are certain keywords that are illegal for function names to be defined as. Those include: `output`, `roll`, `myrange`, `max func depth`, `anydice casting`, `settings set`, or `d`. We do not believe there's any valid reason to name a function with exactly one of those 7 reserved keywords.
+3. **(very rare) Naming a fucntion as an illegal reserved keywords**: There are certain keywords that are illegal for function names to be defined as. Those include: `output`, `roll`, `myrange`, `max func depth`, `anydice casting`, `settings set`, or `d`. We do not believe there's any valid reason to name a function with exactly one of those few and exact reserved keywords.
 
-3. ~~Limit on global function depth.~~ **Update : #3 has been correctly implemented.**
+4. **(very rare) MAX_INT is higher in python than in JavaScript**: This is a very rare issue when a number is larger than $2^{53}$. See example we made here: https://anydice.com/program/39567
 
 Note: that in certain cases our **`compile_anydice` code runs while `anydice` crashes**. This is because our compiler allows certain pieces of code (like defining functions within functions or outputs inside of functions) to execute perfectly while `anydice` crashes for the same input. We do not consider this as a failiure since our goal is to make any code that runs on `anydice` to also run using our package, the reverse of that is of no concern. In fact, the descrepancy is considered a positive for us as it means we handle more pieces of code than `anydice`.
 
