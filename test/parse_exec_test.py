@@ -501,8 +501,7 @@ def test_FAIL_codev2(code):
       pipeline(code, version=2)
 
 
-unbound_var_code = [
-('''
+unbound_var_code = ('''
 function: rolla {
   B: B + 1
   result: B
@@ -510,21 +509,16 @@ function: rolla {
 B: 10
 output [rolla]
 output B
-''', [11, 10]),
-
-]
-
-@pytest.mark.parametrize("code, res", unbound_var_code)
-def test_scope_fail(code, res):
+''', [11, 10])
+def test_unbound_var_code_fail():
     with pytest.raises(Exception):
-      pipeline(code, version=1)
+      pipeline(unbound_var_code[0], version=1)
 
-@pytest.mark.parametrize("code, res", unbound_var_code)
-def test_scope_success(code, res):
+def test_unbound_var_code_success():
     i = 0
     def check_res(x):
         nonlocal i
-        check(x, res[i])
+        check(x, unbound_var_code[1][i])
         i += 1
-    pipeline(code, version=2, global_vars={'output': lambda x: check_res(x)})
-    assert i == len(res)
+    pipeline(unbound_var_code[0], version=2, global_vars={'output': lambda x: check_res(x)})
+    assert i == len(unbound_var_code[1])

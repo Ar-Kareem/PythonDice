@@ -48,8 +48,11 @@ def main(trials=trials):
       if yacc_ret is None:
         logger.debug('Parse failed')
         continue
-      python_str = parse_and_exec.do_resolve(yacc_ret)
-      logger.debug(python_str)
+      flags = {'COMPILER_FLAG_NON_LOCAL_SCOPE': True}
+      # flags = {}
+      python_str = parse_and_exec.do_resolve(yacc_ret, flags=flags)
+      logger.debug('\n'.join(f'{x}' for i, x in enumerate(python_str.split('\n'))))
+      logger.debug('\n'.join(f'{i+1}: {x}' for i, x in enumerate(python_str.split('\n'))))
       r = parse_and_exec.safe_exec(python_str, global_vars={})
       for (args, kwargs) in r:
         output(*args, **kwargs, blocks_width=50)

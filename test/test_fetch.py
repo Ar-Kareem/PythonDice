@@ -19,7 +19,7 @@ SKIP_VERSION = {  # tests to skip only for specific versions of compilers
 COMP_EPS = 1e-5
 
 # specify test names below and run: pytest test/test_fetch.py -k test_cherrypick
-CHERRYPICK = set(['output_strings_1', 'output_strings_2', 'output_strings_3', 'output_strings_4', 'output_strings_5', 'output_strings'])
+CHERRYPICK = set([])
 
 data = json.loads((Path(__file__).parent / 'autoouts' / 'fetch_out.json').read_text())['data']
 code_resp_pairs = [(x['inp'], x['out'], x.get('name', None)) for x in data]
@@ -136,6 +136,7 @@ def test_all_fetch_v2(inp_code,anydice_resp,name):
 
 
 code_resp_pairs_picked = [x for x in code_resp_pairs if x[2] in CHERRYPICK]
+@pytest.mark.skipif(len(code_resp_pairs_picked) == 0, reason='No tests cherrypicked ; nothing needed to test.')
 @pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs_picked)
 def test_cherrypick(inp_code,anydice_resp,name):
   anydice_resp = json.loads(anydice_resp)
