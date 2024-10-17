@@ -9,7 +9,7 @@ This project is still in early development but everything mentioned above is com
 
 \* as far as we know
 
-\*\* very few edge cases mentioned at the end
+\*\* very rare edge cases mentioned at the end for transparency
 
 # Installation
 
@@ -360,32 +360,32 @@ output(convert_X(highest_X_of_X(3, roll(6, Seq([myrange(1, 9), 1000])))), named=
       8:  0.04  
       9:  0.09  
      10:  0.17  
-     11:  0.29  █
-     12:  0.48  █
+     11:  0.29  
+     12:  0.48  
      13:  0.76  █
-     14:  1.12  ██
-     15:  1.62  ███
-     16:  2.22  ████
-     17:  2.92  █████
-     18:  3.71  ███████
-     19:  4.55  ████████
-     20:  5.31  █████████
-     21:  6.00  ███████████
-     22:  6.40  ███████████
-     23:  6.51  ████████████
-     24:  6.20  ███████████
-     25:  5.61  ██████████
-     26:  4.65  ████████
-     27:  3.78  ███████
-     28:  3.14  ██████
-     29:  3.45  ██████
-     30:  3.40  ██████
-     31:  3.32  ██████
-     32:  3.16  ██████
-     33:  2.93  █████
-     34:  2.60  █████
-     35:  2.21  ████
-     36:  1.78  ███
+     14:  1.12  █
+     15:  1.62  █
+     16:  2.22  ██
+     17:  2.92  ██
+     18:  3.71  ███
+     19:  4.55  ████
+     20:  5.31  ████
+     21:  6.00  █████
+     22:  6.40  █████
+     23:  6.51  █████
+     24:  6.20  █████
+     25:  5.61  ████
+     26:  4.65  ████
+     27:  3.78  ███
+     28:  3.14  ██
+     29:  3.45  ███
+     30:  3.40  ███
+     31:  3.32  ███
+     32:  3.16  ██
+     33:  2.93  ██
+     34:  2.60  ██
+     35:  2.21  ██
+     36:  1.78  █
     ... output cropped ...
     
 
@@ -459,18 +459,14 @@ The `compile_anydice` function was a large part of this project. Under the hood 
 As far as we tested, almost all valid `anydice` code worked perfectly using our compiler, except for very few intentionally ignored subsets of `anydice` code mentioned below:
 
 
-1. **Code that includes the expression `#int`**: in `anydice`, if you perform this operation it returns the number of digits in the integer (i.e. `#X` is equivalent to the Python code `int(math.log10(X))+1` (except `#0` which is `1`)). This is awkward syntax and is intentionally ignored as you really should avoid using `#int`. In the rare cases that you do use it, replace that part with `int(math.log10(X))+1` in the compiled code manually.
+1. ~~certain operators on ints and nothing else.~~ **Update : #1 has been correctly implemented** (as an optional compiler flag)
 
-   - The global fix for this is simple, instead of resolving the `#` character to the built-in `len`, we would resolve it to a custom function `mylen`. The function would return `len` unless the input is a number in which case it returns `int(math.log10(X))+1`. This is ignored to avoid having the generated code having more ambiguous functions as `mylen` (`myrange` was enough)
+2. ~~Limit on global function depth.~~ **Update : #2 has been correctly implemented** (currently permenant but will become an optional compiler flag in the future)
 
-2. **Code that includes the expression `int @ int`**: in `anydice`, if you you perform the `N @ M` operation where both are ints, it returns the `N-th` digit of `M` which is a weird syntax and has very few legitimate use cases. The `@` symbol in Python calls the `__matmul__` function (which is obviously implemented for both custom objects, RV and Seq). However, calling `__matmul__` on an `int` and `int` would raise a `TypeError`
+3. **(very rare) Naming a fucntion as an illegal reserved keywords**: There are certain keywords that are illegal for function names to be defined as. Those include: `output`, `roll`, `myrange`, `max func depth`, `anydice casting`, `settings set`, or `d`. We do not believe there's any valid reason to name a function with exactly one of those few and exact reserved keywords.
 
-   - The global fix for this is simple but very annoying. The solution would be to implement our own function `mymatmul(p1, p2)` which returns `p1 @ p2` unless both are ints in which case it would return `int(str(p2)[p1-1])`. This is annoying because it would resolve all instances of `P1 @ P2` in anydice code (frequently occurring) to the ugly syntax `mymatmul(p1, p2)` instead of literally the same `P1 @ P2`. And the only reason to use this nasty syntax is to properly handle a very rare case of `int @ int`.
+4. **(very rare) MAX_INT is higher in python than in JavaScript**: This is a very rare issue when a number is larger than $2^{53}$. See example we made here: https://anydice.com/program/39567
 
-3. **Limit on global function depth**: As mentioned in the [Anydice Documentation](https://anydice.com/docs/functions/), functions can only support a limited number of nested function calls until results are truncated. By default, this value is 10. You can try this by running the code `function: r {result: 1 + [r]} output [r]` which will yield `10` despite theoretically running indefinitely. Additionally, running the following `function: hello {result: [r]} output [hello]` yields `9` yet it's logically equivelant to the previous function. Thus, in `anydice`, a function's result depends on *where* it was called which is strange behavior and is bad programming. If this is *really* what you want then pass a `depth` variable and decrement it until it reaches zero and stop the recursion with a 0. 
+Note: that in certain cases our **`compile_anydice` code runs while `anydice` crashes**. This is because our compiler allows certain pieces of code (like defining functions within functions or outputs inside of functions) to execute perfectly while `anydice` crashes for the same input. We do not consider this as a failiure since our goal is to make any code that runs on `anydice` to also run using our package, the reverse of that is of no concern. In fact, the descrepancy is considered a positive for us as it means we handle more pieces of code than `anydice`.
 
-   - Note: the `explode` function provided in this pacakges `funclib` is **correctly implemented** including a limit on its depth. Additionally,  `set "maximum function depth" to X` is **correctly implemented**. The limit on `explode` is trivially implemented using a decrementing `depth` counter as suggested above. If you need a similar behavior in your custom functions you should do the same.
-
-   - The solution to this for a single function is trivial, track a `depth` variable. The solution for all arbitrary functions is not complex; Simply having a decorator track the current stack level using a global `CUR_DEPTH` variable and refuse to call the function if `CUR_DEPTH` reaches `MAX_DEPTH`. This is yet to be implemented but could be depending on if it's needed 
-
-If you discover any code that behaves differently when run on `anydice.com` and when run here using `compile_anydice` then please report it to us as an issue so we can keep improving this package.
+If you discover any code that behaves differently when run on `anydice.com` then please report it to us as an issue so we can keep improving this package.

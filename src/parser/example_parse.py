@@ -1,3 +1,4 @@
+import time
 import logging
 
 import src.parser.parse_and_exec as parse_and_exec  # from "anything else" breaks
@@ -6,12 +7,6 @@ from src.randvar import output
 
 trials = [
 r'''
-
-
-loop P over {1..5} {
- output 1 named "INLOOP%[P]%"
-}
-
 
 '''
 ]
@@ -53,9 +48,12 @@ def main(trials=trials):
       python_str = parse_and_exec.do_resolve(yacc_ret, flags=flags)
       logger.debug('\n'.join(f'{x}' for i, x in enumerate(python_str.split('\n'))))
       logger.debug('\n'.join(f'{i+1}: {x}' for i, x in enumerate(python_str.split('\n'))))
+      s = time.time()
       r = parse_and_exec.safe_exec(python_str, global_vars={})
+      time_taken = time.time()-s
       for (args, kwargs) in r:
         output(*args, **kwargs, blocks_width=50)
+      logger.debug(f'Time taken: {time_taken:.2f}s')
     except Exception as e:
       logger.exception(e)
       return

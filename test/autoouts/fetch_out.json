@@ -24,13 +24,13 @@
       "inp": "\noutput (! 2)>3\noutput ! (2>3)\noutput 2 > !3\noutput ! 2>3\n",
       "out": "{\"distributions\":{\"data\":[[[0,100]],[[1,100]],[[1,100]],[[0,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-15T19:38:29.988176",
-      "name": "testing_not_on_int"
+      "name": "operators_on_ints"
     },
     {
       "inp": "\noutput ! 5\noutput ! 0\noutput ! -5\noutput ! (1 > 2)\noutput ! (1 < 2)\n",
       "out": "{\"distributions\":{\"data\":[[[0,100]],[[1,100]],[[0,100]],[[1,100]],[[0,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\",\"output 5\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-15T19:40:05.080243",
-      "name": "testing_not_on_int"
+      "name": "operators_on_ints"
     },
     {
       "inp": "\noutput d6\noutput 1d6 + 4\noutput 2d6 named \"2d6 vary independently of each other\"\noutput 2*d6 named \"2*d6 depends on only one dice roll\"\nX:d6\noutput X + X named \"Variables capture entire distributions\"\noutput [highest 1 of 2d20]\noutput [lowest 1 of 2d20]\noutput [highest 1 of 2d20]\noutput [highest of d20 and d20]\noutput 1d4 + 5 named \"1d4 dagger + 5 dex\"\noutput 2d6 + 5 named \"2d6 greatsword + 5 str\"\noutput 1d8 + 4 + 3d6 named \"1d8 longbow + 4 dex + 3d6 sneak attack\"\noutput d20 + 3 + 4 named \"+3 proficiency +4 strength\"\noutput d20 + 3 + 4 + d4 named \"+3 proficiency +4 strength with bless\"\noutput [highest 1 of 2d20] + 3 + 4 named \"+3 proficiency +4 strength with advantage\"\noutput d20 + 3 + 4 + 2 named \"+3 proficiency +4 dexterity +2 archery fighting style\"\noutput [lowest 1 of 2d20] + 3 + 4 named \"+3 proficiency +4 strength with disadvantage\"\noutput [highest of [lowest of d20 + 3 + 4 - 15 + 1 and 1] and 0] named \"+3 proficiency +4 strength\"\noutput [highest of [lowest of d20 + 3 + 4 + d4 - 15 + 1 and 1] and 0] named \"+3 proficiency +4 strength with bless\"\noutput [highest of [lowest of [highest 1 of 2d20] + 3 + 4 - 15 + 1 and 1] and 0] named \"+3 proficiency +4 strength with advantage\"\noutput [highest of [lowest of d20 + 3 + 4 + 2 - 15 + 1 and 1] and 0] named \"+3 proficiency +4 strength +2 archery fighting style\"\noutput [highest of [lowest of [lowest 1 of 2d20] + 3 + 4 - 15 + 1 and 1] and 0] named \"+3 proficiency +4 strength with disadvantage\"\noutput\n[highest of [lowest of d20 + 2 + 3 - 13 + 1 and 1] and 0] * (1d6 + 3) +\n[highest of [lowest of d20 + 2 + 3 - 13 + 1 and 1] and 0] * (1d6 + 3)\nnamed \"Two-weapon fighting\"\n\noutput\n[highest of [lowest of d20 + 2 + 3 - 13 + 1 and 1] and 0] * (1d8 + 3 + 2) \nnamed \"Dueling\"\n\noutput\n[highest of [lowest of d20 + 2 + 3 + 2 - 13 + 1 and 1] and 0] * (1d10 + 3) \nnamed \"Archery\"\n\noutput\n[highest of [lowest of d20 + 2 + 3 - 13 + 1 and 1] and 0] * (2d6 + 3) \nnamed \"Defense (Greatsword)\"\n\noutput [highest 1 of 2d20 + 100]\noutput [highest 1 of 2d20] + 100\noutput 1d{0, 0, 0, 1d4}\noutput 1d{0, 0, 0, 1, 2, 3, 4}\noutput 1d{0, 1} * 1d6 + 4\noutput 1d{0, 1} * (1d6 + 4) \n",
@@ -94,6 +94,34 @@
       "out": "{\"distributions\":{\"data\":[[[2,100]],[[1,25],[2,25],[3,25],[4,25]]],\"labels\":[\"output 1\",\"output 2\"],\"minX\":1,\"maxX\":4,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-17T03:38:48.727897",
       "name": "testing_namespace_myrange_collision"
+    },
+    {
+      "inp": "\nA: 1 d (1 d (1 d 2))\noutput 1@A named \"[A]\"\n",
+      "out": "{\"distributions\":{\"data\":[[[1,50],[2,50]]],\"labels\":[\"d2\"],\"minX\":1,\"maxX\":2,\"minY\":0,\"maxY\":50}}",
+      "time": "2024-10-17T11:58:54.361879"
+    },
+    {
+      "inp": "\nfunction: a {\nresult: [sort 5d6]\n}\noutput 1 @ 5d6\noutput 1 @ [sort 5d6]\nfunction: sort D:d {\nresult: D\n}\noutput 1 @ [sort 5d6]\noutput 1 @ [a]\n",
+      "out": "{\"distributions\":{\"data\":[[[1,0.0128600823045],[2,0.39866255144],[3,2.71347736626],[4,10.0437242798],[5,27.0190329218],[6,59.8122427984]],[[5,0.0128600823045],[6,0.0643004115226],[7,0.192901234568],[8,0.450102880658],[9,0.900205761317],[10,1.62037037037],[11,2.63631687243],[12,3.92232510288],[13,5.4012345679],[14,6.94444444444],[15,8.37191358025],[16,9.45216049383],[17,10.0308641975],[18,10.0308641975],[19,9.45216049383],[20,8.37191358025],[21,6.94444444444],[22,5.4012345679],[23,3.92232510288],[24,2.63631687243],[25,1.62037037037],[26,0.900205761317],[27,0.450102880658],[28,0.192901234568],[29,0.0643004115226],[30,0.0128600823045]],[[1,0.0128600823045],[2,0.39866255144],[3,2.71347736626],[4,10.0437242798],[5,27.0190329218],[6,59.8122427984]],[[1,0.0128600823045],[2,0.39866255144],[3,2.71347736626],[4,10.0437242798],[5,27.0190329218],[6,59.8122427984]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\"],\"minX\":1,\"maxX\":30,\"minY\":0,\"maxY\":59.8122427984}}",
+      "time": "2024-10-17T12:25:00.824039"
+    },
+    {
+      "inp": "\noutput #-100\noutput #-10\noutput #-9\noutput #-1\noutput #0\noutput #7\noutput #78\noutput #789\n",
+      "out": "{\"distributions\":{\"data\":[[[3,100]],[[2,100]],[[1,100]],[[1,100]],[[1,100]],[[1,100]],[[2,100]],[[3,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\",\"output 5\",\"output 6\",\"output 7\",\"output 8\"],\"minX\":1,\"maxX\":3,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-17T14:04:17.851607",
+      "name": "operators_on_ints"
+    },
+    {
+      "inp": "\noutput -2 @ 789\noutput -1 @ 789\noutput 0 @ 789\noutput 1 @ 789\noutput 2 @ 789\noutput 3 @ 789\noutput 4 @ 789\noutput 5 @ 789\n",
+      "out": "{\"distributions\":{\"data\":[[[0,100]],[[0,100]],[[0,100]],[[7,100]],[[8,100]],[[9,100]],[[0,100]],[[0,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\",\"output 5\",\"output 6\",\"output 7\",\"output 8\"],\"minX\":0,\"maxX\":9,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-17T14:04:19.071101",
+      "name": "operators_on_ints"
+    },
+    {
+      "inp": "\noutput !10\noutput !1\noutput !0\noutput !-1\noutput !-5\noutput !-10\n",
+      "out": "{\"distributions\":{\"data\":[[[0,100]],[[0,100]],[[1,100]],[[0,100]],[[0,100]],[[0,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\",\"output 5\",\"output 6\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-17T14:04:20.051095",
+      "name": "operators_on_ints"
     }
   ]
 }

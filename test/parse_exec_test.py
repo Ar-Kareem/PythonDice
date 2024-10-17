@@ -11,7 +11,7 @@ def pipeline(to_parse, version, global_vars={}):
   if version == 1:  # regular
     flags = None
   elif version == 2:  # the very ugly local scope fix
-    flags = {'COMPILER_FLAG_NON_LOCAL_SCOPE': True}
+    flags = {'COMPILER_FLAG_NON_LOCAL_SCOPE': True, 'COMPILER_FLAG_OPERATOR_ON_INT': True}
   else:
     assert False, f'Unknown version {version}'
 

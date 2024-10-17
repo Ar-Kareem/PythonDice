@@ -33,6 +33,7 @@ DEFAULT_SETTINGS = {
   'DEFAULT_OUTPUT_WIDTH': 180,  # default width of output
   'DEFAULT_PRINT_FN': print,  # default print function
   'INTERNAL_CURR_DEPTH': 0,  # internal use only, for max_func_depth decorator
+  'INTERNAL_CURR_DEPTH_WARNING_PRINTED': False,  # used with the above
 
   'position order': 'highest first',  # 'highest first' or 'lowest first'
   'explode depth': 2,  # can only be set to a positive integer (the default is 2)
@@ -607,8 +608,10 @@ def max_func_depth(depth=None):
     def wrapper(*args, **kwargs):
       if SETTINGS['INTERNAL_CURR_DEPTH'] >= depth:
         msg = f'The maximum function depth was exceeded, results are truncated.'
-        logger.warning(msg)
-        print(msg)
+        if not SETTINGS['INTERNAL_CURR_DEPTH_WARNING_PRINTED']:
+          logger.warning(msg)
+          print(msg)
+          SETTINGS['INTERNAL_CURR_DEPTH_WARNING_PRINTED'] = True
         return 0
       SETTINGS['INTERNAL_CURR_DEPTH'] += 1
       res = func(*args, **kwargs)
