@@ -122,6 +122,12 @@
       "out": "{\"distributions\":{\"data\":[[[0,100]],[[0,100]],[[1,100]],[[0,100]],[[0,100]],[[0,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\",\"output 5\",\"output 6\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-17T14:04:20.051095",
       "name": "operators_on_ints"
+    },
+    {
+      "inp": "\n_A: 2\noutput _A\n",
+      "out": "{\"distributions\":{\"data\":[[[2,100]]],\"labels\":[\"output 1\"],\"minX\":2,\"maxX\":2,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-17T16:07:01.688069",
+      "name": "name_starts_with_underscore"
     }
   ]
 }

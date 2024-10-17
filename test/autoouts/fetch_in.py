@@ -614,7 +614,8 @@ output !-5
 output !-10
 ''',
 r'''
-
+_A: 2
+output _A
 ''',
 r'''
 
