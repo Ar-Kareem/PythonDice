@@ -11,11 +11,22 @@ This project is still in early development but everything mentioned above is com
 
 \*\* except very rare edge cases (e.g. using numbers >$2^{53}$ causing `anydice` to potentially perform incorrect/different calculations) mentioned at the end for transparency.
 
+# Features
+
+1. Ability to compile and run any `anydice` script **directly and locally in python** with a single function call.
+   * Of course, this means that all operations and functions that are available in `anydice` are available in this package.
+
+2. Ability to write scripts that combine the complexity of the `anydice` language with the power of Python (built-in libraries such as `itertools`, custom classes, etc.).
+
+3. Very light-weight pure Python implementation with zero dependencies. Using this package requires no other modules. 
+
+4. Package is actively maintained (as of October 2024) and we welcome all new issues/questions/feedback/suggestions
+
 # Installation
 
 `pip install dice-calc`
 
-This package has no dependencies. Requires `Python >= 3.10`
+This package has no dependencies. Requires `Python >= 3.9`
 
 # Basic Usage
 
@@ -213,14 +224,14 @@ Any RV object (dice / random variable) can be rolled using the `rolled` function
 
 ```python
 from dice_calc import roll, roller
-X = 1 @ roll(2, 20)
+X = 1 @ roll(2, 20)  # rolls a d20 with advantage
 roller(X)  # gets a random value from rolling a d20 with advantage
 ```
 
 
 
 
-    13
+    14
 
 
 
@@ -260,7 +271,7 @@ plt.bar(vals, probs); plt.xlabel('Damage'); plt.ylabel('Probability');
 
 
     
-![png](./README_files/./README_17_0.png)
+![png](./README_files/./README_18_0.png)
     
 
 
@@ -300,7 +311,7 @@ plt.bar(vals, percent); plt.xlabel('Roll'); plt.ylabel('Probability %');
 
 
     
-![png](./README_files/./README_22_0.png)
+![png](./README_files/./README_23_0.png)
     
 
 
@@ -474,7 +485,7 @@ Note that calls to the built-in python function `exec` executes arbitrary code a
 
 The `compile_anydice` function was a large part of this project. Under the hood it is a custom compiler built using Python's implementation of `lex` and `yacc` provided by [`PLY (Python Lex-Yacc)`](https://github.com/dabeaz/ply).
 
-As far as we tested, almost all valid `anydice` code worked perfectly using our compiler, except for very few intentionally ignored subsets of `anydice` code mentioned below:
+As far as we tested, almost all valid `anydice` code worked perfectly using our compiler, except for extremely rare/intentionally ignored subsets of `anydice` code mentioned below:
 
 
 1. ~~certain operators on ints and nothing else.~~ **Update : #1 has been correctly implemented** (as an optional compiler flag)
