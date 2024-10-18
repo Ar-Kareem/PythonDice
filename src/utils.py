@@ -1,9 +1,9 @@
-from typing import Iterable, TypeVar
+from typing import Iterable, TypeVar, Union
 
 
 T = TypeVar('T')
 T_flat = Iterable[T]
-T_ifs = T|Iterable['T_ifs']  # recursive type
+T_ifs = Union[T, Iterable['T_ifs']]  # recursive type
 T_s = Iterable['T_ifs']  # same as T_ifs but excludes int and float (not iterable)
 
 def flatten(items: T_s) -> T_flat:

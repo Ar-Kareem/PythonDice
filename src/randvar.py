@@ -7,6 +7,7 @@ from itertools import zip_longest, product, combinations_with_replacement, accum
 import inspect
 from collections import defaultdict
 import logging
+import random
 
 from . import utils
 
@@ -15,9 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 # TYPE DEFINITIONS
-T_if = int|float
-T_ifs = T_if|Iterable['T_ifs']  # recursive type
-T_is = int|Iterable['T_is']  # recursive type
+T_if = Union[int, float]
+T_ifs = Union[T_if, Iterable['T_ifs']]  # recursive type
+T_is = Union[int, Iterable['T_is']]  # recursive type
 
 T_isr = Union[T_is, 'RV']
 T_ifr = Union[T_if, 'RV']
@@ -84,7 +85,7 @@ class RV:
     self._source_roll = 1
     self._source_die = self
 
-    self._str_LHS_RHS: tuple[T_if, T_if|str] = (1, '{?}')  # used for __str__
+    self._str_LHS_RHS: tuple[T_if, Union[T_if, str]] = (1, '{?}')  # used for __str__
 
   @staticmethod
   def _sort_and_group(vals: Iterable[float], probs: Iterable[int], skip_zero_probs, normalize):
@@ -119,7 +120,7 @@ class RV:
     return RV(s._seq, [1]*len(s))
 
   @staticmethod
-  def from_rvs(rvs: Iterable['int|float|RV'], weights: Iterable[int]|None=None) -> 'RV':
+  def from_rvs(rvs: Iterable[Union['int', 'float', 'RV']], weights: Union[Iterable[int], None]=None) -> 'RV':
     rvs = tuple(rvs)
     if weights is None:
       weights = [1]*len(rvs)
@@ -581,7 +582,7 @@ def anydice_casting(verbose=False):
       # FINALLY take product of all possible rolls
       all_rolls_and_probs = product(*all_rolls_and_probs)
 
-      res_vals: list[RV|int|float] = []
+      res_vals: list[Union[RV, int, float]] = []
       res_probs: list[int] = []
       for rolls_and_prob in all_rolls_and_probs:
         rolls = tuple(r for r, _ in rolls_and_prob)
@@ -628,7 +629,7 @@ def max_func_depth(depth=None):
 def _sum_at(orig: Seq, locs: Seq):
   return sum(orig[int(i)] for i in locs)
 
-def roll(n: T_isr|str, d: T_isr|None=None) -> RV:
+def roll(n: Union[T_isr, str], d: Union[T_isr, None]=None) -> RV:
   """Roll n dice of d sides
 
   Args:
@@ -667,7 +668,7 @@ def roll(n: T_isr|str, d: T_isr|None=None) -> RV:
   result._str_LHS_RHS = (_LHS, _RHS)
   return result
 
-def _roll(n: int|Seq|RV, d: int|Seq|RV) -> RV:
+def _roll(n: Union[int, Seq, RV], d: Union[int, Seq, RV]) -> RV:
   if isinstance(d, int):
     if d > 0:
       d = RV.from_seq(range(1, d+1))
@@ -751,3 +752,12 @@ def output(rv: T_isr, named=None, show_pdf=True, blocks_width=None, print_=True,
       print_fn(result)
   else:
     return result
+
+def roller(rv: T_isr, count: Union[int, None]=None):
+  if isinstance(rv, int) or isinstance(rv, Iterable) or isinstance(rv, bool):
+    rv = RV.from_seq([rv])
+  assert isinstance(rv, RV), 'rv must be a RV'
+  # roll using random.choices
+  if count is None:
+    return random.choices(rv.vals, rv.probs)[0]
+  return tuple(random.choices(rv.vals, rv.probs)[0] for _ in range(count))

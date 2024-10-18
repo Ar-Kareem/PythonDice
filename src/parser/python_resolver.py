@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 from .myparser import Node, NodeType
 
@@ -50,7 +51,7 @@ class PythonResolver:
         self._user__defined_functions: list[str] = []
         self._called_functions: set[str] = set()
         self._output_counter = 0
-        self.result_text: str|None = None
+        self.result_text: Union[str, None] = None
 
     def _check_nested_str(self, node):
         if isinstance(node, Node):
@@ -83,7 +84,7 @@ class PythonResolver:
         assert self.result_text is not None, 'No text generated. Call resolve() first'
         return self.result_text
 
-    def _indent_resolve(self, node: 'Node|str') -> str:
+    def _indent_resolve(self, node: Union['Node', 'str']) -> str:
         """Given a node, resolve it and indent it. node to indent: if/elif/else, loop, function"""
         return self._indent_str(self.resolve_node(node))
 
@@ -91,7 +92,7 @@ class PythonResolver:
         """Indent a string by self.indent_level spaces for each new line"""
         return '\n'.join(' '*self.INDENT_LEVEL + x for x in s.split('\n'))
 
-    def resolve_node(self, node: 'Node|str') -> str:
+    def resolve_node(self, node: Union['Node', 'str']) -> str:
         assert node is not None, 'Got None'
         assert not isinstance(node, str), f'resolver error, not sure what to do with a string: {node}. All strings should be a Node ("string", str|strvar...)'
 

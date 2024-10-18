@@ -1,3 +1,4 @@
+from typing import Union
 import pytest
 
 import dice_calc.randvar as randvar
@@ -151,7 +152,7 @@ def test_almost_zero():
 
 def test_cast_return_None():
     @anydice_casting()
-    def f(A:int) -> int|None:
+    def f(A:int) -> Union[int, None]:
         if A > 2:
             return A
     assert RV.dices_are_equal( f(roll(2, 2)) , RV((3, 4), (2, 1)) )  # type: ignore
