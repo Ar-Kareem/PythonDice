@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools >= 61.0"]
+requires = ["setuptools >= 61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "dice_calc"
-version = "0.2.10"
+version = "0.2.12"
 description = "Advanced Calculator for Dice"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -24,12 +24,13 @@ classifiers = [
 
     "License :: OSI Approved :: MIT License",
     
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 
-requires-python = ">=3.10.0"
+requires-python = ">=3.9.0"
 
 [project.urls]
 Homepage = "https://github.com/Ar-Kareem/PythonDice/"
@@ -45,6 +46,6 @@ packages = [
     "dice_calc.parser.ply"
 ]
 
-#build and pypi push            rm dist/* && python -m build --sdist && python -m twine upload --repository pypi dist/*
+#build and pypi push            rm dist/* && python -m build --sdist --wheel && python -m twine upload --repository pypi dist/*
 
 # test package locally                 pip uninstall -y dice_calc ; pip install ..\..\..\pythondice\dist\dice_calc-0.0.9.tar.gz ; python ./test.py

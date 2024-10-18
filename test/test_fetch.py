@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Sequence, Union
 import pytest
 import logging
 import json
@@ -78,7 +78,7 @@ def pipeline(to_parse, version, global_vars={}):
   r = parse_and_exec.safe_exec(python_str, global_vars=global_vars)
   return r
 
-def check(inp: RV|Seq|int, expected, i):
+def check(inp: Union[RV, Seq, int], expected, i):
   # clear (null, null) from expected
   expected = [x for x in expected if x != [None, None]]
   # assert not expected, expected

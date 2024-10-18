@@ -1,5 +1,6 @@
 from enum import Enum
 import logging
+from typing import Union
 
 
 from .ply.lex import lex
@@ -184,7 +185,7 @@ class Node:
     def __iter__(self):
         return iter(self.vals)
     @property
-    def val(self) -> 'str|Node':
+    def val(self) -> Union['str', 'Node']:
         assert len(self.vals) == 1, f'Expected 1 child, got {len(self.vals)}'
         return self.vals[0]
     def __repr__(self):
