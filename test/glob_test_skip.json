@@ -2,12 +2,20 @@
     "about" : "This is a file specifying the tests to skip. each test.py file (that has tests to skip) should read this json and skip accoardingly",
     "format": "tests: {test_name: {reason: 'reason for skipping', flags: optional flags}}",
     "tests": {
+        "js_maxint_reached_2^53_anydice_calc_wrong": {
+            "reason": "JS has int limit of 2^53, exceeding will cause errors, will not support ; permanent issue",
+            "flags": ["all"]
+        },
         "testing_maximum_function_depth": {
             "reason": "v1 permeneantly does not support this",
             "flags": ["v1"]
         },
         "operators_on_ints": {
             "reason": "v1 permeneantly does not support this",
+            "flags": ["v1"]
+        },
+        "name_starts_with_underscore": {
+            "reason": "safe exec does not support variables starting with underscore ; v2 uses dict for vars so _ are ok",
             "flags": ["v1"]
         },
         "name_starts_with_underscore": {

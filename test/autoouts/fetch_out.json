@@ -146,6 +146,12 @@
       "out": "{\"distributions\":{\"data\":[[[1,100]]],\"labels\":[\"output 1\"],\"minX\":1,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-17T16:50:27.477698",
       "name": "uncallable_function_name_with_space_d_space"
+    },
+    {
+      "inp": "\noutput 922340 - 9999999999999999999/10000000000000  \n",
+      "out": "{\"distributions\":{\"data\":[[[3,100]]],\"labels\":[\"output 1\"],\"minX\":3,\"maxX\":3,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-18T07:07:05.246933",
+      "name": "js_maxint_reached_2^53_anydice_calc_wrong"
     }
   ]
 }

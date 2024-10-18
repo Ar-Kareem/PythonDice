@@ -638,8 +638,9 @@ function: d A {result: 1} \impossible to call\
 function: A:d {result: 1}  \can call, is just 1 param called A\
 output [ d 1 ]
 ''',
+# SHOWING THAT MAX INT IS WRONG
 r'''
-
+output 922340 - 9999999999999999999/10000000000000  
 ''',
 r'''
 
