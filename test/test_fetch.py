@@ -29,6 +29,8 @@ class cust_np_array:
     _s = x
     while isinstance(_s, Sequence):
       self.shape.append(len(_s))
+      if len(_s) == 0:
+        break
       _s = _s[0]
   def __add__(self, other: float):  # dummy add just to fudge single element
     x = copy.deepcopy(self.x)
@@ -90,7 +92,7 @@ def check(inp: Union[RV, Seq, int], expected, i):
   x = [[v, p*100] for v, p in inp.get_vals_probs()]
   cust_x = cust_np_array(x)
   cust_expected = cust_np_array(expected)
-  assert cust_x.shape == cust_expected.shape, f'A: {x}, B: {expected}'
+  assert cust_x.shape == cust_expected.shape, f'shape mismatch | shpaes A: {cust_x.shape}, B: {cust_expected.shape} | A: {x}, B: {expected}'
   assert not all_close(cust_x, cust_expected+0.01, atol=COMP_EPS), f'How is allcose true here???'
   assert all_close(cust_x, cust_expected, atol=COMP_EPS), f'i:{i}|ME: {x}, ONLINE: {expected} diff: {sum_diff_iterable(x, expected)}'
   # for a, b in zip(x, expected):
@@ -117,6 +119,7 @@ def test_all_fetch_v1(inp_code,anydice_resp,name):
   i = 0
   def check_res(x, named):
     nonlocal i
+    assert i < len(anydice_resp['distributions']['data']), f'i:{i}| ground truth shorter than expected. {len(anydice_resp["distributions"]["data"])}'
     assert named is None or named == anydice_resp['distributions']['labels'][i], f'i:{i}| named does not match expected. expected: {anydice_resp["distributions"]["labels"][i]}, got: {named}'
     check(x, anydice_resp['distributions']['data'][i], i)
     i += 1
@@ -133,6 +136,7 @@ def test_all_fetch_v2(inp_code,anydice_resp,name):
   i = 0
   def check_res(x, named):
     nonlocal i
+    assert i < len(anydice_resp['distributions']['data']), f'i:{i}| ground truth shorter than expected. {len(anydice_resp["distributions"]["data"])}'
     assert named is None or named == anydice_resp['distributions']['labels'][i], f'i:{i}| named does not match expected. expected: {anydice_resp["distributions"]["labels"][i]}, got: {named}'
     check(x, anydice_resp['distributions']['data'][i], i)
     i += 1
@@ -151,6 +155,7 @@ def test_cherrypick(inp_code,anydice_resp,name):
     nonlocal i
     label = anydice_resp['distributions']['labels'][i]
     logger.warning(str(i) + ' ' + str(named))
+    assert i < len(anydice_resp['distributions']['data']), f'i:{i}| ground truth shorter than expected. {len(anydice_resp["distributions"]["data"])}'
     assert named is None or str(named) == str(label), f'i:{i}| named does not match expected. expected: {label}, got: {named}'
 
     check(x, anydice_resp['distributions']['data'][i], i)
