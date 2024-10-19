@@ -608,12 +608,11 @@ def anydice_casting(verbose=False):
     return wrapper
   return decorator
 
-def max_func_depth(depth=None):
+def max_func_depth():
   # decorator to limit the depth of the function calls
-  depth = depth if depth is not None else SETTINGS['maximum function depth']
   def decorator(func):
     def wrapper(*args, **kwargs):
-      if SETTINGS['INTERNAL_CURR_DEPTH'] >= depth:
+      if SETTINGS['INTERNAL_CURR_DEPTH'] >= SETTINGS['maximum function depth']:
         msg = f'The maximum function depth was exceeded, results are truncated.'
         if not SETTINGS['INTERNAL_CURR_DEPTH_WARNING_PRINTED']:
           logger.warning(msg)
