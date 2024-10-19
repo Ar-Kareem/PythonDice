@@ -1015,10 +1015,39 @@ Y: {X}+0
 output Y named "7 [Y]"
 ''',
 r'''
+function: f {}
 
+X: ({}d{})
+output X named "1 [X]"
+
+X: {}
+output X=X named "2 [X]=[X]"
+
+output [f]=[f] named "3 [f]=[f]"
+X: [f]
+output X=X named "3 [f]=[f]"
+
+X: {}d0
+output X named "4 {}d0"
+
+X: 0d{}
+output X named "4 0d{}"
+
+X: {}d0
+output X=X named "5 {}d0={}d0"
+
+X: ({}d{})
+output X=X named "6 [X]"
+
+X: ({}d{})+0
+output X named "7 [X]"
 ''',
 r'''
-
+function: f {}
+function: all A:n B:s C:d {
+result: C
+}
+output [all [f] [f] [f]]
 ''',
 r'''
 
