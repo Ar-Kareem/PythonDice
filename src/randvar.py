@@ -602,6 +602,8 @@ def anydice_casting(verbose=False):
           val = val.sum()
         res_vals.append(val)
         res_probs.append(prob)
+      if len(res_vals) == 0:
+        return None
       return RV.from_rvs(rvs=res_vals, weights=res_probs)
     return wrapper
   return decorator
@@ -722,16 +724,27 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   return rv
 
 
-def output(rv: T_isr, named=None, show_pdf=True, blocks_width=None, print_=True, print_fn=None, cdf_cut=0):
+def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None, print_=True, print_fn=None, cdf_cut=0):
   if isinstance(rv, int) or isinstance(rv, Iterable) or isinstance(rv, bool):
     rv = RV.from_seq([rv])
-  assert isinstance(rv, RV), 'rv must be a RV'
   if blocks_width is None:
     blocks_width = SETTINGS['DEFAULT_OUTPUT_WIDTH']
 
   result = ''
   if named is not None:
     result += named + ' '
+
+  if rv is None:
+    result += '\n' + '-' * (blocks_width + 8)
+    if print_:
+      if print_fn is None:
+        SETTINGS['DEFAULT_PRINT_FN'](result)
+      else:
+        print_fn(result)
+      return
+    else:
+      return result
+  assert isinstance(rv, RV), f'rv must be a RV {rv}'
 
   mean = rv.mean()
   mean = round(mean, 2) if mean is not None else None
@@ -750,6 +763,7 @@ def output(rv: T_isr, named=None, show_pdf=True, blocks_width=None, print_=True,
       SETTINGS['DEFAULT_PRINT_FN'](result)
     else:
       print_fn(result)
+    return
   else:
     return result
 

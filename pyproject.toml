@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dice_calc"
-version = "0.2.13"
+version = "0.2.14"
 description = "Advanced Calculator for Dice"
 readme = "README.md"
 license = { file = "LICENSE" }

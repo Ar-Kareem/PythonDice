@@ -643,13 +643,25 @@ r'''
 output 922340 - 9999999999999999999/10000000000000  
 ''',
 r'''
-
+output {1..3}@4d6 named "4d6 drop lowest"
 ''',
 r'''
 
+function: evaluate S:s {
+ 
+}
+X: [evaluate 1d1] 
+
+output X
 ''',
 r'''
 
+function: evaluate S:s {
+ 
+}
+X: [evaluate 1] 
+
+output X
 ''',
 r'''
 

@@ -79,6 +79,9 @@ def pipeline(to_parse, version, global_vars={}):
   return r
 
 def check(inp: Union[RV, Seq, int], expected, i):
+  if inp is None and expected == []:
+    return
+  logger.warning(f'Checking {inp} against {expected}')
   # clear (null, null) from expected
   expected = [x for x in expected if x != [None, None]]
   # assert not expected, expected
