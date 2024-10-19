@@ -862,7 +862,7 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   if sum_ <= sum_limit:
     return rv
   normalizing_const = int(10e10 * sum_ // sum_limit)
-  logger.warn(f'WARNING reducing probabilities | sum limit {sum_limit}, sum{sum_:.1g}, NORMALIZING BY {normalizing_const:.1g} | from my calc, abs err <= {1/(sum_/normalizing_const - 1)}')
+  logger.warning(f'WARNING reducing probabilities | sum limit {sum_limit}, sum{sum_:.1g}, NORMALIZING BY {normalizing_const:.1g} | from my calc, abs err <= {1/(sum_/normalizing_const - 1)}')
   # napkin math for the error. int(x) = x - x_ϵ where x_ϵ∈[0,1) is for the rounding error. Don't quote me on this math, not 100% sure.
   # P(x_i )=p_i/(∑p_i )  before normalization (p_i is an integer probability unbounded)
   # P(x_i )=p_i/(∑▒Nint(p_i/N) )  after normalization

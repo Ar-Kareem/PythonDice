@@ -83,8 +83,8 @@ def pipeline(to_parse, version, global_vars={}):
 def check(inp: Union[RV, Seq, int], expected, i):
   if isinstance(inp, BlankRV) and expected == []:  # outputting blank gives nothing
     return
-  if inp is None and expected == []:  # outputting None gives nothing
-    return
+  # if inp is None and expected == []:  # outputting None gives nothing
+  #   return
   if isinstance(inp, Seq) and len(inp) == 0 and expected == []:  # outputting emtpy seq gives nothing
     return
   logger.warning(f'Checking {inp} against {expected}')

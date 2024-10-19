@@ -2,24 +2,12 @@
     "about" : "This is a file specifying the tests to skip. each test.py file (that has tests to skip) should read this json and skip accoardingly",
     "format": "tests: {test_name: {reason: 'reason for skipping', flags: optional flags}}",
     "tests": {
-        "seq_with_no_args": {
-            "reason": "TODO implement this",
-            "flags": ["NO"]
-        },
-        "special_none_type_object": {
-            "reason": "TODO implement this",
-            "flags": ["NO"]
-        },
         "Anydice_bug_special_case_where_dice_prob_equal_0_is_displayed": {
             "reason": "TODO implement this",
             "flags": ["all"]
         },
         "Anydice_bug_dice_prob_less_than_100_percent": {
             "reason": "TODO",
-            "flags": ["all"]
-        },
-        "max_func_depth": {
-            "reason": "TODO implement this",
             "flags": ["all"]
         },
         "duplicate_arg_name": {
