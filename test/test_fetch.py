@@ -6,7 +6,7 @@ from pathlib import Path
 import copy
 
 import dice_calc.randvar
-from dice_calc.randvar import RV, Seq, settings_reset, BlankRV
+from dice_calc.randvar import RV, Seq, settings_reset
 from dice_calc.parser import parse_and_exec
 
 
@@ -81,7 +81,11 @@ def pipeline(to_parse, version, global_vars={}):
   return r
 
 def check(inp: Union[RV, Seq, int], expected, i):
-  if isinstance(inp, BlankRV) and expected == []:
+  # if isinstance(inp, BlankRV) and expected == []:  # outputting blank gives nothing
+  #   return
+  if inp is None and expected == []:  # outputting None gives nothing
+    return
+  if isinstance(inp, Seq) and len(inp) == 0 and expected == []:  # outputting emtpy seq gives nothing
     return
   logger.warning(f'Checking {inp} against {expected}')
   # clear (null, null) from expected
@@ -94,7 +98,7 @@ def check(inp: Union[RV, Seq, int], expected, i):
   cust_expected = cust_np_array(expected)
   assert cust_x.shape == cust_expected.shape, f'i:{i}|shape mismatch | shpaes A: {cust_x.shape}, B: {cust_expected.shape} | A: {x}, B: {expected}'
   assert not all_close(cust_x, cust_expected+0.01, atol=COMP_EPS), f'How is allcose true here???'
-  assert all_close(cust_x, cust_expected, atol=COMP_EPS), f'i:{i}|ME: {x}, ONLINE: {expected} diff: {sum_diff_iterable(x, expected)}'
+  assert all_close(cust_x, cust_expected, atol=COMP_EPS), f'i:{i}|diff: {sum_diff_iterable(x, expected)}|ME: {x}, ONLINE: {expected}'
   # for a, b in zip(x, expected):
     # assert all_close(a, b, atol=COMP_EPS), f'A and B: {a}, {b} np diff: {np.abs(np.array(a) - np.array(b))}'
 
@@ -109,9 +113,10 @@ def fixture_settings_reset():
     dice_calc.randvar._MEMOIZED_ROLLS = {}
 
 
-# code_resp_pairs_v1 = [x for x in code_resp_pairs if 'v1' not in SKIP_VERSION.get(x[2], [])]
-@pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs)
-def test_all_fetch_v1(inp_code,anydice_resp,name):
+@pytest.mark.parametrize("i", range(len(code_resp_pairs)))
+def test_all_fetch_v1(i):
+  inp_code,anydice_resp,name = code_resp_pairs[i]
+  logger.warning(f'Running test {name}: {inp_code} {anydice_resp}')
   v_to_skip = SKIP_VERSION.get(name, {}).get('flags', [])
   if 'v1' in v_to_skip or 'all' in v_to_skip:
     pytest.skip(f'Skipping {name} for v1')
@@ -126,9 +131,10 @@ def test_all_fetch_v1(inp_code,anydice_resp,name):
   pipeline(inp_code, version=1, global_vars={'output': lambda x, named=None: check_res(x, named)})
 
 
-# code_resp_pairs_v2 = [x for x in code_resp_pairs if 'v2' not in SKIP_VERSION.get(x[2], [])]
-@pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs)
-def test_all_fetch_v2(inp_code,anydice_resp,name):
+@pytest.mark.parametrize("i", range(len(code_resp_pairs)))
+def test_all_fetch_v2(i):
+  inp_code,anydice_resp,name = code_resp_pairs[i]
+  logger.warning(f'Running test {name}: {inp_code} {anydice_resp}')
   v_to_skip = SKIP_VERSION.get(name, {}).get('flags', [])
   if 'v2' in v_to_skip or 'all' in v_to_skip:
     pytest.skip(f'Skipping {name} for v2')
@@ -147,8 +153,10 @@ def test_all_fetch_v2(inp_code,anydice_resp,name):
 
 code_resp_pairs_picked = [x for x in code_resp_pairs if x[2] in CHERRYPICK]
 @pytest.mark.skipif(len(code_resp_pairs_picked) == 0, reason='No tests cherrypicked ; nothing needed to test.')
-@pytest.mark.parametrize("inp_code,anydice_resp,name", code_resp_pairs_picked)
-def test_cherrypick(inp_code,anydice_resp,name):
+@pytest.mark.parametrize("i", range(len(code_resp_pairs_picked)))
+def test_cherrypick(i):
+  inp_code,anydice_resp,name = code_resp_pairs_picked[i]
+  logger.warning(f'Running test {name}: {inp_code} {anydice_resp}')
   anydice_resp = json.loads(anydice_resp)
   i = 0
   def check_res(x, named):
