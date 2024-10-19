@@ -349,9 +349,9 @@
       "name": "seq_with_no_args"
     },
     {
-      "inp": "\nfunction: f {}\n\nX: ({}d{})\noutput X named \"1 [X]\"\n\nX: {}\noutput X=X named \"2 [X]=[X]\"\n\noutput [f]=[f] named \"3 [f]=[f]\"\nX: [f]\noutput X=X named \"3 [f]=[f]\"\n\nX: {}d0\noutput X named \"4 {}d0\"\n\nX: 0d{}\noutput X named \"4 0d{}\"\n\nX: ({}d{})\noutput X=X named \"6 [X]\"\n\nX: ({}d{})+0\noutput X named \"7 [X]\"\n",
-      "out": "{\"distributions\":{\"data\":[[],[[1,100]],[],[],[[0,100]],[],[],[[0,100]]],\"labels\":[\"1 d{}\",\"2 {?}={?}\",\"3 [f]=[f]\",\"3 [f]=[f]\",\"4 {}d0\",\"4 0d{}\",\"6 d{}\",\"7 0\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":100}}",
-      "time": "2024-10-19T11:57:50.263346",
+      "inp": "\nfunction: f {}\n\nX: ({}d{})\noutput X named \"1 [X]\"\n\nX: {}\noutput X=X named \"2 [X]=[X]\"\n\noutput [f]=[f] named \"3 [f]=[f]\"\nX: [f]\noutput X=X named \"3 [f]=[f]\"\n\nX: {}d0\noutput X named \"4 {}d0\"\n\nX: 0d{}\noutput X named \"4 0d{}\"\n\n\nX: {}d0\noutput X=0 named \"5 {}d0=0\"\nX: [f]d0\noutput X=X named \"5 [f]d0=[f]d0\"\nX: [f]d0\noutput X=0 named \"5 [f]d0=0\"\n\nX: ({}d{})\noutput X=X named \"6 [X]\"\n\nX: ({}d{})+0\noutput X named \"7 [X]\"\n",
+      "out": "{\"distributions\":{\"data\":[[],[[1,100]],[],[],[[0,100]],[],[[1,100]],[[1,100]],[[1,100]],[],[[0,100]]],\"labels\":[\"1 d{}\",\"2 {?}={?}\",\"3 [f]=[f]\",\"3 [f]=[f]\",\"4 {}d0\",\"4 0d{}\",\"5 {}d0=0\",\"5 [f]d0=[f]d0\",\"5 [f]d0=0\",\"6 d{}\",\"7 0\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T12:06:20.572623",
       "name": "seq_with_no_args"
     },
     {
@@ -365,6 +365,11 @@
       "out": "{\"distributions\":{\"data\":[[[0,0],[1,100]]],\"labels\":[\"BUGGED VALUE WITH 0% PROB\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-19T11:56:44.187803",
       "name": "Anydice_bug_special_case_where_dice_prob_equal_0_is_displayed"
+    },
+    {
+      "inp": "\noutput 0^0\n",
+      "out": "{\"distributions\":{\"data\":[[[1,100]]],\"labels\":[\"output 1\"],\"minX\":1,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T12:12:36.951753"
     }
   ]
 }

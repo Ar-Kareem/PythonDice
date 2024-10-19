@@ -1033,6 +1033,14 @@ output X named "4 {}d0"
 X: 0d{}
 output X named "4 0d{}"
 
+
+X: {}d0
+output X=0 named "5 {}d0=0"
+X: [f]d0
+output X=X named "5 [f]d0=[f]d0"
+X: [f]d0
+output X=0 named "5 [f]d0=0"
+
 X: ({}d{})
 output X=X named "6 [X]"
 
@@ -1053,7 +1061,7 @@ output X=X named "BUGGED VALUE WITH 0% PROB"
 
 ''',
 r'''
-
+output 0^0
 ''',
 r'''
 
