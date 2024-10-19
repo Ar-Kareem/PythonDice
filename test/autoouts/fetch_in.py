@@ -676,22 +676,48 @@ _A: 1
 output _A
 ''',
 r'''
+function: e N:s {
+ result: [e N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4]
+''',
+r'''
+function: e N:n N:n {
+ result: [e N N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4 3d4]
+''',
+r'''
+function: e N:s N:n {
+ result: [e N N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4 3d4]
 
 ''',
 r'''
+function: e N:n N:s {
+ result: [e N N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4 3d4]
 
 ''',
 r'''
+function: e N:s N:s {
+ result: [e N N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4 3d4]
 
 ''',
 r'''
-
-''',
-r'''
-
-''',
-r'''
-
+function: e N:n N:n {
+ result: 1
+}
+output [e 1 1]
 ''',
 r'''
 
