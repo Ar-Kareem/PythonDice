@@ -21,6 +21,49 @@ output ! (2>3)
 output 2 > !3
 output ! 2>3
 ''',
+r'''
+function: attack ATTACKS:n HIT:n WOUND:n SAVE:n {
+ DAMAGE:0
+ 
+ loop N over {1..ATTACKS} {
+  DAMAGE: DAMAGE + [hit 1d6 HIT WOUND SAVE]
+ }
+ 
+ result: DAMAGE
+}
+
+function: hit ROLL:n HIT:n WOUND:n SAVE:n {
+ if ROLL >= HIT {
+  result: [wound 1d6 WOUND SAVE]
+ } else {
+  result: 0
+ }
+}
+
+function: wound ROLL:n WOUND:n SAVE:n {
+ if ROLL >= WOUND {
+  result: [save 1d6 SAVE]
+ } else {
+  result: 0
+ }
+}
+
+function: save ROLL:n SAVE:n {
+ if ROLL >= SAVE {
+  result: 0
+ } else {
+  result: 1
+ }
+}
+
+output [attack 30 3 6 2] named "Gretchins versus Robute Guilliman"
+output [attack 30 3 5 2] named "Gretchins versus Marneus Calgar"
+output [attack 30 3 4 4] named "Gretchins versus Commissar Yarrick"
+
+output [attack 29 3 6 2] + [attack 1d6 3 6 2] named "Gretchins with Stikkbombs versus Robute Guilliman"
+output [attack 29 3 5 2] + [attack 1d6 3 5 2] named "Gretchins with Stikkbombs versus Marneus Calgar"
+output [attack 29 3 4 4] + [attack 1d6 3 4 4] named "Gretchins with Stikkbombs versus Commissar Yarrick"
+''',
 '''
 output ! 5
 output ! 0
