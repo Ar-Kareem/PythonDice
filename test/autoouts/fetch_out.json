@@ -299,6 +299,42 @@
       "out": "{\"distributions\":{\"data\":[[[-1,83.3333333333],[null,null],[1,16.6666666667]],[[-1,83.3333333333],[null,null],[1,16.6666666667]]],\"labels\":[\"output 1\",\"output 2\"],\"minX\":-1,\"maxX\":1,\"minY\":0,\"maxY\":83.3333333333}}",
       "time": "2024-10-19T08:55:44.623652",
       "name": "bitwise_ops_on_ints"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: [f]\n\nY: X+{1,2}\noutput Y named \"plus {1,2}\"\noutput {1,2} named \"{1,2}\"\noutput {1,2}=Y named \"{1,2}=Y\"\noutput {1,2}=(1d{1,2}) named \"{1,2}=(1d{1,2})\"\noutput X+{0} named \"plus {0}\"\n\noutput X*{1,2} named \"times {1,2}\"\n\n",
+      "out": "{\"distributions\":{\"data\":[[[1,50],[2,50]],[[1,50],[2,50]],[[1,100]],[[0,100]],[[0,100]],[]],\"labels\":[\"plus {1,2}\",\"{1,2}\",\"{1,2}=Y\",\"{1,2}=(1d{1,2})\",\"plus {0}\",\"times {1,2}\"],\"minX\":0,\"maxX\":2,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T09:38:45.008298",
+      "name": "special_none_type_object"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: [f]\n\noutput X=X named \"X=X\"\noutput X=0 named \"X=0\"\noutput 0=X named \"0=X\"\noutput X!=2 named \"X!=2\"\noutput X<2 named \"X<2\"\noutput X>=2 named \"X>=2\"\noutput +X named \"+X\"\noutput -X named \"-X\"\n\n",
+      "out": "{\"distributions\":{\"data\":[[],[],[],[],[],[],[],[]],\"labels\":[\"X=X\",\"X=0\",\"0=X\",\"X!=2\",\"X<2\",\"X>=2\",\"+X\",\"-X\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":0}}",
+      "time": "2024-10-19T09:43:08.134234",
+      "name": "special_none_type_object"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: [f]\n\noutput X|1 named \"X|1\"\noutput X|0 named \"X|0\"\noutput X|X named \"X|X\"\noutput 1&X named \"1&X\"\noutput 0&X named \"0&X\"\noutput X&X named \"X&X\"\n\n\n",
+      "out": "{\"distributions\":{\"data\":[[[1,100]],[[0,100]],[],[],[],[]],\"labels\":[\"X|1\",\"X|0\",\"X|X\",\"1&X\",\"0&X\",\"X&X\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T09:45:12.121461",
+      "name": "special_none_type_object"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: [f]\n\noutput X|1d4\noutput X|1d0\noutput X|0d0\noutput 0d0|0d0\noutput 1d0|0d0\noutput 1d0|(1d2-1)\noutput (1d2-1)|(1d2-1)\n\n\n",
+      "out": "{\"distributions\":{\"data\":[[[1,25],[2,25],[3,25],[4,25]],[[0,100]],[[0,100]],[[0,100]],[[0,100]],[[0,50],[1,50]],[[0,25],[1,75]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\",\"output 5\",\"output 6\",\"output 7\"],\"minX\":0,\"maxX\":4,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T09:47:18.756487",
+      "name": "special_none_type_object"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: [f]\n\noutput X|1d4\noutput 0 | 1d4\n",
+      "out": "{\"distributions\":{\"data\":[[[1,25],[2,25],[3,25],[4,25]],[[1,100]]],\"labels\":[\"output 1\",\"output 2\"],\"minX\":1,\"maxX\":4,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T09:48:53.178915",
+      "name": "special_none_type_object"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: [f]\n\nY: {1,2}-X\noutput Y named \"[Y]\"\nY: X-{1,2}\noutput Y named \"[Y]\"\nY: {X}\noutput Y named \"[Y]\"\nY: {0,X,X,X,1,2}\noutput Y named \"[Y]\"\n\n\n",
+      "out": "{\"distributions\":{\"data\":[[[3,100]],[[-3,100]],[],[[0,33.3333333333],[1,33.3333333333],[2,33.3333333333]]],\"labels\":[\"3\",\"-3\",\"{?}\",\"{?}\"],\"minX\":-3,\"maxX\":2,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T10:19:00.006825",
+      "name": "special_none_type_object"
     }
   ]
 }

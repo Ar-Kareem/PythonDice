@@ -917,21 +917,80 @@ output [innera d2 and d3]
 output [innerb d2 and d3]
 ''',
 r'''
+function: f {}
+X: [f]
+
+Y: X+{1,2}
+output Y named "plus {1,2}"
+output {1,2} named "{1,2}"
+output {1,2}=Y named "{1,2}=Y"
+output {1,2}=(1d{1,2}) named "{1,2}=(1d{1,2})"
+output X+{0} named "plus {0}"
+
+output X*{1,2} named "times {1,2}"
 
 ''',
 r'''
+function: f {}
+X: [f]
+
+output X=X named "X=X"
+output X=0 named "X=0"
+output 0=X named "0=X"
+output X!=2 named "X!=2"
+output X<2 named "X<2"
+output X>=2 named "X>=2"
+output +X named "+X"
+output -X named "-X"
 
 ''',
 r'''
+function: f {}
+X: [f]
+
+output X|1 named "X|1"
+output X|0 named "X|0"
+output X|X named "X|X"
+output 1&X named "1&X"
+output 0&X named "0&X"
+output X&X named "X&X"
+
 
 ''',
 r'''
+function: f {}
+X: [f]
+
+output X|1d4
+output X|1d0
+output X|0d0
+output 0d0|0d0
+output 1d0|0d0
+output 1d0|(1d2-1)
+output (1d2-1)|(1d2-1)
+
 
 ''',
 r'''
+function: f {}
+X: [f]
 
+output X|1d4
+output 0 | 1d4
 ''',
 r'''
+function: f {}
+X: [f]
+
+Y: {1,2}-X
+output Y named "[Y]"
+Y: X-{1,2}
+output Y named "[Y]"
+Y: {X}
+output Y named "[Y]"
+Y: {0,X,X,X,1,2}
+output Y named "[Y]"
+
 
 ''',
 r'''

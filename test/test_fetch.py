@@ -6,7 +6,7 @@ from pathlib import Path
 import copy
 
 import dice_calc.randvar
-from dice_calc.randvar import RV, Seq, settings_reset
+from dice_calc.randvar import RV, Seq, settings_reset, BlankRV
 from dice_calc.parser import parse_and_exec
 
 
@@ -81,7 +81,7 @@ def pipeline(to_parse, version, global_vars={}):
   return r
 
 def check(inp: Union[RV, Seq, int], expected, i):
-  if inp is None and expected == []:
+  if isinstance(inp, BlankRV) and expected == []:
     return
   logger.warning(f'Checking {inp} against {expected}')
   # clear (null, null) from expected
