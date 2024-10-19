@@ -239,6 +239,36 @@
       "out": "{\"distributions\":{\"data\":[[[3,100]]],\"labels\":[\"output 1\"],\"minX\":3,\"maxX\":3,\"minY\":0,\"maxY\":100},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
       "time": "2024-10-19T05:47:37.603330",
       "name": "max_func_depth"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: [f]\noutput X named \"blank\"\noutput X+0 named \"plus 0\"\noutput X-0 named \"minus 0\"\noutput X*1 named \"times 1\"\noutput X/1 named \"divide 1\"\noutput X^1 named \"power 1\"\noutput 0^X named \"0 power\"\noutput #X named \"hash\"\noutput !X named \"exclim\"\noutput 1@X named \"1@\"\noutput 1dX named \"1d\"\noutput Xd1 named \"d1\"\n",
+      "out": "{\"distributions\":{\"data\":[[],[[0,100]],[[0,100]],[],[],[],[],[[0,100]],[],[],[],[]],\"labels\":[\"blank\",\"plus 0\",\"minus 0\",\"times 1\",\"divide 1\",\"power 1\",\"0 power\",\"hash\",\"exclim\",\"1@\",\"1d\",\"d1\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T06:34:48.470890",
+      "name": "special_none_type_object"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: [f]\noutput X named \"blank\"\noutput X+1 named \"plus 1\"\noutput X-1 named \"minus 1\"\noutput 0-X named \"0-minus\"\noutput 1-X named \"1-minus\"\noutput X*2 named \"times 2\"\noutput X/2 named \"divide 2\"\noutput 0/X named \"0 divide\"\noutput 1/X named \"1 divide\"\noutput 2/X named \"2 divide\"\noutput X^0 named \"power 0\"\noutput X^2 named \"power 2\"\noutput 1^X named \"1 power\"\noutput 2^X named \"2 power\"\noutput #X named \"hash\"\noutput !!X named \"exclimexclim\"\noutput 2@X named \"2@\"\noutput 2dX named \"2d\"\noutput Xd2 named \"d2\"\n",
+      "out": "{\"distributions\":{\"data\":[[],[[1,100]],[[-1,100]],[[0,100]],[[1,100]],[],[],[],[],[],[],[],[],[],[[0,100]],[],[],[],[]],\"labels\":[\"blank\",\"plus 1\",\"minus 1\",\"0-minus\",\"1-minus\",\"times 2\",\"divide 2\",\"0 divide\",\"1 divide\",\"2 divide\",\"power 0\",\"power 2\",\"1 power\",\"2 power\",\"hash\",\"exclimexclim\",\"2@\",\"2d\",\"d2\"],\"minX\":-1,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T06:38:10.097261",
+      "name": "special_none_type_object"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: [f]\noutput X named \"blank [X]\"\nX: [f]+0\noutput X named \"blank [X]\"\nX: #[f]+0\noutput X named \"blank [X]\"\n",
+      "out": "{\"distributions\":{\"data\":[[],[[0,100]],[[0,100]]],\"labels\":[\"blank d{}\",\"blank 0\",\"blank 0\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T06:48:11.107742",
+      "name": "special_none_type_object"
+    },
+    {
+      "inp": "\nfunction: t N:n {result: N+1}\nfunction: e N:n {\n if N <= 2 {result: [t Nd2]d1}\n result: N\n}\nset \"maximum function depth\" to 1\noutput [e 1d3] named \"BUGGED DICE WITH SUM OF PROBABILITY < 100%\"\n",
+      "out": "{\"distributions\":{\"data\":[[[3,33.3333333333]]],\"labels\":[\"BUGGED DICE WITH SUM OF PROBABILITY < 100%\"],\"minX\":3,\"maxX\":3,\"minY\":0,\"maxY\":33.3333333333},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
+      "time": "2024-10-19T06:48:12.445725",
+      "name": "Anydice_bug_dice_prob_less_than_100_percent"
+    },
+    {
+      "inp": "\nfunction: t {}\nfunction: e N:n {\n if N <= 2 {result: [t]d1}\n result: N\n}\noutput [e 1d3] named \"BUGGED DICE WITH SUM OF PROBABILITY < 100%\"\n",
+      "out": "{\"distributions\":{\"data\":[[[3,33.3333333333]]],\"labels\":[\"BUGGED DICE WITH SUM OF PROBABILITY < 100%\"],\"minX\":3,\"maxX\":3,\"minY\":0,\"maxY\":33.3333333333}}",
+      "time": "2024-10-19T06:48:13.792888",
+      "name": "Anydice_bug_dice_prob_less_than_100_percent"
     }
   ]
 }

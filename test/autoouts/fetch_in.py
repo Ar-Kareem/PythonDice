@@ -761,22 +761,85 @@ set "maximum function depth" to 1
 output [e 1d3]
 ''',
 r'''
-
+function: f {}
+X: [f]
+output X named "blank"
+output X+0 named "plus 0"
+output X-0 named "minus 0"
+output X*1 named "times 1"
+output X/1 named "divide 1"
+output X^1 named "power 1"
+output 0^X named "0 power"
+output #X named "hash"
+output !X named "exclim"
+output 1@X named "1@"
+output 1dX named "1d"
+output Xd1 named "d1"
 ''',
 r'''
-
+function: f {}
+X: [f]
+output X named "blank"
+output X+0 named "plus 0"
+output X-0 named "minus 0"
+output X*1 named "times 1"
+output X/1 named "divide 1"
+output X^1 named "power 1"
+output 0^X named "0 power"
+output #X named "hash"
+output !X named "exclim"
+output 1@X named "1@"
+output 1dX named "1d"
+output Xd1 named "d1"
 ''',
 r'''
-
+function: f {}
+X: [f]
+output X named "blank"
+output X+1 named "plus 1"
+output X-1 named "minus 1"
+output 0-X named "0-minus"
+output 1-X named "1-minus"
+output X*2 named "times 2"
+output X/2 named "divide 2"
+output 0/X named "0 divide"
+output 1/X named "1 divide"
+output 2/X named "2 divide"
+output X^0 named "power 0"
+output X^2 named "power 2"
+output 1^X named "1 power"
+output 2^X named "2 power"
+output #X named "hash"
+output !!X named "exclimexclim"
+output 2@X named "2@"
+output 2dX named "2d"
+output Xd2 named "d2"
 ''',
 r'''
-
+function: f {}
+X: [f]
+output X named "blank [X]"
+X: [f]+0
+output X named "blank [X]"
+X: #[f]+0
+output X named "blank [X]"
 ''',
 r'''
-
+function: t N:n {result: N+1}
+function: e N:n {
+ if N <= 2 {result: [t Nd2]d1}
+ result: N
+}
+set "maximum function depth" to 1
+output [e 1d3] named "BUGGED DICE WITH SUM OF PROBABILITY < 100%"
 ''',
 r'''
-
+function: t {}
+function: e N:n {
+ if N <= 2 {result: [t]d1}
+ result: N
+}
+output [e 1d3] named "BUGGED DICE WITH SUM OF PROBABILITY < 100%"
 ''',
 r'''
 
