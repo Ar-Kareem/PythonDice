@@ -388,6 +388,8 @@ class RV:
 
 
 class BlankRV:
+  def __init__(self, _special_null=False):
+    self._special_null = _special_null  # makes it such that it's _special_null,  in operations like (X**2 + 1) still is blank (X). see https://anydice.com/program/395da
   def mean(self):
     return 0
   def std(self):
@@ -398,16 +400,21 @@ class BlankRV:
     # ( self:RV @ other ) thus not allowed,
     raise TypeError(f'A position selector must be either a number or a sequence, but you provided "{other}"')
   def  __rmatmul__(self, other:T_is):
+    if self._special_null: return 0 if other != 1 else 1
     return self
   def __add__(self, other:T_ifsr):
+    if self._special_null: return self
     return other
   def __radd__(self, other:T_ifsr):
+    if self._special_null: return self
     return other
   def __sub__(self, other:T_ifsr):
+    if self._special_null: return self
     if isinstance(other, Iterable):
       other = Seq(*other).sum()
     return (-other)
   def __rsub__(self, other:T_ifsr):
+    if self._special_null: return self
     return other
   def __mul__(self, other:T_ifsr):
     return self
@@ -431,31 +438,42 @@ class BlankRV:
     return self
 
   def __eq__(self, other:T_ifsr):
+    if self._special_null: return 1
     return self
   def __ne__(self, other:T_ifsr):
+    if self._special_null: return 1
     return self
   def __lt__(self, other:T_ifsr):
+    if self._special_null: return 1
     return self
   def __le__(self, other:T_ifsr):
+    if self._special_null: return 1
     return self
   def __gt__(self, other:T_ifsr):
+    if self._special_null: return 1
     return self
   def __ge__(self, other:T_ifsr):
+    if self._special_null: return 1
     return self
 
   def __or__(self, other:T_ifsr):
+    if self._special_null: return 1
     return self if isinstance(other, BlankRV) else other
   def __ror__(self, other:T_ifsr):
+    if self._special_null: return 1
     return self if isinstance(other, BlankRV) else other
   def __and__(self, other:T_ifsr):
+    if self._special_null: return 1
     return self
   def __rand__(self, other:T_ifsr):
+    if self._special_null: return 1
     return self
 
   def __bool__(self):
     raise TypeError('Boolean values can only be numbers, but you provided RV')
     
   def __len__(self):
+    if self._special_null: return 1
     return 0
 
   def __pos__(self):
@@ -463,6 +481,7 @@ class BlankRV:
   def __neg__(self):
     return self
   def __invert__(self):
+    if self._special_null: return 1
     return self
   def __abs__(self):
     return self
@@ -476,6 +495,7 @@ class BlankRV:
     return self
 
   def __str__(self):
+    if self._special_null: return 'd{?}'
     return 'd{}'
   def __repr__(self):
     return output(self, print_=False)
@@ -775,8 +795,8 @@ def roll(n: Union[T_isr, str], d: Union[T_isr, None]=None) -> Union[RV, BlankRV]
     n = Seq(*n)
   if isinstance(d, BlankRV):  # SPECIAL CASE: XdY where Y is BlankRV => BlankRV
     return BlankRV()
-  if isinstance(n, BlankRV):  # SPECIAL CASE: XdY where X is BlankRV => {} (empty sequence)  
-    return BlankRV()
+  if isinstance(n, BlankRV):  # SPECIAL CASE: XdY where X is BlankRV => Special BlankRV see https://anydice.com/program/395da 
+    return BlankRV(_special_null=True)
   if isinstance(d, Seq) and len(d) == 0:  # SPECIAL CASE: Xd{} => BlankRV
     return BlankRV()
   # both arguments are now exactly int|Seq|RV
