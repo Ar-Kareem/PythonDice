@@ -188,8 +188,8 @@ class RV:
   def output(self, *args, **kwargs):
     return output(self, *args, **kwargs)
 
-  def _get_sum_probs(self):
-    if self.sum_probs is None:
+  def _get_sum_probs(self, force=False):
+    if self.sum_probs is None or force:
       self.sum_probs = sum(self.probs)
     return self.sum_probs
 
@@ -724,10 +724,17 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   if sum_ <= sum_limit:
     return rv
   normalizing_const = int(10e10 * sum_ // sum_limit)
-  logger.debug(f'WARNING reducing probabilities | sum limit {sum_limit}, sum{sum_:.1g}, NORMALIZING BY {normalizing_const:.1g}')
-  # EPS = 1/lim  where lim is very large int, thus EPS is very small
-  # below will round up any P(X=x) < EPS to 0
+  logger.warn(f'WARNING reducing probabilities | sum limit {sum_limit}, sum{sum_:.1g}, NORMALIZING BY {normalizing_const:.1g} | from my calc, abs err <= {1/(sum_/normalizing_const - 1)}')
+  # napkin math for the error. int(x) = x - x_ϵ where x_ϵ∈[0,1) is for the rounding error. Don't quote me on this math, not 100% sure.
+  # P(x_i )=p_i/(∑p_i )  before normalization (p_i is an integer probability unbounded)
+  # P(x_i )=p_i/(∑▒Nint(p_i/N) )  after normalization
+  # abs err=p_i*(∑▒〖Nint(p_i/N)-∑p_i 〗)/(∑p_i*∑▒Nint(p_i/N) )
+  # int(x)=x-x_ϵ  where x_ϵ∈[0,1)
+  # abs err=p_i*(∑▒〖(p_i/N-(p_i/N)_eps )-(∑p_i)/N〗)/(∑p_i*∑▒(p_i/N-(p_i/N)_eps ) )
+  # =p_i*((∑▒p_i/N-∑▒(p_i/N)_eps )-(∑p_i)/N)/(∑p_i*(∑▒p_i/N-∑▒(p_i/N)_eps ) )=p_i/(∑p_i )*(∑▒(p_i/N)_eps )/((∑▒p_i/N-∑▒(p_i/N)_eps ) )≤p_i/(∑p_i )*1/((∑▒p_i/CN-1) )≤1/(((∑▒p_i )/N-1) )
+
   rv.probs = tuple(p//normalizing_const for p in rv.probs)
+  rv._get_sum_probs(force=True)  # force update sum
   return rv
 
 
