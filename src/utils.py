@@ -37,3 +37,11 @@ def myinvert(a):
     if isinstance(a, int):
         return 1 if a == 0 else 0
     return ~a
+def myand(a, b):
+    if isinstance(a, int) and isinstance(b, int):
+        return 1 if (a and b) else 0
+    return a & b
+def myor(a, b):
+    if isinstance(a, int) and isinstance(b, int):
+        return 1 if (a or b) else 0
+    return a | b

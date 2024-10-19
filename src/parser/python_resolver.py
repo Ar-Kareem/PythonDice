@@ -16,7 +16,7 @@ CONST = {
     'func_decorator': '@max_func_depth()\n@anydice_casting()',  # with func depth limit
     'setter': lambda name, value: f'settings_set({name}, {value})',
     'function library': ('absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X'),
-    'oplib': {'@': 'myMatmul', 'len': 'myLen', '~': 'myInvert'},
+    'oplib': {'@': 'myMatmul', 'len': 'myLen', '~': 'myInvert', '&': 'myAnd', '|': 'myOr'},
 }
 _FUNCS_MAY_COLLIDE = set((CONST['output'], CONST['roll'], CONST['range'], 'max_func_depth', 'anydice_casting', 'settings_set'))
 
@@ -211,6 +211,9 @@ class PythonResolver:
             elif op == '@':
                 if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"]["@"]}({self.resolve_node(left)}, {self.resolve_node(right)})'
                 return f'({self.resolve_node(left)} {op} {self.resolve_node(right)})'  # wrap in parentheses to take precedence over multiplication
+            elif op == '&' or op == '|':
+                if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"][op]}({self.resolve_node(left)}, {self.resolve_node(right)})'
+                return f'{self.resolve_node(left)} {op} {self.resolve_node(right)}'
             else:  # all other operators
                 return f'{self.resolve_node(left)} {op} {self.resolve_node(right)}'
         elif node.type == NodeType.UNARY:

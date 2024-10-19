@@ -382,9 +382,10 @@ def p_funcname_def_param(p):
 
 # Precedence rules to handle associativity and precedence of operators
 precedence = (
-    ('left', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS'),  # Comparison operators
+    # from docs: "Boolean operations have a lower precedence than all conditions, except for Not, which is a unary operation. "
     ('left', 'OR'),            # OR operator (lowest precedence)
     ('left', 'AND'),           # AND operator (higher precedence than OR)
+    ('left', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS'),  # Comparison operators
     ('left', 'PLUS', 'MINUS'),
     ('left', 'TIMES', 'DIVIDE'),
     ('left', 'POWER'),
