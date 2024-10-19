@@ -2,7 +2,7 @@ import pytest
 import math
 
 from dice_calc import randvar
-from dice_calc.randvar import RV, Seq, roll, output
+from dice_calc.randvar import RV, BlankRV, Seq, roll, output
 
 
 @pytest.fixture(autouse=True)
@@ -40,12 +40,14 @@ def test_RV_init_empty():
     b = RV([], [])
     c = RV.from_seq(Seq())
     d = RV.from_rvs(rvs=[])
-    e = RV.from_rvs(rvs=[RV([], [])])
+    e = RV.from_rvs(rvs=[RV([0], [1])])
+    f = RV.from_rvs(rvs=[BlankRV()])
     assert (a.vals, a.probs) == ((0, ), (1, ))
     assert (b.vals, b.probs) == ((0, ), (1, ))
     assert (c.vals, c.probs) == ((0, ), (1, ))
-    assert (d.vals, d.probs) == ((0, ), (1, ))
-    assert (e.vals, e.probs) == ((0, ), (1, ))
+    assert isinstance(d, BlankRV)
+    assert isinstance(e, RV) and (e.vals, e.probs) == ((0, ), (1, ))
+    assert isinstance(f, BlankRV)
 
 def test_probability_zero_RV():
     randvar.settings_set('RV_IGNORE_ZERO_PROBS', 'true')
@@ -211,6 +213,7 @@ def test_RV_pdf(cdf_cut, rv: RV, rv_res):
 ])
 def test_roll1(n):
     r = roll(n)
+    assert isinstance(r, RV)
     assert len(r.probs) == n
     assert len(r.vals) == n
     assert r.probs == tuple([1] * n)
@@ -221,6 +224,7 @@ def test_roll1(n):
 ])
 def test_roll1_negative(n):
     r = roll(-n)
+    assert isinstance(r, RV)
     assert len(r.probs) == n
     assert len(r.vals) == n
     assert r.probs == tuple([1] * n)
@@ -228,6 +232,7 @@ def test_roll1_negative(n):
 
 def test_roll1_zero():
     r = roll(0)
+    assert isinstance(r, RV)
     assert r.probs == (1, )
     assert r.vals == (0, )
 
@@ -379,6 +384,7 @@ def test_FAIL_die_matmul(rhs):
 def test_truncate():
     randvar.settings_set('RV_TRUNC', 'false')
     a = roll(6) / roll(6)
+    assert isinstance(a, RV)
     b = RV(a.vals, a.probs, truncate=False)
     c = RV(a.vals, a.probs, truncate=True)
     randvar.settings_set('RV_TRUNC', 'true')

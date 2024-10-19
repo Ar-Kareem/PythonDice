@@ -20,9 +20,9 @@ T_if = Union[int, float]
 T_ifs = Union[T_if, Iterable['T_ifs']]  # recursive type
 T_is = Union[int, Iterable['T_is']]  # recursive type
 
-T_isr = Union[T_is, 'RV']
-T_ifr = Union[T_if, 'RV']
-T_ifsr = Union[T_ifs, 'RV']
+T_isr = Union[T_is, 'RV', 'BlankRV']
+T_ifr = Union[T_if, 'RV', 'BlankRV']
+T_ifsr = Union[T_ifs, 'RV', 'BlankRV']
 
 T_s = Iterable['T_ifs']  # same as T_ifs but excludes int and float (not iterable)
 
@@ -120,8 +120,11 @@ class RV:
     return RV(s._seq, [1]*len(s))
 
   @staticmethod
-  def from_rvs(rvs: Iterable[Union['int', 'float', 'RV']], weights: Union[Iterable[int], None]=None) -> 'RV':
+  def from_rvs(rvs: Iterable[Union['int', 'float', 'RV', 'BlankRV']], weights: Union[Iterable[int], None]=None) -> Union['RV', 'BlankRV']:
     rvs = tuple(rvs)
+    rvs = tuple(x for x in rvs if not isinstance(x, BlankRV))  # remove BlankRVs
+    if len(rvs) == 0:
+      return BlankRV()
     if weights is None:
       weights = [1]*len(rvs)
     weights = tuple(weights)
@@ -220,6 +223,8 @@ class RV:
   def _apply_operation(self, operation: Callable[[float], float]):
     return RV([operation(v) for v in self.vals], self.probs)
   def _convolve(self, other:T_ifsr, operation: Callable[[float, float], float]):
+    if isinstance(other, BlankRV):  # let BlankRV handle the operation
+      return NotImplemented
     if isinstance(other, Iterable):
       if not isinstance(other, Seq):
         other = Seq(*other)
@@ -232,6 +237,8 @@ class RV:
     res = _INTERNAL_PROB_LIMIT_VALS(res)
     return res
   def _rconvolve(self, other:T_ifsr, operation: Callable[[float, float], float]):
+    if isinstance(other, BlankRV):  # let BlankRV handle the operation
+      return NotImplemented
     assert not isinstance(other, RV)
     if isinstance(other, Iterable):
       if not isinstance(other, Seq):
@@ -239,6 +246,9 @@ class RV:
       other = other.sum()
     return RV([operation(other, v) for v in self.vals], self.probs)
 
+  def __matmul__(self, other:T_ifs):
+    # ( self:RV @ other ) thus not allowed,
+    raise TypeError(f'A position selector must be either a number or a sequence, but you provided "{other}"')
   def  __rmatmul__(self, other:T_is):
     # ( other @ self:RV )
     # DOCUMENTATION: https://anydice.com/docs/introspection/  look for "Accessing" -> "Collections of dice" and "A single die"
@@ -368,11 +378,108 @@ class RV:
 
   @staticmethod
   def dices_are_equal(d1:T_ifsr, d2:T_ifsr):
+    if isinstance(d1, BlankRV) or isinstance(d2, BlankRV):
+      return isinstance(d1, BlankRV) and isinstance(d2, BlankRV)
     if isinstance(d1, (int, float)) or isinstance(d1, Iterable):
       d1 = RV.from_seq([d1])
     if isinstance(d2, (int, float)) or isinstance(d2, Iterable):
       d2 = RV.from_seq([d2])
     return d1.vals == d2.vals and d1.probs == d2.probs
+
+
+class BlankRV:
+  def mean(self):
+    return 0
+  def std(self):
+    return 0
+  def output(self, *args, **kwargs):
+    return output(self, *args, **kwargs)
+  def __matmul__(self, other:T_ifs):
+    # ( self:RV @ other ) thus not allowed,
+    raise TypeError(f'A position selector must be either a number or a sequence, but you provided "{other}"')
+  def  __rmatmul__(self, other:T_is):
+    return self
+  def __add__(self, other:T_ifsr):
+    return other
+  def __radd__(self, other:T_ifsr):
+    return other
+  def __sub__(self, other:T_ifsr):
+    if isinstance(other, Iterable):
+      other = Seq(*other).sum()
+    return (-other)
+  def __rsub__(self, other:T_ifsr):
+    return other
+  def __mul__(self, other:T_ifsr):
+    return self
+  def __rmul__(self, other:T_ifsr):
+    return self
+  def __floordiv__(self, other:T_ifsr):
+    return self
+  def __rfloordiv__(self, other:T_ifsr):
+    return self
+  def __truediv__(self, other:T_ifsr):
+    return self
+  def __rtruediv__(self, other:T_ifsr):
+    return self
+  def __pow__(self, other:T_ifsr):
+    return self
+  def __rpow__(self, other:T_ifsr):
+    return self
+  def __mod__(self, other:T_ifsr):
+    return self
+  def __rmod__(self, other:T_ifsr):
+    return self
+
+  def __eq__(self, other:T_ifsr):
+    return self
+  def __ne__(self, other:T_ifsr):
+    return self
+  def __lt__(self, other:T_ifsr):
+    return self
+  def __le__(self, other:T_ifsr):
+    return self
+  def __gt__(self, other:T_ifsr):
+    return self
+  def __ge__(self, other:T_ifsr):
+    return self
+
+  def __or__(self, other:T_ifsr):
+    return self if isinstance(other, BlankRV) else other
+  def __ror__(self, other:T_ifsr):
+    return self if isinstance(other, BlankRV) else other
+  def __and__(self, other:T_ifsr):
+    return self
+  def __rand__(self, other:T_ifsr):
+    return self
+
+  def __bool__(self):
+    raise TypeError('Boolean values can only be numbers, but you provided RV')
+    
+  def __len__(self):
+    return 0
+
+  def __pos__(self):
+    return self
+  def __neg__(self):
+    return self
+  def __invert__(self):
+    return self
+  def __abs__(self):
+    return self
+  def __round__(self, n=0):
+    return self
+  def __floor__(self):
+    return self
+  def __ceil__(self):
+    return self
+  def __trunc__(self):
+    return self
+
+  def __str__(self):
+    return 'd{}'
+  def __repr__(self):
+    return output(self, print_=False)
+
 
 class Seq(Iterable):
   def __init__(self, *source: T_ifsr, _INTERNAL_SEQ_VALUE=None):
@@ -382,10 +489,11 @@ class Seq(Iterable):
       self._seq: tuple[T_if, ...] = _INTERNAL_SEQ_VALUE  # type: ignore
       return
     flat = tuple(utils.flatten(source))
-    flat_rvs = [v for x in flat if isinstance(x, RV) for v in x.vals]  # expand RVs
-    flat_else: list[T_if] = [x for x in flat if not isinstance(x, RV)]
+    flat_rvs = [x for x in flat if isinstance(x, RV) and not isinstance(x, BlankRV)]  # expand RVs
+    flat_rv_vals = [v for rv in flat_rvs for v in rv.vals]
+    flat_else: list[T_if] = [x for x in flat if not isinstance(x, (RV, BlankRV))]
     assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs. Seq:' + str(flat_else)
-    self._seq = tuple(flat_else + flat_rvs)
+    self._seq = tuple(flat_else + flat_rv_vals)
 
   def sum(self):
     if self._sum is None:
@@ -419,7 +527,7 @@ class Seq(Iterable):
     return sum(other[int(i)] for i in self._seq)
   def __rmatmul__(self, other:T_ifs):
     if isinstance(other, RV):  # ( other:RV @ self:SEQ ) thus not allowed,
-      raise TypeError('unsupported operand type(s) for @: RV and Seq')
+      raise TypeError(f'A position selector must be either a number or a sequence, but you provided "{other}"')
     # access in my indices ( other @ self )
     if isinstance(other, (int, float)):
       return self[int(other)]
@@ -501,6 +609,7 @@ class Seq(Iterable):
     return s1._seq == s2._seq
 
 def anydice_casting(verbose=False):
+  # verbose = True
   # in the documenation of the anydice language https://anydice.com/docs/functions
   # it states that "The behavior of a function depends on what type of value it expects and what type of value it actually receives."
   # Thus there are 9 scenarios for each parameters
@@ -563,7 +672,7 @@ def anydice_casting(verbose=False):
         else:
           args[k] = new_val
         if verbose: logger.debug('cast {k}')
-      if verbose: logger.debug(f'hard {list(hard_params.keys())}')
+      if verbose: logger.debug(f'hard {[(k, v[1]) for k, v in hard_params.items()]}')
       if not hard_params:
         return func(*args, **kwargs)
 
@@ -594,12 +703,13 @@ def anydice_casting(verbose=False):
           else:
             args[k] = v
         val: T_ifsr = func(*args, **kwargs)  # single result of the function call
-        if val is None:
+        if val is None or isinstance(val, BlankRV):
           continue
         if isinstance(val, Iterable):
           if not isinstance(val, Seq):
             val = Seq(*val)
           val = val.sum()
+        if verbose: logger.debug(f'val {val} prob {prob}')
         res_vals.append(val)
         res_probs.append(prob)
       if len(res_vals) == 0:
@@ -618,11 +728,11 @@ def max_func_depth():
           logger.warning(msg)
           print(msg)
           SETTINGS['INTERNAL_CURR_DEPTH_WARNING_PRINTED'] = True
-        return 0
+        return BlankRV()
       SETTINGS['INTERNAL_CURR_DEPTH'] += 1
       res = func(*args, **kwargs)
       SETTINGS['INTERNAL_CURR_DEPTH'] -= 1
-      return res
+      return res if res is not None else BlankRV()
     return wrapper
   return decorator
 
@@ -638,7 +748,7 @@ def myrange(l, r):
         raise TypeError(f'A sequence range must begin with a number, while you provided "{r}".')
     return range(l, r+1)
 
-def roll(n: Union[T_isr, str], d: Union[T_isr, None]=None) -> RV:
+def roll(n: Union[T_isr, str], d: Union[T_isr, None]=None) -> Union[RV, BlankRV]:
   """Roll n dice of d sides
 
   Args:
@@ -663,8 +773,15 @@ def roll(n: Union[T_isr, str], d: Union[T_isr, None]=None) -> RV:
     d = Seq(*d)
   if isinstance(n, Iterable) and not isinstance(n, Seq):
     n = Seq(*n)
+  if isinstance(d, BlankRV):  # SPECIAL CASE: XdY where Y is BlankRV => BlankRV
+    return BlankRV()
+  if isinstance(n, BlankRV):  # SPECIAL CASE: XdY where X is BlankRV => {} (empty sequence)  
+    return BlankRV()
+  if isinstance(d, Seq) and len(d) == 0:  # SPECIAL CASE: Xd{} => BlankRV
+    return BlankRV()
   # both arguments are now exactly int|Seq|RV
   result = _roll(n, d)  # ROLL!
+  assert not isinstance(result, BlankRV), 'should never happen!'
   # below is only used for the __str__ method
   _LHS = n if isinstance(n, int) else (n.sum() if isinstance(n, Seq) else 0)
   if isinstance(d, int):
@@ -677,7 +794,7 @@ def roll(n: Union[T_isr, str], d: Union[T_isr, None]=None) -> RV:
   result._str_LHS_RHS = (_LHS, _RHS)
   return result
 
-def _roll(n: Union[int, Seq, RV], d: Union[int, Seq, RV]) -> RV:
+def _roll(n: Union[int, Seq, RV], d: Union[int, Seq, RV]) -> Union[RV, BlankRV]:
   if isinstance(d, int):
     if d > 0:
       d = RV.from_seq(range(1, d+1))
@@ -696,6 +813,7 @@ def _roll(n: Union[int, Seq, RV], d: Union[int, Seq, RV]) -> RV:
     assert all(isinstance(v, int) for v in n.vals), 'RV must have int values to roll other dice'
     dies = tuple(roll(int(v), d) for v in n.vals)
     result = RV.from_rvs(rvs=dies, weights=n.probs)
+    assert not isinstance(result, BlankRV), 'should never happen!'
     result.set_source(1, d)
     return result
   return _roll_int_rv(n, d)
@@ -739,6 +857,8 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
 
 
 def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None, print_=True, print_fn=None, cdf_cut=0):
+  if isinstance(rv, Seq) and len(rv) == 0:  # empty sequence plotted as empty
+    rv = BlankRV()
   if isinstance(rv, int) or isinstance(rv, Iterable) or isinstance(rv, bool):
     rv = RV.from_seq([rv])
   if blocks_width is None:
@@ -748,7 +868,7 @@ def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None,
   if named is not None:
     result += named + ' '
 
-  if rv is None:
+  if rv is None or isinstance(rv, BlankRV):
     result += '\n' + '-' * (blocks_width + 8)
     if print_:
       if print_fn is None:
