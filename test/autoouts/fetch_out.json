@@ -208,6 +208,11 @@
       "inp": "\nfunction: e N:n N:n {\n result: 1\n}\noutput [e 1 1]\n",
       "out": "{\"distributions\":{\"data\":[[[1,100]]],\"labels\":[\"output 1\"],\"minX\":1,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-18T21:47:40.026595"
+    },
+    {
+      "inp": "\nfunction: e N:n N:n {\n result: N\n}\noutput [e 2 1]\n",
+      "out": "{\"distributions\":{\"data\":[[[2,100]]],\"labels\":[\"output 1\"],\"minX\":2,\"maxX\":2,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-18T21:49:09.423734"
     }
   ]
 }

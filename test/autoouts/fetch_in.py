@@ -720,7 +720,10 @@ function: e N:n N:n {
 output [e 1 1]
 ''',
 r'''
-
+function: e N:n N:n {
+ result: N
+}
+output [e 2 1]
 ''',
 r'''
 
