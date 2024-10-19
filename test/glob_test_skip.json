@@ -6,10 +6,6 @@
             "reason": "TODO implement this",
             "flags": ["all"]
         },
-        "correlation_in_autocast": {
-            "reason": "TODO implement this",
-            "flags": ["all"]
-        },
         "special_none_type_object": {
             "reason": "TODO implement this",
             "flags": ["all"]
