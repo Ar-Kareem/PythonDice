@@ -1346,6 +1346,38 @@ output [e 1d3] named "1d"
 
 ''',
 r'''
+function: f {}
+function: sum AA:n A:n B:s C:d {result: 1}
+
+\BlankRV\
+X: [f]
+output [sum 1d4 1d4 1d4 1d4] named "no X, called safely"
+output [sum X 1d4 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 X 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 X 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 1d4 X] named "if (X: dice) then call the function. SUPER WEIRD"
+
+\BlankRV\
+X: 0d[f]
+output [sum 1d4 1d4 1d4 1d4] named "no X, called safely"
+output [sum X 1d4 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 X 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 X 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 1d4 X] named "if (X: dice) then call the function. SUPER WEIRD"
+
+\SPECIAL NULL BlankRV\
+X: [f]d0
+output [sum 1d4 1d4 1d4 1d4] named "no X, called safely"
+output [sum X 1d4 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 X 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 X 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 1d4 X] named "if (X: dice) then call the function. SUPER WEIRD"
+
+
+\0d{} cancels calling functions\
+output [sum 0 0 {} 0d0]
+output [sum 1 1 0d{} 1] named "0d{} cancels calling functions"
+
 
 ''',
 r'''
