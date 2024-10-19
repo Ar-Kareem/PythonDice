@@ -5,10 +5,6 @@
         "remove_zero_probs_in_online_response": true
     },
     "tests": {
-        "BlankRV_in_autocast": {
-            "reason": "TODO implement this",
-            "flags": ["all"]
-        },
         "Anydice_bug_dice_prob_less_than_100_percent": {
             "reason": "TODO",
             "flags": ["all"]

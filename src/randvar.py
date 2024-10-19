@@ -400,7 +400,7 @@ class BlankRV:
     # ( self:RV @ other ) thus not allowed,
     raise TypeError(f'A position selector must be either a number or a sequence, but you provided "{other}"')
   def  __rmatmul__(self, other:T_is):
-    if self._special_null: return 0 if other != 1 else 1
+    if self._special_null: return 0 if other != 1 else self
     return self
   def __add__(self, other:T_ifsr):
     if self._special_null: return self
@@ -663,6 +663,11 @@ def anydice_casting(verbose=False):
         if expected_type not in (int, Seq, RV):
           if verbose: logger.debug(f'not int seq rv {k}')
           continue
+        if isinstance(arg_val, BlankRV):  # EDGE CASE abort calling if casting int/Seq to BlankRV  (https://github.com/Ar-Kareem/PythonDice/issues/11)
+          if expected_type in (int, Seq):
+            if verbose: logger.debug(f'abort calling func due to BlankRV! {k}')
+            return BlankRV()
+          continue  # casting BlankRV to RV means the function IS called and nothing changes
         casted_iter_to_seq = False
         if isinstance(arg_val, Iterable) and not isinstance(arg_val, Seq):  # if val is iter then need to convert to Seq
           arg_val = Seq(*arg_val)
