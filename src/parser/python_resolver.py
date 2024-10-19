@@ -159,6 +159,7 @@ class PythonResolver:
                     func_args.append(f'{arg_name}: {arg_dtype}')
                     func_arg_names.append(arg_name)
                     func_name.append('X')
+            if has_dups(func_arg_names): fix_dups_in_args(func_args, func_arg_names)
             if self._COMPILER_FLAG_NON_LOCAL_SCOPE: func_args.append('vars')
             func_name = '_'.join(func_name)
             self._defined_functions.add(func_name)
@@ -257,3 +258,15 @@ class PythonResolver:
 
         else:
             assert False, f'Unknown node: {node}'
+
+
+def has_dups(l):
+    return len(l) != len(set(l))
+
+def fix_dups_in_args(func_args, func_arg_names):
+    # rarely used, but if a function has duplicate arguments then we need to rename them
+    N = len(func_args)
+    for i in range(N-1, -1, -1):  # only first is kept
+        if func_arg_names.count(func_arg_names[i]) > 1:  # IS DUP
+            func_args[i] = f'dummy{i}: ' + func_args[i].split(': ')[1]  # TODO remove colon so anydice_casting doesn't waste time looping over non-used args
+            func_arg_names[i] = f'dummy{i}'

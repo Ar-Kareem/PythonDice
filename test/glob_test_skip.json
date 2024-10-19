@@ -10,10 +10,6 @@
             "reason": "TODO",
             "flags": ["all"]
         },
-        "duplicate_arg_name": {
-            "reason": "TODO implement this",
-            "flags": ["all"]
-        },
         "js_maxint_reached_2^53_anydice_calc_wrong": {
             "reason": "JS has int limit of 2^53, exceeding will cause errors, will not support ; permanent issue",
             "flags": ["all"]
