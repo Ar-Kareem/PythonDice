@@ -522,17 +522,17 @@ def anydice_casting(verbose=False):
 
       hard_params = {} # update parameters that are easy to update, keep the hard ones for later
       combined_args = list(enumerate(args)) + list(kwargs.items())
-      if verbose: logger.debug('#args', len(combined_args))
+      if verbose: logger.debug(f'#args {len(combined_args)}') 
       for k, arg_val in combined_args:
         arg_name = k if isinstance(k, str) else (arg_names[k] if k < len(arg_names) else None)  # get the name of the parameter (args or kwargs)
         if arg_name not in param_annotations:  # only look for annotated parameters
-          if verbose: logger.debug('no anot', k)
+          if verbose: logger.debug(f'no anot {k}') 
           continue
         expected_type = param_annotations[arg_name]
         actual_type = type(arg_val)
         new_val = None
         if expected_type not in (int, Seq, RV):
-          if verbose: logger.debug('not int seq rv', k)
+          if verbose: logger.debug(f'not int seq rv {k}')
           continue
         casted_iter_to_seq = False
         if isinstance(arg_val, Iterable) and not isinstance(arg_val, Seq):  # if val is iter then need to convert to Seq
@@ -549,21 +549,21 @@ def anydice_casting(verbose=False):
           new_val = Seq([arg_val])
         elif (expected_type, actual_type) == (Seq, RV):
           hard_params[k] = (arg_val, expected_type)
-          if verbose: logger.debug('EXPL', k)
+          if verbose: logger.debug(f'EXPL {k}')
           continue
         elif (expected_type, actual_type) == (RV, int):
           new_val = RV.from_const(arg_val)  # type: ignore
         elif (expected_type, actual_type) == (RV, Seq):
           new_val = RV.from_seq(arg_val)
         elif not casted_iter_to_seq:  # no cast made and one of the two types is not known, no casting needed
-          if verbose: logger.debug('no cast', k, expected_type, actual_type)
+          if verbose: logger.debug(f'no cast, {k}, {expected_type}, {actual_type}')
           continue
         if isinstance(k, str):
           kwargs[k] = new_val
         else:
           args[k] = new_val
-        if verbose: logger.debug('cast', k)
-      if verbose: logger.debug('hard', list(hard_params.keys()))
+        if verbose: logger.debug('cast {k}')
+      if verbose: logger.debug(f'hard {list(hard_params.keys())}')
       if not hard_params:
         return func(*args, **kwargs)
 
