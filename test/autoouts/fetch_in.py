@@ -884,7 +884,12 @@ output [oddsteps[filter[explodeinner A and B dice A and B]]]
 output [explodes d6 and d8]
 ''',
 r'''
-
+output 1&2
+output 1&2
+output 1&0
+output 1|0
+output 0|0
+output 1|1
 ''',
 r'''
 

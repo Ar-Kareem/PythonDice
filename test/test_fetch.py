@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 SKIP_VERSION = json.loads((Path(__file__).parent / 'glob_test_skip.json').read_text())['tests']
 COMP_EPS = 1e-5
 
-# specify test names below and run: pytest test/test_fetch.py -k test_cherrypick
+# specify test names below and run:    python -m pytest test/test_fetch.py -k test_cherrypick --log-cli-level=DEBUG --capture=tee-sys
 CHERRYPICK = set([])
 
 data = json.loads((Path(__file__).parent / 'autoouts' / 'fetch_out.json').read_text())['data']

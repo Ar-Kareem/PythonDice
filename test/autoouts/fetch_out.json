@@ -281,6 +281,12 @@
       "out": "{\"distributions\":{\"data\":[[[-1,83.3333333333],[null,null],[1,16.6666666667]]],\"labels\":[\"output 1\"],\"minX\":-1,\"maxX\":1,\"minY\":0,\"maxY\":83.3333333333}}",
       "time": "2024-10-19T07:21:41.939469",
       "name": "correlation_in_autocast"
+    },
+    {
+      "inp": "\noutput 1&2\noutput 1&2\noutput 1&0\noutput 1|0\noutput 0|0\noutput 1|1\n",
+      "out": "{\"distributions\":{\"data\":[[[1,100]],[[1,100]],[[0,100]],[[1,100]],[[0,100]],[[1,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\",\"output 5\",\"output 6\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T08:07:33.468528",
+      "name": "bitwise_ops_on_ints"
     }
   ]
 }
