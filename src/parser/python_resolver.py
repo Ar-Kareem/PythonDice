@@ -111,13 +111,6 @@ class PythonResolver:
             assert isinstance(node.val, str), f'Expected string for strvar, got {node.val}'
             if self._COMPILER_FLAG_NON_LOCAL_SCOPE: return "{vars['" + node.val + "']}"
             return '{' + node.val + '}'
-        # elif node.type == NodeType.STRING:  # Node of str or ("strvar", ...)
-        #     return '"' + ''.join([x if isinstance(x, str) else self.resolve_node(x) for x in node]) + '"'
-        # elif node.type == NodeType.STRVAR:
-        #     assert isinstance(node.val, str), f'Expected string for strvar, got {node.val}'
-        #     var_name = node.val
-        #     if self._COMPILER_FLAG_NON_LOCAL_SCOPE: var_name = "vars['" + node.val + "']"
-        #     return '" + str(' + var_name + ') + "'
         elif node.type == NodeType.NUMBER:  # number in an expression
             assert isinstance(node.val, str), f'Expected str of a number, got {node.val}  type: {type(node.val)}'
             return str(node.val)
