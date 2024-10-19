@@ -12,7 +12,9 @@ from dice_calc.parser import parse_and_exec
 
 logger = logging.getLogger(__name__)
 
-SKIP_VERSION = json.loads((Path(__file__).parent / 'glob_test_skip.json').read_text())['tests']
+glob_json = json.loads((Path(__file__).parent / 'glob_test_skip.json').read_text())
+remove_zero_probs_in_online_response = glob_json.get('global_flags', {}).get('remove_zero_probs_in_online_response', False)
+SKIP_VERSION = glob_json['tests']
 COMP_EPS = 1e-5
 
 # specify test names below and run:    python -m pytest test/test_fetch.py -k test_cherrypick --log-cli-level=DEBUG --capture=tee-sys
@@ -81,6 +83,8 @@ def pipeline(to_parse, version, global_vars={}):
   return r
 
 def check(inp: Union[RV, Seq, int], expected, i):
+  if remove_zero_probs_in_online_response:  # remove zero prob values from expected
+    expected = [x for x in expected if x[1] != 0]
   if isinstance(inp, BlankRV) and expected == []:  # outputting blank gives nothing
     return
   # if inp is None and expected == []:  # outputting None gives nothing
