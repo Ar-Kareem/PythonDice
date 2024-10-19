@@ -726,13 +726,39 @@ function: e N:n N:n {
 output [e 2 1]
 ''',
 r'''
-
+function: t N:n {
+  result: N
+}
+function: e N:n {
+ if N <= 2 {result: [t Nd2]}
+ result: N
+}
+set "maximum function depth" to 1
+output [e 1d3]
 ''',
+# PLUS ZERO AFFECTING CODE ??
 r'''
-
+function: t N:n {
+  result: N
+}
+function: e N:n {
+ if N <= 2 {result: [t Nd2]+0}
+ result: N
+}
+set "maximum function depth" to 1
+output [e 1d3]
 ''',
+# PLUS ZERO AFFECTING CODE YET TIMES 1 IS NOT ?????
 r'''
-
+function: t N:n {
+  result: N
+}
+function: e N:n {
+ if N <= 2 {result: [t Nd2]*1}
+ result: N
+}
+set "maximum function depth" to 1
+output [e 1d3]
 ''',
 r'''
 

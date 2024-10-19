@@ -4,12 +4,17 @@ import logging
 import dice_calc.parser.parse_and_exec as parse_and_exec  # from "anything else" breaks
 from dice_calc.randvar import output
 
-
 trials = [
 r'''
-
+function: f {}
+output [f] @ 0
 '''
 ]
+# flags = {'COMPILER_FLAG_NON_LOCAL_SCOPE': True, 'COMPILER_FLAG_OPERATOR_ON_INT': True}
+flags = {}
+
+
+
 
 def setup_logger(filename):
     logging.basicConfig(filename=filename, level=logging.DEBUG, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
@@ -43,8 +48,6 @@ def main(trials=trials):
       if yacc_ret is None:
         logger.debug('Parse failed')
         continue
-      flags = {'COMPILER_FLAG_NON_LOCAL_SCOPE': True}
-      # flags = {}
       python_str = parse_and_exec.do_resolve(yacc_ret, flags=flags)
       logger.debug('\n'.join(f'{x}' for i, x in enumerate(python_str.split('\n'))))
       logger.debug('\n'.join(f'{i+1}: {x}' for i, x in enumerate(python_str.split('\n'))))

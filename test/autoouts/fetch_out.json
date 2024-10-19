@@ -171,7 +171,8 @@
     {
       "inp": "\nfunction: e N:n {\n result: [e N]+1\n}\nset \"maximum function depth\" to 2\noutput [e 2d4]\n\n",
       "out": "{\"distributions\":{\"data\":[[[2,100]]],\"labels\":[\"output 1\"],\"minX\":2,\"maxX\":2,\"minY\":0,\"maxY\":100},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
-      "time": "2024-10-18T21:33:49.013910"
+      "time": "2024-10-18T21:33:49.013910",
+      "name": "max_func_depth"
     },
     {
       "inp": "\n_A: 1\noutput _A\n",
@@ -182,37 +183,62 @@
     {
       "inp": "\nfunction: e N:n N:n {\n result: [e N N]+1\n}\nset \"maximum function depth\" to 2\noutput [e 2d4 3d4]\n",
       "out": "{\"distributions\":{\"data\":[[[2,100]]],\"labels\":[\"output 1\"],\"minX\":2,\"maxX\":2,\"minY\":0,\"maxY\":100},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
-      "time": "2024-10-18T21:47:33.233951"
+      "time": "2024-10-18T21:47:33.233951",
+      "name": "duplicate_arg_name"
     },
     {
       "inp": "\nfunction: e N:s N:n {\n result: [e N N]+1\n}\nset \"maximum function depth\" to 2\noutput [e 2d4 3d4]\n\n",
       "out": "{\"distributions\":{\"data\":[[[2,100]]],\"labels\":[\"output 1\"],\"minX\":2,\"maxX\":2,\"minY\":0,\"maxY\":100},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
-      "time": "2024-10-18T21:47:34.591827"
+      "time": "2024-10-18T21:47:34.591827",
+      "name": "duplicate_arg_name"
     },
     {
       "inp": "\nfunction: e N:s {\n result: [e N]+1\n}\nset \"maximum function depth\" to 2\noutput [e 2d4]\n",
       "out": "{\"distributions\":{\"data\":[[[2,100]]],\"labels\":[\"output 1\"],\"minX\":2,\"maxX\":2,\"minY\":0,\"maxY\":100},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
-      "time": "2024-10-18T21:47:35.985257"
+      "time": "2024-10-18T21:47:35.985257",
+      "name": "max_func_depth"
     },
     {
       "inp": "\nfunction: e N:s N:s {\n result: [e N N]+1\n}\nset \"maximum function depth\" to 2\noutput [e 2d4 3d4]\n\n",
       "out": "{\"distributions\":{\"data\":[[[2,100]]],\"labels\":[\"output 1\"],\"minX\":2,\"maxX\":2,\"minY\":0,\"maxY\":100},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
-      "time": "2024-10-18T21:47:37.199001"
+      "time": "2024-10-18T21:47:37.199001",
+      "name": "duplicate_arg_name"
     },
     {
       "inp": "\nfunction: e N:n N:s {\n result: [e N N]+1\n}\nset \"maximum function depth\" to 2\noutput [e 2d4 3d4]\n\n",
       "out": "{\"distributions\":{\"data\":[[[2,100]]],\"labels\":[\"output 1\"],\"minX\":2,\"maxX\":2,\"minY\":0,\"maxY\":100},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
-      "time": "2024-10-18T21:47:38.539962"
+      "time": "2024-10-18T21:47:38.539962",
+      "name": "duplicate_arg_name"
     },
     {
       "inp": "\nfunction: e N:n N:n {\n result: 1\n}\noutput [e 1 1]\n",
       "out": "{\"distributions\":{\"data\":[[[1,100]]],\"labels\":[\"output 1\"],\"minX\":1,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
-      "time": "2024-10-18T21:47:40.026595"
+      "time": "2024-10-18T21:47:40.026595",
+      "name": "duplicate_arg_name"
     },
     {
       "inp": "\nfunction: e N:n N:n {\n result: N\n}\noutput [e 2 1]\n",
       "out": "{\"distributions\":{\"data\":[[[2,100]]],\"labels\":[\"output 1\"],\"minX\":2,\"maxX\":2,\"minY\":0,\"maxY\":100}}",
-      "time": "2024-10-18T21:49:09.423734"
+      "time": "2024-10-18T21:49:09.423734",
+      "name": "duplicate_arg_name"
+    },
+    {
+      "inp": "\nfunction: t N:n {\n  result: N\n}\nfunction: e N:n {\n if N <= 2 {result: [t Nd2]}\n result: N\n}\nset \"maximum function depth\" to 1\noutput [e 1d3]\n",
+      "out": "{\"distributions\":{\"data\":[[[3,100]]],\"labels\":[\"output 1\"],\"minX\":3,\"maxX\":3,\"minY\":0,\"maxY\":100},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
+      "time": "2024-10-19T05:42:01.021618",
+      "name": "max_func_depth"
+    },
+    {
+      "inp": "\nfunction: t N:n {\n  result: N\n}\nfunction: e N:n {\n if N <= 2 {result: [t Nd2]+0}\n result: N\n}\nset \"maximum function depth\" to 1\noutput [e 1d3]\n",
+      "out": "{\"distributions\":{\"data\":[[[0,66.6666666667],[null,null],[3,33.3333333333]]],\"labels\":[\"output 1\"],\"minX\":0,\"maxX\":3,\"minY\":0,\"maxY\":66.6666666667},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
+      "time": "2024-10-19T05:47:36.550703",
+      "name": "max_func_depth"
+    },
+    {
+      "inp": "\nfunction: t N:n {\n  result: N\n}\nfunction: e N:n {\n if N <= 2 {result: [t Nd2]*1}\n result: N\n}\nset \"maximum function depth\" to 1\noutput [e 1d3]\n",
+      "out": "{\"distributions\":{\"data\":[[[3,100]]],\"labels\":[\"output 1\"],\"minX\":3,\"maxX\":3,\"minY\":0,\"maxY\":100},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
+      "time": "2024-10-19T05:47:37.603330",
+      "name": "max_func_depth"
     }
   ]
 }
