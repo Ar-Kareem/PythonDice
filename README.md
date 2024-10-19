@@ -231,7 +231,7 @@ roller(X)  # gets a random value from rolling a d20 with advantage
 
 
 
-    14
+    18
 
 
 
@@ -340,12 +340,9 @@ output [convert [highest 3 of 6d{1..9, 1000}]] named "6k3 exploded after keeping
 """
 
 code = compile_anydice(EXAMPLE_CODE)
-print(f'compile retured type:{type(code)}\n')
 print(code)
 ```
 
-    compile retured type:<class 'str'>
-    
     @max_func_depth()
     @anydice_casting()
     def convert_X(SUM: int):
@@ -362,9 +359,7 @@ print(code)
 
 ```python
 # IMPORT EVERYTHING
-from dice_calc import RV, Seq, anydice_casting, max_func_depth, output, roll, settings_set
-from dice_calc.utils import myrange
-from dice_calc.funclib import absolute as absolute_X, contains as X_contains_X, count_in as count_X_in_X, explode as explode_X, highest_N_of_D as highest_X_of_X, lowest_N_of_D as lowest_X_of_X, middle_N_of_D as middle_X_of_X, highest_of_N_and_N as highest_of_X_and_X, lowest_of_N_and_N as lowest_of_X_and_X, maximum_of as maximum_of_X, reverse as reverse_X, sort as sort_X
+from dice_calc import *
 
 # EXECUTE CODE FROM COMPILE_ANYDICE
 @max_func_depth()

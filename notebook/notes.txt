@@ -25,7 +25,16 @@ to build package:
 
 
 TODO
+    IMPORTANT:
+        create blank RV. [A sequence range must begin with a number, while you provided "d{}".]
+    use  functools.wraps or functools.update_wrapper.
+    tiny edge case: when anydice performs a comparison, it always has vals as (0, 1) even if one of them has prob=0
+    will crash if code is "function: vars {result: 1} output [vars]"
+    
     auto __version__ https://packaging.python.org/en/latest/discussions/single-source-version/#single-source-version
+    improve error output
+    add to doc that executes code that fails in anydice
+    implement `plucker`
     make resolver wrap () for all operators then make sure all tests pass
     make function depth a compiler flag?
     Build Lex Yacc test cases
