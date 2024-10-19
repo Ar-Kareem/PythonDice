@@ -994,7 +994,7 @@ output Y named "[Y]"
 
 ''',
 r'''
-
+output 0 named "test {1,2,3,4}"
 ''',
 r'''
 

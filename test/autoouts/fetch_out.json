@@ -335,6 +335,12 @@
       "out": "{\"distributions\":{\"data\":[[[3,100]],[[-3,100]],[],[[0,33.3333333333],[1,33.3333333333],[2,33.3333333333]]],\"labels\":[\"3\",\"-3\",\"{?}\",\"{?}\"],\"minX\":-3,\"maxX\":2,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-19T10:19:00.006825",
       "name": "special_none_type_object"
+    },
+    {
+      "inp": "\noutput 0 named \"test {1,2,3,4}\"\n",
+      "out": "{\"distributions\":{\"data\":[[[0,100]]],\"labels\":[\"test {1,2,3,4}\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T10:29:55.627251",
+      "name": "string_in_output_name"
     }
   ]
 }
