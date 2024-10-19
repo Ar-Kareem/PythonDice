@@ -92,7 +92,7 @@ def check(inp: Union[RV, Seq, int], expected, i):
   x = [[v, p*100] for v, p in inp.get_vals_probs()]
   cust_x = cust_np_array(x)
   cust_expected = cust_np_array(expected)
-  assert cust_x.shape == cust_expected.shape, f'shape mismatch | shpaes A: {cust_x.shape}, B: {cust_expected.shape} | A: {x}, B: {expected}'
+  assert cust_x.shape == cust_expected.shape, f'i:{i}|shape mismatch | shpaes A: {cust_x.shape}, B: {cust_expected.shape} | A: {x}, B: {expected}'
   assert not all_close(cust_x, cust_expected+0.01, atol=COMP_EPS), f'How is allcose true here???'
   assert all_close(cust_x, cust_expected, atol=COMP_EPS), f'i:{i}|ME: {x}, ONLINE: {expected} diff: {sum_diff_iterable(x, expected)}'
   # for a, b in zip(x, expected):

@@ -341,6 +341,12 @@
       "out": "{\"distributions\":{\"data\":[[[0,100]]],\"labels\":[\"test {1,2,3,4}\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-19T10:29:55.627251",
       "name": "string_in_output_name"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: [f]\nY: {}\noutput Y named \"1 [Y]\"\nY: {X}\noutput Y named \"2 [Y]\"\nY: {0,X}\noutput Y named \"3 [Y]\"\nY: {0}\noutput Y named \"4 [Y]\"\nY: {}\noutput Y named \"5 [Y]\"\nY: {}+0\noutput Y named \"6 [Y]\"\nY: {X}+0\noutput Y named \"7 [Y]\"\n",
+      "out": "{\"distributions\":{\"data\":[[],[],[[0,100]],[[0,100]],[],[[0,100]],[[0,100]]],\"labels\":[\"1 {?}\",\"2 {?}\",\"3 {?}\",\"4 {?}\",\"5 {?}\",\"6 0\",\"7 0\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T11:04:08.166092",
+      "name": "seq_with_no_args"
     }
   ]
 }

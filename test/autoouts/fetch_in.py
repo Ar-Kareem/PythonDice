@@ -997,7 +997,22 @@ r'''
 output 0 named "test {1,2,3,4}"
 ''',
 r'''
-
+function: f {}
+X: [f]
+Y: {}
+output Y named "1 [Y]"
+Y: {X}
+output Y named "2 [Y]"
+Y: {0,X}
+output Y named "3 [Y]"
+Y: {0}
+output Y named "4 [Y]"
+Y: {}
+output Y named "5 [Y]"
+Y: {}+0
+output Y named "6 [Y]"
+Y: {X}+0
+output Y named "7 [Y]"
 ''',
 r'''
 
