@@ -349,9 +349,9 @@
       "name": "seq_with_no_args"
     },
     {
-      "inp": "\nfunction: f {}\n\nX: ({}d{})\noutput X named \"1 [X]\"\n\nX: {}\noutput X=X named \"2 [X]=[X]\"\n\noutput [f]=[f] named \"3 [f]=[f]\"\nX: [f]\noutput X=X named \"3 [f]=[f]\"\n\nX: {}d0\noutput X named \"4 {}d0\"\n\nX: 0d{}\noutput X named \"4 0d{}\"\n\nX: {}d0\noutput X=X named \"5 {}d0={}d0\"\n\nX: ({}d{})\noutput X=X named \"6 [X]\"\n\nX: ({}d{})+0\noutput X named \"7 [X]\"\n",
-      "out": "{\"distributions\":{\"data\":[[],[[1,100]],[],[],[[0,100]],[],[[0,0],[1,100]],[],[[0,100]]],\"labels\":[\"1 d{}\",\"2 {?}={?}\",\"3 [f]=[f]\",\"3 [f]=[f]\",\"4 {}d0\",\"4 0d{}\",\"5 {}d0={}d0\",\"6 d{}\",\"7 0\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
-      "time": "2024-10-19T11:37:51.281510",
+      "inp": "\nfunction: f {}\n\nX: ({}d{})\noutput X named \"1 [X]\"\n\nX: {}\noutput X=X named \"2 [X]=[X]\"\n\noutput [f]=[f] named \"3 [f]=[f]\"\nX: [f]\noutput X=X named \"3 [f]=[f]\"\n\nX: {}d0\noutput X named \"4 {}d0\"\n\nX: 0d{}\noutput X named \"4 0d{}\"\n\nX: ({}d{})\noutput X=X named \"6 [X]\"\n\nX: ({}d{})+0\noutput X named \"7 [X]\"\n",
+      "out": "{\"distributions\":{\"data\":[[],[[1,100]],[],[],[[0,100]],[],[],[[0,100]]],\"labels\":[\"1 d{}\",\"2 {?}={?}\",\"3 [f]=[f]\",\"3 [f]=[f]\",\"4 {}d0\",\"4 0d{}\",\"6 d{}\",\"7 0\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T11:57:50.263346",
       "name": "seq_with_no_args"
     },
     {
@@ -359,6 +359,12 @@
       "out": "{\"distributions\":{\"data\":[[]],\"labels\":[\"output 1\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":0}}",
       "time": "2024-10-19T11:37:52.659358",
       "name": "special_none_type_object"
+    },
+    {
+      "inp": "\nfunction: f {}\nX: {}d0\noutput X=X named \"BUGGED VALUE WITH 0% PROB\"\n\n",
+      "out": "{\"distributions\":{\"data\":[[[0,0],[1,100]]],\"labels\":[\"BUGGED VALUE WITH 0% PROB\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
+      "time": "2024-10-19T11:56:44.187803",
+      "name": "Anydice_bug_special_case_where_dice_prob_equal_0_is_displayed"
     }
   ]
 }

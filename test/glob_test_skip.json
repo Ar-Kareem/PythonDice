@@ -10,6 +10,10 @@
             "reason": "TODO implement this",
             "flags": ["all"]
         },
+        "Anydice_bug_special_case_where_dice_prob_equal_0_is_displayed": {
+            "reason": "TODO implement this",
+            "flags": ["all"]
+        },
         "Anydice_bug_dice_prob_less_than_100_percent": {
             "reason": "TODO",
             "flags": ["all"]

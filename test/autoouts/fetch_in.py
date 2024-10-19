@@ -1033,9 +1033,6 @@ output X named "4 {}d0"
 X: 0d{}
 output X named "4 0d{}"
 
-X: {}d0
-output X=X named "5 {}d0={}d0"
-
 X: ({}d{})
 output X=X named "6 [X]"
 
@@ -1048,6 +1045,84 @@ function: all A:n B:s C:d {
 result: C
 }
 output [all [f] [f] [f]]
+''',
+r'''
+function: f {}
+X: {}d0
+output X=X named "BUGGED VALUE WITH 0% PROB"
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
 ''',
 r'''
 
