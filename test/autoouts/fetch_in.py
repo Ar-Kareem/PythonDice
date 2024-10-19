@@ -664,6 +664,11 @@ X: [evaluate 1]
 output X
 ''',
 r'''
+function: e N:n {
+ result: [e N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4]
 
 ''',
 r'''

@@ -167,6 +167,11 @@
       "inp": "\n\nfunction: evaluate S:s {\n \n}\nX: [evaluate 1] \n\noutput X\n",
       "out": "{\"distributions\":{\"data\":[[]],\"labels\":[\"output 1\"],\"minX\":0,\"maxX\":0,\"minY\":0,\"maxY\":0}}",
       "time": "2024-10-18T20:36:22.809276"
+    },
+    {
+      "inp": "\nfunction: e N:n {\n result: [e N]+1\n}\nset \"maximum function depth\" to 2\noutput [e 2d4]\n\n",
+      "out": "{\"distributions\":{\"data\":[[[2,100]]],\"labels\":[\"output 1\"],\"minX\":2,\"maxX\":2,\"minY\":0,\"maxY\":100},\"warnings\":[\"The maximum function depth was exceeded, results are truncated.\"]}",
+      "time": "2024-10-18T21:33:49.013910"
     }
   ]
 }
