@@ -32,8 +32,8 @@ def main():
         sys.exit(0)
 
     print('Code to request:', len(new_inps))
-    if input('y to continue: ') != 'y':
-        sys.exit(0)
+    # if input('y to continue: ') != 'y':
+    #     sys.exit(0)
 
     C = get_cookie()
     for inp in new_inps:
