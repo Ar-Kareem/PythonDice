@@ -631,6 +631,14 @@ def max_func_depth(depth=None):
 def _sum_at(orig: Seq, locs: Seq):
   return sum(orig[int(i)] for i in locs)
 
+from .randvar import RV
+def myrange(l, r):
+    if isinstance(l, RV):
+        raise TypeError(f'A sequence range must begin with a number, while you provided "{l}".')
+    if isinstance(r, RV):
+        raise TypeError(f'A sequence range must begin with a number, while you provided "{r}".')
+    return range(l, r+1)
+
 def roll(n: Union[T_isr, str], d: Union[T_isr, None]=None) -> RV:
   """Roll n dice of d sides
 
