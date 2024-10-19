@@ -2,6 +2,10 @@
     "about" : "This is a file specifying the tests to skip. each test.py file (that has tests to skip) should read this json and skip accoardingly",
     "format": "tests: {test_name: {reason: 'reason for skipping', flags: optional flags}}",
     "tests": {
+        "correlation_in_autocast": {
+            "reason": "TODO implement this",
+            "flags": ["all"]
+        },
         "special_none_type_object": {
             "reason": "TODO implement this",
             "flags": ["all"]

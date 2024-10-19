@@ -842,7 +842,46 @@ function: e N:n {
 output [e 1d3] named "BUGGED DICE WITH SUM OF PROBABILITY < 100%"
 ''',
 r'''
+function: inner N:n and M:n {
+ if N=1 & M=1 { 
+  result: 1
+ }
+ result: -1
+}
 
+output [inner d2 and d3]
+''',
+r'''
+function: explodeinner N:n and M:n dice A:d and B:d {
+ if N=1 & M=1 { 
+  result: -1000
+ }
+ else {
+  if M=N {
+    result: M+N+[explodeinner A and B dice A and B]
+   }
+  else {
+   result: M+N
+  }
+ }
+}
+function: filter N:n {
+ if N<=2 { result: 1} else { if N>25 {result: 25} else {result: N} }
+}
+function: oddsteps N:n {
+ result: (((N+1)/2)*2)-1
+}
+function: explodes A:d and B:d {
+ result: [oddsteps[filter[explodeinner A and B dice A and B]]]
+}
+set "maximum function depth" to 5
+
+A: d6
+B: d8
+output [explodeinner A and B dice A and B]
+output [filter[explodeinner A and B dice A and B]]
+output [oddsteps[filter[explodeinner A and B dice A and B]]]
+output [explodes d6 and d8]
 ''',
 r'''
 
