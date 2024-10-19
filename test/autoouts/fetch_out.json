@@ -293,6 +293,12 @@
       "out": "{\"distributions\":{\"data\":[[[1,100]],[[1,100]],[[0,100]],[[0,100]],[[1,100]],[[1,100]],[[1,100]],[[1,100]],[[1,100]],[[1,100]]],\"labels\":[\"output 1\",\"output 2\",\"output 3\",\"output 4\",\"output 5\",\"output 6\",\"output 7\",\"output 8\",\"output 9\",\"output 10\"],\"minX\":0,\"maxX\":1,\"minY\":0,\"maxY\":100}}",
       "time": "2024-10-19T08:26:34.094084",
       "name": "bitwise_ops_on_ints"
+    },
+    {
+      "inp": "\nfunction: innera N:n and M:n {\n  if !(N-1)=1 & M=1 {  result: 1 }\n  result: -1\n}\nfunction: innerb N:n and M:n {\n  if !(N-1)=1 { if M=1 { result: 1} }\n  result: -1\n}\n\noutput [innera d2 and d3]\noutput [innerb d2 and d3]\n",
+      "out": "{\"distributions\":{\"data\":[[[-1,83.3333333333],[null,null],[1,16.6666666667]],[[-1,83.3333333333],[null,null],[1,16.6666666667]]],\"labels\":[\"output 1\",\"output 2\"],\"minX\":-1,\"maxX\":1,\"minY\":0,\"maxY\":83.3333333333}}",
+      "time": "2024-10-19T08:55:44.623652",
+      "name": "bitwise_ops_on_ints"
     }
   ]
 }

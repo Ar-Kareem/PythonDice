@@ -904,7 +904,17 @@ output -2|-2
 output -2|4
 ''',
 r'''
+function: innera N:n and M:n {
+  if !(N-1)=1 & M=1 {  result: 1 }
+  result: -1
+}
+function: innerb N:n and M:n {
+  if !(N-1)=1 { if M=1 { result: 1} }
+  result: -1
+}
 
+output [innera d2 and d3]
+output [innerb d2 and d3]
 ''',
 r'''
 
