@@ -16,9 +16,6 @@ def flatten(items: T_s) -> T_flat:
         else:
             yield x
 
-def myrange(l, r):
-    return range(l, r+1)
-
 _memoized = {}
 def factorial(n: int):
     if n not in _memoized:
@@ -40,3 +37,11 @@ def myinvert(a):
     if isinstance(a, int):
         return 1 if a == 0 else 0
     return ~a
+def myand(a, b):
+    if isinstance(a, int) and isinstance(b, int):
+        return 1 if (a and b) else 0
+    return a & b
+def myor(a, b):
+    if isinstance(a, int) and isinstance(b, int):
+        return 1 if (a or b) else 0
+    return a | b

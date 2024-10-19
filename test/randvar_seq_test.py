@@ -11,7 +11,9 @@ def settings_reset():
 
 
 def test_at_num():
-    assert Seq(2, 3) @ 1234 == 5
+    r = Seq(2, 3) @ 1234
+    assert isinstance(r, int)
+    assert r == 5
 
 
 @pytest.mark.parametrize("l1, l2, i", [
@@ -122,7 +124,7 @@ def test_seq_arith_mod(s1, t1, s2, t2):
     ((1, 1), (1, ), False),
     ((1, ), (1, 1), False),
 ])
-def test_seq_comp_eq(l1, l2, b):
+def test_seq_comp_eq1(l1, l2, b):
     bb = Seq(*l1) == Seq(*l2)
     assert bb == b, f'{l1} == {l2} should be {b}'
 

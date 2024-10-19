@@ -25,15 +25,17 @@ def main():
     cur_dir = Path(__file__).parent
     fetch_out = json.loads((cur_dir / 'fetch_out.json').read_text())
     done_inps_set = set([x['inp'] for x in fetch_out['data']])
-    new_inps = set([x for x in code_library if x.strip() and x not in done_inps_set])
+    # preserve order
+    new_inps_set = set([x for x in code_library if x.strip() and x not in done_inps_set])
+    new_inps = [x for x in code_library if x in new_inps_set]
 
     if not new_inps:
         print('No new inputs to fetch.\nAdd inputs to fetch_in.py')
         sys.exit(0)
 
     print('Code to request:', len(new_inps))
-    if input('y to continue: ') != 'y':
-        sys.exit(0)
+    # if input('y to continue: ') != 'y':
+    #     sys.exit(0)
 
     C = get_cookie()
     for inp in new_inps:

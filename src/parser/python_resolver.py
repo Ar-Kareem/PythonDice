@@ -16,7 +16,7 @@ CONST = {
     'func_decorator': '@max_func_depth()\n@anydice_casting()',  # with func depth limit
     'setter': lambda name, value: f'settings_set({name}, {value})',
     'function library': ('absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X'),
-    'oplib': {'@': 'myMatmul', 'len': 'myLen', '~': 'myInvert'},
+    'oplib': {'@': 'myMatmul', 'len': 'myLen', '~': 'myInvert', '&': 'myAnd', '|': 'myOr'},
 }
 _FUNCS_MAY_COLLIDE = set((CONST['output'], CONST['roll'], CONST['range'], 'max_func_depth', 'anydice_casting', 'settings_set'))
 
@@ -100,7 +100,13 @@ class PythonResolver:
             return '\n'.join([self.resolve_node(x) for x in node]) if len(node) > 0 else 'pass'
 
         elif node.type == NodeType.STRING:  # Node of str or ("strvar", ...)
-            return 'f"' + ''.join([x if isinstance(x, str) else self.resolve_node(x) for x in node]) + '"'
+            str_list = []
+            for x in node:
+                if isinstance(x, str):
+                    str_list.append(x.replace('{', '{{').replace('}', '}}'))  # escape curly braces
+                else:
+                    str_list.append(self.resolve_node(x))
+            return 'f"' + ''.join(str_list) + '"'
         elif node.type == NodeType.STRVAR:
             assert isinstance(node.val, str), f'Expected string for strvar, got {node.val}'
             if self._COMPILER_FLAG_NON_LOCAL_SCOPE: return "{vars['" + node.val + "']}"
@@ -153,6 +159,7 @@ class PythonResolver:
                     func_args.append(f'{arg_name}: {arg_dtype}')
                     func_arg_names.append(arg_name)
                     func_name.append('X')
+            if has_dups(func_arg_names): fix_dups_in_args(func_args, func_arg_names)
             if self._COMPILER_FLAG_NON_LOCAL_SCOPE: func_args.append('vars')
             func_name = '_'.join(func_name)
             self._defined_functions.add(func_name)
@@ -211,6 +218,9 @@ class PythonResolver:
             elif op == '@':
                 if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"]["@"]}({self.resolve_node(left)}, {self.resolve_node(right)})'
                 return f'({self.resolve_node(left)} {op} {self.resolve_node(right)})'  # wrap in parentheses to take precedence over multiplication
+            elif op == '&' or op == '|':
+                if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"][op]}({self.resolve_node(left)}, {self.resolve_node(right)})'
+                return f'{self.resolve_node(left)} {op} {self.resolve_node(right)}'
             else:  # all other operators
                 return f'{self.resolve_node(left)} {op} {self.resolve_node(right)}'
         elif node.type == NodeType.UNARY:
@@ -248,3 +258,15 @@ class PythonResolver:
 
         else:
             assert False, f'Unknown node: {node}'
+
+
+def has_dups(l):
+    return len(l) != len(set(l))
+
+def fix_dups_in_args(func_args, func_arg_names):
+    # rarely used, but if a function has duplicate arguments then we need to rename them
+    N = len(func_args)
+    for i in range(N-1, -1, -1):  # only first is kept
+        if func_arg_names.count(func_arg_names[i]) > 1:  # IS DUP
+            func_args[i] = f'dummy{i}: ' + func_args[i].split(': ')[1]  # TODO remove colon so anydice_casting doesn't waste time looping over non-used args
+            func_arg_names[i] = f'dummy{i}'

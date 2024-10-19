@@ -21,6 +21,49 @@ output ! (2>3)
 output 2 > !3
 output ! 2>3
 ''',
+r'''
+function: attack ATTACKS:n HIT:n WOUND:n SAVE:n {
+ DAMAGE:0
+ 
+ loop N over {1..ATTACKS} {
+  DAMAGE: DAMAGE + [hit 1d6 HIT WOUND SAVE]
+ }
+ 
+ result: DAMAGE
+}
+
+function: hit ROLL:n HIT:n WOUND:n SAVE:n {
+ if ROLL >= HIT {
+  result: [wound 1d6 WOUND SAVE]
+ } else {
+  result: 0
+ }
+}
+
+function: wound ROLL:n WOUND:n SAVE:n {
+ if ROLL >= WOUND {
+  result: [save 1d6 SAVE]
+ } else {
+  result: 0
+ }
+}
+
+function: save ROLL:n SAVE:n {
+ if ROLL >= SAVE {
+  result: 0
+ } else {
+  result: 1
+ }
+}
+
+output [attack 30 3 6 2] named "Gretchins versus Robute Guilliman"
+output [attack 30 3 5 2] named "Gretchins versus Marneus Calgar"
+output [attack 30 3 4 4] named "Gretchins versus Commissar Yarrick"
+
+output [attack 29 3 6 2] + [attack 1d6 3 6 2] named "Gretchins with Stikkbombs versus Robute Guilliman"
+output [attack 29 3 5 2] + [attack 1d6 3 5 2] named "Gretchins with Stikkbombs versus Marneus Calgar"
+output [attack 29 3 4 4] + [attack 1d6 3 4 4] named "Gretchins with Stikkbombs versus Commissar Yarrick"
+''',
 '''
 output ! 5
 output ! 0
@@ -641,6 +684,737 @@ output [ d 1 ]
 # SHOWING THAT MAX INT IS WRONG
 r'''
 output 922340 - 9999999999999999999/10000000000000  
+''',
+r'''
+output {1..3}@4d6 named "4d6 drop lowest"
+''',
+r'''
+
+function: evaluate S:s {
+ 
+}
+X: [evaluate 1d1] 
+
+output X
+''',
+r'''
+
+function: evaluate S:s {
+ 
+}
+X: [evaluate 1] 
+
+output X
+''',
+r'''
+function: e N:n {
+ result: [e N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4]
+
+''',
+r'''
+_A: 1
+output _A
+''',
+r'''
+function: e N:s {
+ result: [e N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4]
+''',
+r'''
+function: e N:n N:n {
+ result: [e N N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4 3d4]
+''',
+r'''
+function: e N:s N:n {
+ result: [e N N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4 3d4]
+
+''',
+r'''
+function: e N:n N:s {
+ result: [e N N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4 3d4]
+
+''',
+r'''
+function: e N:s N:s {
+ result: [e N N]+1
+}
+set "maximum function depth" to 2
+output [e 2d4 3d4]
+
+''',
+r'''
+function: e N:n N:n {
+ result: 1
+}
+output [e 1 1]
+''',
+r'''
+function: e N:n N:n {
+ result: N
+}
+output [e 2 1]
+''',
+r'''
+function: t N:n {
+  result: N
+}
+function: e N:n {
+ if N <= 2 {result: [t Nd2]}
+ result: N
+}
+set "maximum function depth" to 1
+output [e 1d3]
+''',
+# PLUS ZERO AFFECTING CODE ??
+r'''
+function: t N:n {
+  result: N
+}
+function: e N:n {
+ if N <= 2 {result: [t Nd2]+0}
+ result: N
+}
+set "maximum function depth" to 1
+output [e 1d3]
+''',
+# PLUS ZERO AFFECTING CODE YET TIMES 1 IS NOT ?????
+r'''
+function: t N:n {
+  result: N
+}
+function: e N:n {
+ if N <= 2 {result: [t Nd2]*1}
+ result: N
+}
+set "maximum function depth" to 1
+output [e 1d3]
+''',
+r'''
+function: f {}
+X: [f]
+output X named "blank"
+output X+0 named "plus 0"
+output X-0 named "minus 0"
+output X*1 named "times 1"
+output X/1 named "divide 1"
+output X^1 named "power 1"
+output 0^X named "0 power"
+output #X named "hash"
+output !X named "exclim"
+output 1@X named "1@"
+output 1dX named "1d"
+output Xd1 named "d1"
+''',
+r'''
+function: f {}
+X: [f]
+output X named "blank"
+output X+0 named "plus 0"
+output X-0 named "minus 0"
+output X*1 named "times 1"
+output X/1 named "divide 1"
+output X^1 named "power 1"
+output 0^X named "0 power"
+output #X named "hash"
+output !X named "exclim"
+output 1@X named "1@"
+output 1dX named "1d"
+output Xd1 named "d1"
+''',
+r'''
+function: f {}
+X: [f]
+output X named "blank"
+output X+1 named "plus 1"
+output X-1 named "minus 1"
+output 0-X named "0-minus"
+output 1-X named "1-minus"
+output X*2 named "times 2"
+output X/2 named "divide 2"
+output 0/X named "0 divide"
+output 1/X named "1 divide"
+output 2/X named "2 divide"
+output X^0 named "power 0"
+output X^2 named "power 2"
+output 1^X named "1 power"
+output 2^X named "2 power"
+output #X named "hash"
+output !!X named "exclimexclim"
+output 2@X named "2@"
+output 2dX named "2d"
+output Xd2 named "d2"
+''',
+r'''
+function: f {}
+X: [f]
+output X named "blank [X]"
+X: [f]+0
+output X named "blank [X]"
+X: #[f]+0
+output X named "blank [X]"
+''',
+r'''
+function: t N:n {result: N+1}
+function: e N:n {
+ if N <= 2 {result: [t Nd2]d1}
+ result: N
+}
+set "maximum function depth" to 1
+output [e 1d3] named "BUGGED DICE WITH SUM OF PROBABILITY < 100%"
+''',
+r'''
+function: t {}
+function: e N:n {
+ if N <= 2 {result: [t]d1}
+ result: N
+}
+output [e 1d3] named "BUGGED DICE WITH SUM OF PROBABILITY < 100%"
+''',
+r'''
+function: inner N:n and M:n {
+ if N=1 & M=1 { 
+  result: 1
+ }
+ result: -1
+}
+
+output [inner d2 and d3]
+''',
+r'''
+function: explodeinner N:n and M:n dice A:d and B:d {
+ if N=1 & M=1 { 
+  result: -1000
+ }
+ else {
+  if M=N {
+    result: M+N+[explodeinner A and B dice A and B]
+   }
+  else {
+   result: M+N
+  }
+ }
+}
+function: filter N:n {
+ if N<=2 { result: 1} else { if N>25 {result: 25} else {result: N} }
+}
+function: oddsteps N:n {
+ result: (((N+1)/2)*2)-1
+}
+function: explodes A:d and B:d {
+ result: [oddsteps[filter[explodeinner A and B dice A and B]]]
+}
+set "maximum function depth" to 5
+
+A: d6
+B: d8
+output [explodeinner A and B dice A and B]
+output [filter[explodeinner A and B dice A and B]]
+output [oddsteps[filter[explodeinner A and B dice A and B]]]
+output [explodes d6 and d8]
+''',
+r'''
+output 1&2
+output 1&2
+output 1&0
+output 1|0
+output 0|0
+output 1|1
+''',
+r'''
+output 1&-1
+output -1&-1
+output 0&-1
+output 0&0
+output 1|-1
+output -1|0
+output -1|-1
+output -1|-2
+output -2|-2
+output -2|4
+''',
+r'''
+function: innera N:n and M:n {
+  if !(N-1)=1 & M=1 {  result: 1 }
+  result: -1
+}
+function: innerb N:n and M:n {
+  if !(N-1)=1 { if M=1 { result: 1} }
+  result: -1
+}
+
+output [innera d2 and d3]
+output [innerb d2 and d3]
+''',
+r'''
+function: f {}
+X: [f]
+
+Y: X+{1,2}
+output Y named "plus {1,2}"
+output {1,2} named "{1,2}"
+output {1,2}=Y named "{1,2}=Y"
+output {1,2}=(1d{1,2}) named "{1,2}=(1d{1,2})"
+output X+{0} named "plus {0}"
+
+output X*{1,2} named "times {1,2}"
+
+''',
+r'''
+function: f {}
+X: [f]
+
+output X=X named "X=X"
+output X=0 named "X=0"
+output 0=X named "0=X"
+output X!=2 named "X!=2"
+output X<2 named "X<2"
+output X>=2 named "X>=2"
+output +X named "+X"
+output -X named "-X"
+
+''',
+r'''
+function: f {}
+X: [f]
+
+output X|1 named "X|1"
+output X|0 named "X|0"
+output X|X named "X|X"
+output 1&X named "1&X"
+output 0&X named "0&X"
+output X&X named "X&X"
+
+
+''',
+r'''
+function: f {}
+X: [f]
+
+output X|1d4
+output X|1d0
+output X|0d0
+output 0d0|0d0
+output 1d0|0d0
+output 1d0|(1d2-1)
+output (1d2-1)|(1d2-1)
+
+
+''',
+r'''
+function: f {}
+X: [f]
+
+output X|1d4
+output 0 | 1d4
+''',
+r'''
+function: f {}
+X: [f]
+
+Y: {1,2}-X
+output Y named "[Y]"
+Y: X-{1,2}
+output Y named "[Y]"
+Y: {X}
+output Y named "[Y]"
+Y: {0,X,X,X,1,2}
+output Y named "[Y]"
+
+
+''',
+r'''
+output 0 named "test {1,2,3,4}"
+''',
+r'''
+function: f {}
+X: [f]
+Y: {}
+output Y named "1 [Y]"
+Y: {X}
+output Y named "2 [Y]"
+Y: {0,X}
+output Y named "3 [Y]"
+Y: {0}
+output Y named "4 [Y]"
+Y: {}
+output Y named "5 [Y]"
+Y: {}+0
+output Y named "6 [Y]"
+Y: {X}+0
+output Y named "7 [Y]"
+''',
+r'''
+function: f {}
+
+X: ({}d{})
+output X named "1 [X]"
+
+X: {}
+output X=X named "2 [X]=[X]"
+
+output [f]=[f] named "3 [f]=[f]"
+X: [f]
+output X=X named "3 [f]=[f]"
+
+X: {}d0
+output X named "4 {}d0"
+
+X: 0d{}
+output X named "4 0d{}"
+
+
+X: {}d0
+output X=0 named "5 {}d0=0"
+X: [f]d0
+output X=X named "5 [f]d0=[f]d0"
+X: [f]d0
+output X=0 named "5 [f]d0=0"
+
+X: ({}d{})
+output X=X named "6 [X]"
+
+X: ({}d{})+0
+output X named "7 [X]"
+''',
+r'''
+function: f {}
+function: all A:n B:s C:d {
+result: C
+}
+output [all [f] [f] [f]]
+''',
+r'''
+function: f {}
+X: {}d0
+output X=X named "BUGGED VALUE WITH 0% PROB"
+
+''',
+r'''
+output 0^0
+''',
+r'''
+function: f {}
+
+
+X: [f]d0
+
+output 10*X+100/X named "arithmetic gives blank [X]"
+
+output X^2 + 1 named "X is imaginary? obviously not"
+
+\output X @ 3 ERROR thus X is RV\
+
+function: t R:n {result: 999}
+output [t X] named "X doesn't call functions"
+
+output #X named "len equal 1???"
+
+output X > 1000000 named "it's bigger than a million?"
+output X < 0 named "and also less than 0????"
+output X = 3321 named "its also equal to all numbers"
+output X = (4d2) named "its also equal to all dice"
+
+output (!X) named "!X"
+
+output 0 @ X named "0 @ X"
+output 1 @ X named "1 @ X"
+output 2 @ X named "2 @ X"
+
+output (1 @ X)+0 named "is not blankrv, its the same special null"
+
+output X & 10 named "its truthy"
+
+''',
+r'''
+X: {}
+output X
+output X+0
+output X-0
+output X*1
+output X/1
+output X^0
+output X^1
+output 0^X
+output X^0
+output X @ (2d2)
+output #X
+
+output Xd1 named "Xd1 is regular"
+output 1dX
+output XdX
+\output (XdX) @ (1d4) WILL CRASH\
+\output (2dX) @ (1d4) WILL CRASH\
+output (XdX)*1
+output (XdX)*2
+
+''',
+r'''
+X: 2d4
+output X=(0d5)
+output X=X named "X=X"
+output 1d1=1d1
+output (1d1=1d1) d 2
+output (1d1=1d1) d 5
+output (1d1=1d1)
+
+output 999 named "SEP"
+
+X: 0d4
+output X
+output X=(0d5)
+output X=X named "X=X"
+
+output 999 named "SEP"
+
+X: {}d4
+output X
+output X=(0d5)
+output X=X named "X=X"
+
+
+
+output 999 named "SEP"
+
+function: f {}
+X: [f]d4
+output X
+output X=(0d5)
+
+output 999 named "sep"
+X: [f]d4
+output X=X named "X=X"
+output {}={} named "{}={}"
+output [f]=[f] named "blank = blank"
+output X*1 named "X*1"
+output {}*1 named "{}*1"
+''',
+r'''
+
+function: f {}
+
+output [f]=[f] named "blank = blank is blank"
+X: [f]d4
+output X=X named "5 proof that [f]d0 is not blank"
+output X=(0d5) named "5 cont"
+output X=(5d5) named "5 cont"
+
+
+X: ({}d{})
+output X named "1 [X]"
+
+X: {}
+output X=X named "2 [X]=[X]"
+
+output [f]=[f] named "3 [f]=[f]"
+X: [f]
+output X=X named "3 [f]=[f]"
+
+X: {}d0
+output X named "4 {}d0"
+
+X: 0d{}
+output X named "4 0d{}"
+
+
+X: {}d0
+output X=0 named "5 {}d0=0"
+X: [f]d0
+output X=X named "5 [f]d0=[f]d0"
+X: [f]d0
+output X=0 named "5 [f]d0=0"
+
+X: ({}d{})
+output X=X named "6 [X]"
+
+X: ({}d{})+0
+output X named "7 [X]"
+
+''',
+r'''
+
+function: t N:n {
+  result: N
+}
+set "maximum function depth" to 1
+
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]}
+ result: N
+}
+output [e 1d3] named "nothing"
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]+0}
+ result: N
+}
+output [e 1d3] named "plus zero"
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]-0}
+ result: N
+}
+output [e 1d3] named "minus zero"
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]*1}
+ result: N
+}
+output [e 1d3] named "times one"
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]/1}
+ result: N
+}
+output [e 1d3] named "divide one"
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]^1}
+ result: N
+}
+output [e 1d3] named "power one"
+
+function: e N:n {
+ if N <= 2 {result: #[t Nd2]}
+ result: N
+}
+output [e 1d3] named "hash"
+
+function: e N:n {
+ if N <= 2 {result: ![t Nd2]}
+ result: N
+}
+output [e 1d3] named "exclamation"
+
+function: e N:n {
+ if N <= 2 {result: 1@[t Nd2]}
+ result: N
+}
+output [e 1d3] named "1@"
+
+\function: e N:n {
+ if N <= 2 {result: [t Nd2]@1}
+ result: N
+}
+output [e 1d3] named "@1" CALCULATION ERROR A position selector must be either a number or a sequence, but you provided "d{}".\
+
+\function: e N:n {
+ if N <= 2 {result: {[t Nd2]..2}}
+ result: N
+}
+output [e 1d3] named "{..2}" CALCULATION ERROR A sequence range must begin with a number, while you provided "d{}".\
+
+\function: e N:n {
+ if N <= 2 {result: {[t Nd2]..-2}}
+ result: N
+}
+output [e 1d3] named "{..-2}" CALCULATION ERROR A sequence range must begin with a number, while you provided "d{}".\
+
+\function: e N:n {
+ if N <= 2 {result: {2..[t Nd2]}}
+ result: N
+}
+output [e 1d3] named "{2..}" CALCULATION ERROR A sequence range must begin with a number, while you provided "d{}".\
+
+\function: e N:n {
+ if N <= 2 {result: {-2..[t Nd2]}}
+ result: N
+}
+output [e 1d3] named "{-2..}" CALCULATION ERROR A sequence range must begin with a number, while you provided "d{}".\
+
+
+function: e N:n {
+ if N <= 2 {result: 1d[t Nd2]}
+ result: N
+}
+output [e 1d3] named "1d"
+
+
+''',
+r'''
+function: f {}
+function: sum AA:n A:n B:s C:d {result: 1}
+
+\BlankRV\
+X: [f]
+output [sum 1d4 1d4 1d4 1d4] named "no X, called safely"
+output [sum X 1d4 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 X 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 X 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 1d4 X] named "if (X: dice) then call the function. SUPER WEIRD"
+
+\BlankRV\
+X: 0d[f]
+output [sum 1d4 1d4 1d4 1d4] named "no X, called safely"
+output [sum X 1d4 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 X 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 X 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 1d4 X] named "if (X: dice) then call the function. SUPER WEIRD"
+
+\SPECIAL NULL BlankRV\
+X: [f]d0
+output [sum 1d4 1d4 1d4 1d4] named "no X, called safely"
+output [sum X 1d4 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 X 1d4 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 X 1d4] named "if X, cancel all calls"
+output [sum 1d4 1d4 1d4 X] named "if (X: dice) then call the function. SUPER WEIRD"
+
+
+\0d{} cancels calling functions\
+output [sum 0 0 {} 0d0]
+output [sum 1 1 0d{} 1] named "0d{} cancels calling functions"
+
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
+''',
+r'''
+
 ''',
 r'''
 
