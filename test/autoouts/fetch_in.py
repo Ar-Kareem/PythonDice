@@ -1107,18 +1107,242 @@ r'''
 output 0^0
 ''',
 r'''
+function: f {}
+
+
+X: [f]d0
+
+output 10*X+100/X named "arithmetic gives blank [X]"
+
+output X^2 + 1 named "X is imaginary? obviously not"
+
+\output X @ 3 ERROR thus X is RV\
+
+function: t R:n {result: 999}
+output [t X] named "X doesn't call functions"
+
+output #X named "len equal 1???"
+
+output X > 1000000 named "it's bigger than a million?"
+output X < 0 named "and also less than 0????"
+output X = 3321 named "its also equal to all numbers"
+output X = (4d2) named "its also equal to all dice"
+
+output (!X) named "!X"
+
+output 0 @ X named "0 @ X"
+output 1 @ X named "1 @ X"
+output 2 @ X named "2 @ X"
+
+output (1 @ X)+0 named "is not blankrv, its the same special null"
+
+output X & 10 named "its truthy"
+
+''',
+r'''
+X: {}
+output X
+output X+0
+output X-0
+output X*1
+output X/1
+output X^0
+output X^1
+output 0^X
+output X^0
+output X @ (2d2)
+output #X
+
+output Xd1 named "Xd1 is regular"
+output 1dX
+output XdX
+\output (XdX) @ (1d4) WILL CRASH\
+\output (2dX) @ (1d4) WILL CRASH\
+output (XdX)*1
+output (XdX)*2
+
+''',
+r'''
+X: 2d4
+output X=(0d5)
+output X=X named "X=X"
+output 1d1=1d1
+output (1d1=1d1) d 2
+output (1d1=1d1) d 5
+output (1d1=1d1)
+
+output 999 named "SEP"
+
+X: 0d4
+output X
+output X=(0d5)
+output X=X named "X=X"
+
+output 999 named "SEP"
+
+X: {}d4
+output X
+output X=(0d5)
+output X=X named "X=X"
+
+
+
+output 999 named "SEP"
+
+function: f {}
+X: [f]d4
+output X
+output X=(0d5)
+
+output 999 named "sep"
+X: [f]d4
+output X=X named "X=X"
+output {}={} named "{}={}"
+output [f]=[f] named "blank = blank"
+output X*1 named "X*1"
+output {}*1 named "{}*1"
+''',
+r'''
+
+function: f {}
+
+output [f]=[f] named "blank = blank is blank"
+X: [f]d4
+output X=X named "5 proof that [f]d0 is not blank"
+output X=(0d5) named "5 cont"
+output X=(5d5) named "5 cont"
+
+
+X: ({}d{})
+output X named "1 [X]"
+
+X: {}
+output X=X named "2 [X]=[X]"
+
+output [f]=[f] named "3 [f]=[f]"
+X: [f]
+output X=X named "3 [f]=[f]"
+
+X: {}d0
+output X named "4 {}d0"
+
+X: 0d{}
+output X named "4 0d{}"
+
+
+X: {}d0
+output X=0 named "5 {}d0=0"
+X: [f]d0
+output X=X named "5 [f]d0=[f]d0"
+X: [f]d0
+output X=0 named "5 [f]d0=0"
+
+X: ({}d{})
+output X=X named "6 [X]"
+
+X: ({}d{})+0
+output X named "7 [X]"
 
 ''',
 r'''
 
-''',
-r'''
+function: t N:n {
+  result: N
+}
+set "maximum function depth" to 1
 
-''',
-r'''
 
-''',
-r'''
+function: e N:n {
+ if N <= 2 {result: [t Nd2]}
+ result: N
+}
+output [e 1d3] named "nothing"
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]+0}
+ result: N
+}
+output [e 1d3] named "plus zero"
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]-0}
+ result: N
+}
+output [e 1d3] named "minus zero"
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]*1}
+ result: N
+}
+output [e 1d3] named "times one"
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]/1}
+ result: N
+}
+output [e 1d3] named "divide one"
+
+function: e N:n {
+ if N <= 2 {result: [t Nd2]^1}
+ result: N
+}
+output [e 1d3] named "power one"
+
+function: e N:n {
+ if N <= 2 {result: #[t Nd2]}
+ result: N
+}
+output [e 1d3] named "hash"
+
+function: e N:n {
+ if N <= 2 {result: ![t Nd2]}
+ result: N
+}
+output [e 1d3] named "exclamation"
+
+function: e N:n {
+ if N <= 2 {result: 1@[t Nd2]}
+ result: N
+}
+output [e 1d3] named "1@"
+
+\function: e N:n {
+ if N <= 2 {result: [t Nd2]@1}
+ result: N
+}
+output [e 1d3] named "@1" CALCULATION ERROR A position selector must be either a number or a sequence, but you provided "d{}".\
+
+\function: e N:n {
+ if N <= 2 {result: {[t Nd2]..2}}
+ result: N
+}
+output [e 1d3] named "{..2}" CALCULATION ERROR A sequence range must begin with a number, while you provided "d{}".\
+
+\function: e N:n {
+ if N <= 2 {result: {[t Nd2]..-2}}
+ result: N
+}
+output [e 1d3] named "{..-2}" CALCULATION ERROR A sequence range must begin with a number, while you provided "d{}".\
+
+\function: e N:n {
+ if N <= 2 {result: {2..[t Nd2]}}
+ result: N
+}
+output [e 1d3] named "{2..}" CALCULATION ERROR A sequence range must begin with a number, while you provided "d{}".\
+
+\function: e N:n {
+ if N <= 2 {result: {-2..[t Nd2]}}
+ result: N
+}
+output [e 1d3] named "{-2..}" CALCULATION ERROR A sequence range must begin with a number, while you provided "d{}".\
+
+
+function: e N:n {
+ if N <= 2 {result: 1d[t Nd2]}
+ result: N
+}
+output [e 1d3] named "1d"
+
 
 ''',
 r'''
