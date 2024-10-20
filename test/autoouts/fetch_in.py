@@ -1381,6 +1381,24 @@ output [sum 1 1 0d{} 1] named "0d{} cancels calling functions"
 
 ''',
 r'''
+function: f {}
+function: N:n {if N<=-999 {result: N} result: [f]}
+
+BLANK: [1d4]
+output BLANK+0 named "It really is a blank RV"
+
+SPECIAL: [1d4]d0
+output SPECIAL = 9001 named "SPECIAL RV"
+
+X: [SPECIAL]
+output X = 9001 named "f(SPECIAL) => SPECIAL"
+
+
+function: getone N:n {result: 1}
+output [getone BLANK] named "[getone BLANK]"
+output [getone BLANK]+0 named "[getone BLANK]+0 is SPECIAL"
+output [getone BLANK] named "f(BLANK) => SPECIAL"
+
 
 ''',
 r'''
@@ -1454,5 +1472,5 @@ r'''
 
 # so that you can simply run this code using vanilla vscode's code runner
 if __name__ == '__main__':
-  from fetch import main
-  main()
+  from fetch import main_fetch
+  main_fetch()
