@@ -28,10 +28,6 @@
         "name_starts_with_underscore": {
             "reason": "safe exec does not support variables starting with underscore ; v2 uses dict for vars so _ are ok",
             "flags": ["v1"]
-        },
-        "name_starts_with_underscore": {
-            "reason": "safe exec does not support variables starting with underscore ; v2 uses dict for vars so _ are ok",
-            "flags": ["v1"]
         }
     }
 }
