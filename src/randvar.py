@@ -120,9 +120,12 @@ class RV:
     return RV(s._seq, [1]*len(s))
 
   @staticmethod
-  def from_rvs(rvs: Iterable[Union['int', 'float', 'RV', 'BlankRV']], weights: Union[Iterable[int], None]=None) -> Union['RV', 'BlankRV']:
+  def from_rvs(rvs: Iterable[Union['int', 'float', 'Seq', 'RV', 'BlankRV', None]], weights: Union[Iterable[int], None]=None) -> Union['RV', 'BlankRV']:
     rvs = tuple(rvs)
-    rvs = tuple(x for x in rvs if not isinstance(x, BlankRV))  # remove BlankRVs
+    blank_inds = set(i for i, x in enumerate(rvs) if isinstance(x, BlankRV) or x is None)
+    rvs = tuple(x for i, x in enumerate(rvs) if i not in blank_inds)
+    if weights is not None:
+      weights = tuple(w for i, w in enumerate(weights) if i not in blank_inds)
     if len(rvs) == 0:
       return BlankRV()
     if weights is None:
@@ -716,7 +719,7 @@ def anydice_casting(verbose=False):
       # FINALLY take product of all possible rolls
       all_rolls_and_probs = product(*all_rolls_and_probs)
 
-      res_vals: list[Union[RV, int, float]] = []
+      res_vals: list[Union[RV, BlankRV, Seq, int, float, None]] = []
       res_probs: list[int] = []
       for rolls_and_prob in all_rolls_and_probs:
         rolls = tuple(r for r, _ in rolls_and_prob)
@@ -728,8 +731,6 @@ def anydice_casting(verbose=False):
           else:
             args[k] = v
         val: T_ifsr = func(*args, **kwargs)  # single result of the function call
-        if val is None or isinstance(val, BlankRV):
-          continue
         if isinstance(val, Iterable):
           if not isinstance(val, Seq):
             val = Seq(*val)
@@ -737,8 +738,6 @@ def anydice_casting(verbose=False):
         if verbose: logger.debug(f'val {val} prob {prob}')
         res_vals.append(val)
         res_probs.append(prob)
-      if len(res_vals) == 0:
-        return None
       return RV.from_rvs(rvs=res_vals, weights=res_probs)
     return wrapper
   return decorator
