@@ -666,7 +666,7 @@ def anydice_casting(verbose=False):
         if isinstance(arg_val, BlankRV):  # EDGE CASE abort calling if casting int/Seq to BlankRV  (https://github.com/Ar-Kareem/PythonDice/issues/11)
           if expected_type in (int, Seq):
             if verbose: logger.debug(f'abort calling func due to BlankRV! {k}')
-            return BlankRV()
+            return BlankRV(_special_null=True)
           continue  # casting BlankRV to RV means the function IS called and nothing changes
         casted_iter_to_seq = False
         if isinstance(arg_val, Iterable) and not isinstance(arg_val, Seq):  # if val is iter then need to convert to Seq
