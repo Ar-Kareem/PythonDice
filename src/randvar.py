@@ -122,15 +122,14 @@ class RV:
   @staticmethod
   def from_rvs(rvs: Iterable[Union['int', 'float', 'Seq', 'RV', 'BlankRV', None]], weights: Union[Iterable[int], None]=None) -> Union['RV', 'BlankRV']:
     rvs = tuple(rvs)
-    blank_inds = set(i for i, x in enumerate(rvs) if isinstance(x, BlankRV) or x is None)
-    rvs = tuple(x for i, x in enumerate(rvs) if i not in blank_inds)
-    if weights is not None:
-      weights = tuple(w for i, w in enumerate(weights) if i not in blank_inds)
-    if len(rvs) == 0:
-      return BlankRV()
     if weights is None:
       weights = [1]*len(rvs)
     weights = tuple(weights)
+    blank_inds = set(i for i, x in enumerate(rvs) if isinstance(x, BlankRV) or x is None)
+    rvs = tuple(x for i, x in enumerate(rvs) if i not in blank_inds)
+    weights = tuple(w for i, w in enumerate(weights) if i not in blank_inds)
+    if len(rvs) == 0:
+      return BlankRV()
     assert len(rvs) == len(weights)
     prob_sums = tuple(sum(r.probs) if isinstance(r, RV) else 1 for r in rvs)
     PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
