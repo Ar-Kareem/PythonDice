@@ -1454,5 +1454,5 @@ r'''
 
 # so that you can simply run this code using vanilla vscode's code runner
 if __name__ == '__main__':
-  from fetch import main
-  main()
+  from fetch import main_fetch
+  main_fetch()
