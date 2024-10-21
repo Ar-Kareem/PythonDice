@@ -32,10 +32,12 @@ class PythonResolver:
         # this makes the output code look unpleasant as every variable is accessed as dict['VAR'] instead of just VAR.
         # If you plan on understanding this file then please ignore all compiler flags and assume they are all the default value as compiler flags are just edge-cases.
         self._COMPILER_FLAG_NON_LOCAL_SCOPE = flags.pop('COMPILER_FLAG_NON_LOCAL_SCOPE', False)
-        # this flag is to support operators on ints: @, len, and ~.  These operators are rarely used in actual code.
+        # this flag is to support operators on ints: @, len, and ~.  These operators (on ints) are rarely used in actual code.
         self._COMPILER_FLAG_OPERATOR_ON_INT = flags.pop('COMPILER_FLAG_OPERATOR_ON_INT', False)
         # prepends all func defs and func calls with a string to prevent collisions with user-defined functions checked against _FUNCS_MAY_COLLIDE (resolving turns it on when _funclib_conflicted is True and resets resolving)
         self._COMPILER_FLAG_FUNC_LIB_CONFLICT = flags.pop('COMPILER_FLAG_FUNC_LIB_CONFLICT', False)
+        # this flag is to check if functions are defined. otherwise [func] might crash at run time or [list] might call python's internal "list()" function
+        self._COMPILER_FLAG_FUNC_EXIST_CHECK = flags.pop('COMPILER_FLAG_FUNC_EXIST_CHECK', True)
 
         assert not flags, f'Unknown flags: {flags}'
 
@@ -47,8 +49,8 @@ class PythonResolver:
         self.NEWLINES_AFTER_FILE = 1
 
     def reset_state(self):
-        self._defined_functions: set[str] = set(CONST['function library'])
-        self._user__defined_functions: list[str] = []
+        self._defined_functions: set[str] = set(CONST['function library'])  # used for collision checking and error messages
+        self._user__defined_functions: list[str] = []  # only used for error messages
         self._called_functions: set[str] = set()
         self._output_counter = 0
         self.result_text: Union[str, None] = None
@@ -64,8 +66,9 @@ class PythonResolver:
         if self._COMPILER_FLAG_NON_LOCAL_SCOPE: result += 'vars = {}\n\n'
         result += self.resolve_node(self.root) + '\n'*self.NEWLINES_AFTER_FILE
         # check if all functions are defined
-        for f_name in self._called_functions:
-            assert f_name in self._defined_functions, f'Unknown function {f_name} not defined. Currently callable functions: {self._user__defined_functions}'
+        if self._COMPILER_FLAG_FUNC_EXIST_CHECK:
+            for f_name in self._called_functions:
+                assert f_name in self._defined_functions, f'Unknown function {f_name} not defined. Currently callable functions: {self._user__defined_functions}'
         assert self._output_counter > 0, 'No outputs made. Did you forget to call "output expr"?'
 
         if any(f in self._defined_functions for f in _FUNCS_MAY_COLLIDE):  # collision -> reset with flag (if another collision then crash)
