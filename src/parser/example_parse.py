@@ -5,7 +5,7 @@ import dice_calc.parser.parse_and_exec as parse_and_exec  # from "anything else"
 from dice_calc.randvar import output
 
 trials = [
-r'''
+  r'''
 function: f {}
 output [f] @ 0
 '''
@@ -14,14 +14,12 @@ output [f] @ 0
 flags = {}
 
 
-
-
 def setup_logger(filename):
     logging.basicConfig(filename=filename, level=logging.DEBUG, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
     logging.getLogger().addHandler(logging.StreamHandler())
+
+
 setup_logger('./log/example_parse.log')
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +40,7 @@ def main(trials=trials):
         logger.debug('Yacc Illegal tokens found: ' + str(lexer.YACC_ILLEGALs))
         replaced = to_parse
         for x in lexer.YACC_ILLEGALs:
-          replaced = replaced[:x[1]] + 'X' + replaced[x[1]+1:]
+          replaced = replaced[:x[1]] + 'X' + replaced[x[1] + 1:]
         logger.debug(f'Replaced illegal tokens with X: {replaced}')
         continue
       if yacc_ret is None:
@@ -50,10 +48,10 @@ def main(trials=trials):
         continue
       python_str = parse_and_exec.do_resolve(yacc_ret, flags=flags)
       logger.debug('\n'.join(f'{x}' for i, x in enumerate(python_str.split('\n'))))
-      logger.debug('\n'.join(f'{i+1}: {x}' for i, x in enumerate(python_str.split('\n'))))
+      logger.debug('\n'.join(f'{i + 1}: {x}' for i, x in enumerate(python_str.split('\n'))))
       s = time.time()
       r = parse_and_exec.safe_exec(python_str, global_vars={})
-      time_taken = time.time()-s
+      time_taken = time.time() - s
       for (args, kwargs) in r:
         output(*args, **kwargs, blocks_width=50)
       logger.debug(f'Time taken: {time_taken:.2f}s')
@@ -61,6 +59,7 @@ def main(trials=trials):
       logger.exception(e)
       return
   # logger.debug('done')
+
 
 if __name__ == '__main__':
   main()

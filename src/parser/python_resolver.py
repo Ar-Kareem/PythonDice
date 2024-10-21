@@ -8,17 +8,18 @@ logger = logging.getLogger(__name__)
 
 
 CONST = {
-    'output': 'output',
-    'seq': 'Seq',
-    'roll': 'roll',
-    'range': 'myrange',
-    # 'func_decorator': '@anydice_casting()',  # without func depth limit
-    'func_decorator': '@max_func_depth()\n@anydice_casting()',  # with func depth limit
-    'setter': lambda name, value: f'settings_set({name}, {value})',
-    'function library': ('absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X'),
-    'oplib': {'@': 'myMatmul', 'len': 'myLen', '~': 'myInvert', '&': 'myAnd', '|': 'myOr'},
+  'output': 'output',
+  'seq': 'Seq',
+  'roll': 'roll',
+  'range': 'myrange',
+  # 'func_decorator': '@anydice_casting()',  # without func depth limit
+  'func_decorator': '@max_func_depth()\n@anydice_casting()',  # with func depth limit
+  'setter': lambda name, value: f'settings_set({name}, {value})',
+  'function library': ('absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X'),
+  'oplib': {'@': 'myMatmul', 'len': 'myLen', '~': 'myInvert', '&': 'myAnd', '|': 'myOr'},
 }
 _FUNCS_MAY_COLLIDE = set((CONST['output'], CONST['roll'], CONST['range'], 'max_func_depth', 'anydice_casting', 'settings_set'))
+
 
 class PythonResolver:
     def __init__(self, root: Node, flags=None):
@@ -63,8 +64,9 @@ class PythonResolver:
 
     def resolve(self):
         result = ''
-        if self._COMPILER_FLAG_NON_LOCAL_SCOPE: result += 'vars = {}\n\n'
-        result += self.resolve_node(self.root) + '\n'*self.NEWLINES_AFTER_FILE
+        if self._COMPILER_FLAG_NON_LOCAL_SCOPE:
+            result += 'vars = {}\n\n'
+        result += self.resolve_node(self.root) + '\n' * self.NEWLINES_AFTER_FILE
         # check if all functions are defined
         if self._COMPILER_FLAG_FUNC_EXIST_CHECK:
             for f_name in self._called_functions:
@@ -80,7 +82,7 @@ class PythonResolver:
 
         # remove multiple nearby newlines
         result = list(result.split('\n'))
-        result = [x for i, x in enumerate(result) if i == 0 or x.strip() != '' or result[i-1].strip() != '']
+        result = [x for i, x in enumerate(result) if i == 0 or x.strip() != '' or result[i - 1].strip() != '']
         self.result_text = '\n'.join(result)
 
     def get_text(self):
@@ -93,9 +95,9 @@ class PythonResolver:
 
     def _indent_str(self, s: str):
         """Indent a string by self.indent_level spaces for each new line"""
-        return '\n'.join(' '*self.INDENT_LEVEL + x for x in s.split('\n'))
+        return '\n'.join(' ' * self.INDENT_LEVEL + x for x in s.split('\n'))
 
-    def resolve_node(self, node: Union['Node', 'str']) -> str:
+    def resolve_node(self, node: Union['Node', 'str']) -> str:  # noqa: C901
         assert node is not None, 'Got None'
         assert not isinstance(node, str), f'resolver error, not sure what to do with a string: {node}. All strings should be a Node ("string", str|strvar...)'
 
@@ -112,14 +114,16 @@ class PythonResolver:
             return 'f"' + ''.join(str_list) + '"'
         elif node.type == NodeType.STRVAR:
             assert isinstance(node.val, str), f'Expected string for strvar, got {node.val}'
-            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: return "{vars['" + node.val + "']}"
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE:
+                return "{vars['" + node.val + "']}"
             return '{' + node.val + '}'
         elif node.type == NodeType.NUMBER:  # number in an expression
             assert isinstance(node.val, str), f'Expected str of a number, got {node.val}  type: {type(node.val)}'
             return str(node.val)
         elif node.type == NodeType.VAR:  # variable inside an expression
             assert isinstance(node.val, str), f'Expected str of a variable, got {node.val}'
-            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: return f"vars['{node.val}']"
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE:
+                return f"vars['{node.val}']"
             return node.val
         elif node.type == NodeType.GROUP:  # group inside an expression, node.val is an expression
             return f'({self.resolve_node(node.val)})'
@@ -145,7 +149,8 @@ class PythonResolver:
             nameargs, code = node
             assert isinstance(nameargs, Node) and nameargs.type == NodeType.FUNCNAME_DEF, f'Error in parsing fuction node: {node}'
             func_name, func_args, func_arg_names = [], [], []
-            if self._COMPILER_FLAG_FUNC_LIB_CONFLICT: func_name.append('f')
+            if self._COMPILER_FLAG_FUNC_LIB_CONFLICT:
+                func_name.append('f')
             for x in nameargs:  # nameargs is a list of strings and expressions e.g. [attack 3d6 if crit 6d6 and double crit 12d6]
                 assert isinstance(x, str) or (isinstance(x, Node) and x.type in (NodeType.PARAM, NodeType.PARAM_WITH_DTYPE)), f'Error in parsing function node: {node}'
                 if isinstance(x, str):
@@ -162,17 +167,20 @@ class PythonResolver:
                     func_args.append(f'{arg_name}: {arg_dtype}')
                     func_arg_names.append(arg_name)
                     func_name.append('X')
-            if has_dups(func_arg_names): fix_dups_in_args(func_args, func_arg_names)
-            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: func_args.append('vars')
+            if has_dups(func_arg_names):
+                fix_dups_in_args(func_args, func_arg_names)
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE:
+                func_args.append('vars')
             func_name = '_'.join(func_name)
             self._defined_functions.add(func_name)
             self._user__defined_functions.append(func_name)
             func_decorator = CONST['func_decorator']
             func_def = f'def {func_name}({", ".join(func_args)}):'
             func_code = ''
-            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: func_code += self._indent_str('vars = vars.copy(); ' + '; '.join([f'vars["{n}"] = {n}' for n in func_arg_names])) + '\n'
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE:
+                func_code += self._indent_str('vars = vars.copy(); ' + '; '.join([f'vars["{n}"] = {n}' for n in func_arg_names])) + '\n'
             func_code += self._indent_resolve(code)
-            return f'{func_decorator}\n{func_def}\n{func_code}' + '\n'*self.NEWLINES_AFTER_FUNCTION
+            return f'{func_decorator}\n{func_def}\n{func_code}' + '\n' * self.NEWLINES_AFTER_FUNCTION
         elif node.type == NodeType.RESULT:
             return f'return {self.resolve_node(node.val)}'
 
@@ -192,21 +200,23 @@ class PythonResolver:
                 else:
                     assert False, f'Unknown block type: {block}'
                 res.append(r)
-            return '\n'.join(res) + '\n'*self.NEWLINES_AFTER_IF
+            return '\n'.join(res) + '\n' * self.NEWLINES_AFTER_IF
 
         # LOOP
         elif node.type == NodeType.LOOP:
             var, over, code = node
             res_header = f'for {var} in {self.resolve_node(over)}:'
             res_code = ''
-            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: res_code += self._indent_str(f"vars['{var}'] = {var}") + '\n'  # I hate this but it must happen
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE:
+                res_code += self._indent_str(f"vars['{var}'] = {var}") + '\n'  # I hate this but it must happen
             res_code += self._indent_resolve(code)
-            return res_header + '\n' + res_code + '\n'*self.NEWLINES_AFTER_LOOP
+            return res_header + '\n' + res_code + '\n' * self.NEWLINES_AFTER_LOOP
 
         # VARIABLE ASSIGNMENT
         elif node.type == NodeType.VAR_ASSIGN:
             var, val = node
-            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: return f"vars['{var}'] = {self.resolve_node(val)}"
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE:
+                return f"vars['{var}'] = {self.resolve_node(val)}"
             return f'{var} = {self.resolve_node(val)}'
 
         # EXPRESSIONS
@@ -219,21 +229,25 @@ class PythonResolver:
             elif op == 'ndm':
                 return f'{CONST["roll"]}({self.resolve_node(left)}, {self.resolve_node(right)})'
             elif op == '@':
-                if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"]["@"]}({self.resolve_node(left)}, {self.resolve_node(right)})'
+                if self._COMPILER_FLAG_OPERATOR_ON_INT:
+                    return f'{CONST["oplib"]["@"]}({self.resolve_node(left)}, {self.resolve_node(right)})'
                 return f'({self.resolve_node(left)} {op} {self.resolve_node(right)})'  # wrap in parentheses to take precedence over multiplication
             elif op == '&' or op == '|':
-                if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"][op]}({self.resolve_node(left)}, {self.resolve_node(right)})'
+                if self._COMPILER_FLAG_OPERATOR_ON_INT:
+                    return f'{CONST["oplib"][op]}({self.resolve_node(left)}, {self.resolve_node(right)})'
                 return f'{self.resolve_node(left)} {op} {self.resolve_node(right)}'
             else:  # all other operators
                 return f'{self.resolve_node(left)} {op} {self.resolve_node(right)}'
         elif node.type == NodeType.UNARY:
             op, expr = node
             if op == '!':
-                if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"]["~"]}({self.resolve_node(expr)})'
+                if self._COMPILER_FLAG_OPERATOR_ON_INT:
+                    return f'{CONST["oplib"]["~"]}({self.resolve_node(expr)})'
                 return f'~{self.resolve_node(expr)}'
             return f'{op}{self.resolve_node(expr)}'
         elif node.type == NodeType.HASH:  # len
-            if self._COMPILER_FLAG_OPERATOR_ON_INT: return f'{CONST["oplib"]["len"]}({self.resolve_node(node.val)})'
+            if self._COMPILER_FLAG_OPERATOR_ON_INT:
+                return f'{CONST["oplib"]["len"]}({self.resolve_node(node.val)})'
             return f'len({self.resolve_node(node.val)})'
         elif node.type == NodeType.SEQ:
             seq_class = CONST['seq']
@@ -245,7 +259,8 @@ class PythonResolver:
             return f'{CONST["range"]}({l}, {r})'
         elif node.type == NodeType.CALL:
             name, args = [], []
-            if self._COMPILER_FLAG_FUNC_LIB_CONFLICT: name.append('f')
+            if self._COMPILER_FLAG_FUNC_LIB_CONFLICT:
+                name.append('f')
             for x in node:
                 if isinstance(x, Node) and x.type == NodeType.CALL_EXPR:  # expression
                     args.append(self.resolve_node(x.val))
@@ -254,7 +269,8 @@ class PythonResolver:
                     name.append(x)
                 else:
                     assert False, f'Unknown node in call: {x}, parent: {node}'
-            if self._COMPILER_FLAG_NON_LOCAL_SCOPE: args.append('vars')
+            if self._COMPILER_FLAG_NON_LOCAL_SCOPE:
+                args.append('vars')
             name = '_'.join(name)
             self._called_functions.add(name)
             return f'{name}({", ".join(args)})' if args else f'{name}()'
@@ -263,13 +279,14 @@ class PythonResolver:
             assert False, f'Unknown node: {node}'
 
 
-def has_dups(l):
-    return len(l) != len(set(l))
+def has_dups(lst):
+    return len(lst) != len(set(lst))
+
 
 def fix_dups_in_args(func_args, func_arg_names):
     # rarely used, but if a function has duplicate arguments then we need to rename them
     N = len(func_args)
-    for i in range(N-1, -1, -1):  # only first is kept
+    for i in range(N - 1, -1, -1):  # only first is kept
         if func_arg_names.count(func_arg_names[i]) > 1:  # IS DUP
             func_args[i] = f'dummy{i}: ' + func_args[i].split(': ')[1]  # TODO remove colon so anydice_casting doesn't waste time looping over non-used args
             func_arg_names[i] = f'dummy{i}'
