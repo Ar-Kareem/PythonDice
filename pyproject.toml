@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dice_calc"
-version = "0.3.0"
+dynamic = ["version"]
 description = "Advanced Calculator for Dice"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -45,6 +45,9 @@ packages = [
     "dice_calc.parser",
     "dice_calc.parser.ply"
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "dice_calc.__version__"}
 
 #build and pypi push            rm dist/* && python -m build --sdist --wheel && python -m twine upload --repository pypi dist/*
 
