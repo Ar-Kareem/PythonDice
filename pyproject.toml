@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dice_calc"
-version = "0.2.14"
+dynamic = ["version"]
 description = "Advanced Calculator for Dice"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -16,7 +16,7 @@ maintainers = [
 ]
 keywords = ["dice", "calculator", "probability", "statistics", "math", "dice-notation", "dice-roller", "dice-roller-simulator", "dice-notation-parser", "dice-notation-compiler", "dice-notation-interpreter", "dice-notation-evaluator", "dice-notation-calculator", "dice-notation-solver", "dice-notation-simulator", "dice-notation-optimizer", "anydice", "anydice-compiler", "anydice-interpreter", "anydice-evaluator", "anydice-calculator", "anydice-solver", "anydice-simulator", "python-dice"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
@@ -45,6 +45,9 @@ packages = [
     "dice_calc.parser",
     "dice_calc.parser.ply"
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "dice_calc.__version__"}
 
 #build and pypi push            rm dist/* && python -m build --sdist --wheel && python -m twine upload --repository pypi dist/*
 
