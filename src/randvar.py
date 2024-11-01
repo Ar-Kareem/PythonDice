@@ -8,7 +8,7 @@ import inspect
 from collections import defaultdict
 import logging
 
-from .typings import T_if, T_ifs, T_is, T_isr, T_ifr, T_ifsr, T_s
+from .typings import T_if, T_ifs, T_is, T_ifr, T_ifsr, T_s
 from . import blackrv
 from . import utils
 from . import output

@@ -98,6 +98,7 @@ def _roll_int_rv(n: int, d: RV) -> RV:
   _MEMOIZED_ROLLS[(n, d.vals, d.probs)] = full
   return full
 
+
 def roller(rv: T_isr, count: Union[int, None] = None):
   if isinstance(rv, int) or isinstance(rv, Iterable) or isinstance(rv, bool):
     rv = RV.from_seq([rv])

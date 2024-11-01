@@ -4,6 +4,7 @@ from .roller import roll
 
 # BASE FUNCTIONS
 
+
 @anydice_casting()
 def absolute(NUMBER: int, *args, **kwargs):
     if NUMBER < 0:
