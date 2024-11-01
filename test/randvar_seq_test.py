@@ -2,7 +2,8 @@ from typing import Iterable
 import pytest
 
 from dice_calc import randvar
-from dice_calc.randvar import Seq, RV, roll
+from dice_calc.randvar import Seq, RV
+from dice_calc.roller import roll
 
 
 @pytest.fixture(autouse=True)

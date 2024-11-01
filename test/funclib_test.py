@@ -2,7 +2,8 @@
 import pytest
 
 import dice_calc.randvar as randvar
-from dice_calc.randvar import RV, Seq, roll, anydice_casting
+from dice_calc.randvar import RV, Seq, anydice_casting
+from dice_calc.roller import roll
 
 
 @pytest.fixture(autouse=True)

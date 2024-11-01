@@ -1,4 +1,4 @@
-from .randvar import roll
+from .roller import roll
 
 
 class __D_BASE:
