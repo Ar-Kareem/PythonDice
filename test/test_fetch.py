@@ -114,7 +114,7 @@ def check(inp: Union[RV, Seq, int], expected, i):
 @pytest.fixture(autouse=True)
 def fixture_settings_reset():
     settings_reset()
-    dice_calc.randvar._MEMOIZED_ROLLS = {}
+    dice_calc.roller._MEMOIZED_ROLLS = {}
 
 
 @pytest.mark.parametrize("i", range(len(code_resp_pairs)))

@@ -3,13 +3,13 @@ __version__ = '0.3.1'
 # core classes
 from .randvar import RV, Seq
 
-# core decorators
-from .randvar import anydice_casting, max_func_depth
-
 # core functions
 from .randvar import settings_set, myrange
 from .output import output
 from .blackrv import BlankRV
+
+# core decorators
+from .decorators import anydice_casting, max_func_depth
 
 # helpful functions
 from .randvar import settings_reset
