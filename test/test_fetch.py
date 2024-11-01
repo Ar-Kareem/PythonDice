@@ -6,7 +6,7 @@ from pathlib import Path
 import copy
 
 import dice_calc.randvar
-from dice_calc.randvar import RV, Seq, settings_reset, BlankRV
+from dice_calc import RV, Seq, settings_reset, BlankRV
 from dice_calc.parser import parse_and_exec
 
 

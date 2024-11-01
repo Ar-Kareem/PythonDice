@@ -7,10 +7,13 @@ from .randvar import RV, Seq
 from .randvar import anydice_casting, max_func_depth
 
 # core functions
-from .randvar import output, roll, settings_set, myrange
+from .randvar import roll, settings_set, myrange
+from .output import output
+from .blackrv import BlankRV
 
 # helpful functions
-from .randvar import roller, settings_reset
+from .randvar import settings_reset
+from .roller import roller
 
 # function library
 from .funclib import absolute as absolute_X, contains as X_contains_X, count_in as count_X_in_X, explode as explode_X, highest_N_of_D as highest_X_of_X

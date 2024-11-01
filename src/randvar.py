@@ -7,11 +7,11 @@ from itertools import zip_longest, product, combinations_with_replacement, accum
 import inspect
 from collections import defaultdict
 import logging
-import random
 
-from .blackrv import BlankRV
-from . import utils
 from .typings import T_if, T_ifs, T_is, T_isr, T_ifr, T_ifsr, T_s
+from . import blackrv
+from . import utils
+from . import output
 
 logger = logging.getLogger(__name__)
 
@@ -111,16 +111,16 @@ class RV:
     return RV(s._seq, [1] * len(s))
 
   @staticmethod
-  def from_rvs(rvs: Iterable[Union['int', 'float', 'Seq', 'RV', 'BlankRV', None]], weights: Union[Iterable[int], None] = None) -> Union['RV', 'BlankRV']:
+  def from_rvs(rvs: Iterable[Union['int', 'float', 'Seq', 'RV', 'blackrv.BlankRV', None]], weights: Union[Iterable[int], None] = None) -> Union['RV', 'blackrv.BlankRV']:
     rvs = tuple(rvs)
     if weights is None:
       weights = [1] * len(rvs)
     weights = tuple(weights)
-    blank_inds = set(i for i, x in enumerate(rvs) if isinstance(x, BlankRV) or x is None)
+    blank_inds = set(i for i, x in enumerate(rvs) if isinstance(x, blackrv.BlankRV) or x is None)
     rvs = tuple(x for i, x in enumerate(rvs) if i not in blank_inds)
     weights = tuple(w for i, w in enumerate(weights) if i not in blank_inds)
     if len(rvs) == 0:
-      return BlankRV()
+      return blackrv.BlankRV()
     assert len(rvs) == len(weights)
     prob_sums = tuple(sum(r.probs) if isinstance(r, RV) else 1 for r in rvs)
     PROD = math.prod(prob_sums)  # to normalize probabilities such that the probabilities for each individual RV sum to const (PROD) and every probability is an int
@@ -181,7 +181,7 @@ class RV:
     return RV(cdf_vals, cdf_probs)
 
   def output(self, *args, **kwargs):
-    return output(self, *args, **kwargs)
+    return output.output(self, *args, **kwargs)
 
   def _get_sum_probs(self, force=False):
     if self.sum_probs is None or force:
@@ -216,7 +216,7 @@ class RV:
     return RV([operation(v) for v in self.vals], self.probs)
 
   def _convolve(self, other: T_ifsr, operation: Callable[[float, float], float]):
-    if isinstance(other, BlankRV):  # let BlankRV handle the operation
+    if isinstance(other, blackrv.BlankRV):  # let BlankRV handle the operation
       return NotImplemented
     if isinstance(other, Iterable):
       if not isinstance(other, Seq):
@@ -231,7 +231,7 @@ class RV:
     return res
 
   def _rconvolve(self, other: T_ifsr, operation: Callable[[float, float], float]):
-    if isinstance(other, BlankRV):  # let BlankRV handle the operation
+    if isinstance(other, blackrv.BlankRV):  # let BlankRV handle the operation
       return NotImplemented
     assert not isinstance(other, RV)
     if isinstance(other, Iterable):
@@ -403,18 +403,17 @@ class RV:
     return LHS + 'd{?}'
 
   def __repr__(self):
-    return output(self, print_=False)
+    return output.output(self, print_=False)
 
   @staticmethod
   def dices_are_equal(d1: T_ifsr, d2: T_ifsr):
-    if isinstance(d1, BlankRV) or isinstance(d2, BlankRV):
-      return isinstance(d1, BlankRV) and isinstance(d2, BlankRV)
+    if isinstance(d1, blackrv.BlankRV) or isinstance(d2, blackrv.BlankRV):
+      return isinstance(d1, blackrv.BlankRV) and isinstance(d2, blackrv.BlankRV)
     if isinstance(d1, (int, float)) or isinstance(d1, Iterable):
       d1 = RV.from_seq([d1])
     if isinstance(d2, (int, float)) or isinstance(d2, Iterable):
       d2 = RV.from_seq([d2])
     return d1.vals == d2.vals and d1.probs == d2.probs
-
 
 
 class Seq(Iterable):
@@ -425,9 +424,9 @@ class Seq(Iterable):
       self._seq: tuple[T_if, ...] = _INTERNAL_SEQ_VALUE  # type: ignore
       return
     flat = tuple(utils.flatten(source))
-    flat_rvs = [x for x in flat if isinstance(x, RV) and not isinstance(x, BlankRV)]  # expand RVs
+    flat_rvs = [x for x in flat if isinstance(x, RV) and not isinstance(x, blackrv.BlankRV)]  # expand RVs
     flat_rv_vals = [v for rv in flat_rvs for v in rv.vals]
-    flat_else: list[T_if] = [x for x in flat if not isinstance(x, (RV, BlankRV))]
+    flat_else: list[T_if] = [x for x in flat if not isinstance(x, (RV, blackrv.BlankRV))]
     assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs. Seq:' + str(flat_else)
     self._seq = tuple(flat_else + flat_rv_vals)
 
@@ -614,11 +613,11 @@ def anydice_casting(verbose=False):  # noqa: C901
           if verbose:
             logger.debug(f'not int seq rv {k}')
           continue
-        if isinstance(arg_val, BlankRV):  # EDGE CASE abort calling if casting int/Seq to BlankRV  (https://github.com/Ar-Kareem/PythonDice/issues/11)
+        if isinstance(arg_val, blackrv.BlankRV):  # EDGE CASE abort calling if casting int/Seq to BlankRV  (https://github.com/Ar-Kareem/PythonDice/issues/11)
           if expected_type in (int, Seq):
             if verbose:
               logger.debug(f'abort calling func due to BlankRV! {k}')
-            return BlankRV(_special_null=True)
+            return blackrv.BlankRV(_special_null=True)
           continue  # casting BlankRV to RV means the function IS called and nothing changes
         casted_iter_to_seq = False
         if isinstance(arg_val, Iterable) and not isinstance(arg_val, Seq):  # if val is iter then need to convert to Seq
@@ -672,7 +671,7 @@ def anydice_casting(verbose=False):  # noqa: C901
       # FINALLY take product of all possible rolls
       all_rolls_and_probs = product(*all_rolls_and_probs)
 
-      res_vals: list[Union[RV, BlankRV, Seq, int, float, None]] = []
+      res_vals: list[Union[RV, blackrv.BlankRV, Seq, int, float, None]] = []
       res_probs: list[int] = []
       for rolls_and_prob in all_rolls_and_probs:
         rolls = tuple(r for r, _ in rolls_and_prob)
@@ -707,11 +706,11 @@ def max_func_depth():
           logger.warning(msg)
           print(msg)
           SETTINGS['INTERNAL_CURR_DEPTH_WARNING_PRINTED'] = True
-        return BlankRV()
+        return blackrv.BlankRV()
       SETTINGS['INTERNAL_CURR_DEPTH'] += 1
       res = func(*args, **kwargs)
       SETTINGS['INTERNAL_CURR_DEPTH'] -= 1
-      return res if res is not None else BlankRV()
+      return res if res is not None else blackrv.BlankRV()
     return wrapper
   return decorator
 
@@ -729,7 +728,7 @@ def myrange(left, right):
     return range(left, right + 1)
 
 
-def roll(n: Union[T_isr, str], d: Union[T_isr, None] = None) -> Union[RV, BlankRV]:
+def roll(n: Union[T_isr, str], d: Union[T_isr, None] = None) -> Union[RV, blackrv.BlankRV]:
   """Roll n dice of d sides
 
   Args:
@@ -754,15 +753,15 @@ def roll(n: Union[T_isr, str], d: Union[T_isr, None] = None) -> Union[RV, BlankR
     d = Seq(*d)
   if isinstance(n, Iterable) and not isinstance(n, Seq):
     n = Seq(*n)
-  if isinstance(d, BlankRV):  # SPECIAL CASE: XdY where Y is BlankRV => BlankRV
-    return BlankRV()
-  if isinstance(n, BlankRV):  # SPECIAL CASE: XdY where X is BlankRV => Special BlankRV see https://anydice.com/program/395da
-    return BlankRV(_special_null=True)
+  if isinstance(d, blackrv.BlankRV):  # SPECIAL CASE: XdY where Y is BlankRV => BlankRV
+    return blackrv.BlankRV()
+  if isinstance(n, blackrv.BlankRV):  # SPECIAL CASE: XdY where X is BlankRV => Special BlankRV see https://anydice.com/program/395da
+    return blackrv.BlankRV(_special_null=True)
   if isinstance(d, Seq) and len(d) == 0:  # SPECIAL CASE: Xd{} => BlankRV
-    return BlankRV()
+    return blackrv.BlankRV()
   # both arguments are now exactly int|Seq|RV
   result = _roll(n, d)  # ROLL!
-  assert not isinstance(result, BlankRV), 'should never happen!'
+  assert not isinstance(result, blackrv.BlankRV), 'should never happen!'
   # below is only used for the __str__ method
   _LHS = n if isinstance(n, int) else (n.sum() if isinstance(n, Seq) else 0)
   if isinstance(d, int):
@@ -776,7 +775,7 @@ def roll(n: Union[T_isr, str], d: Union[T_isr, None] = None) -> Union[RV, BlankR
   return result
 
 
-def _roll(n: Union[int, Seq, RV], d: Union[int, Seq, RV]) -> Union[RV, BlankRV]:
+def _roll(n: Union[int, Seq, RV], d: Union[int, Seq, RV]) -> Union[RV, blackrv.BlankRV]:
   if isinstance(d, int):
     if d > 0:
       d = RV.from_seq(range(1, d + 1))
@@ -795,7 +794,7 @@ def _roll(n: Union[int, Seq, RV], d: Union[int, Seq, RV]) -> Union[RV, BlankRV]:
     assert all(isinstance(v, int) for v in n.vals), 'RV must have int values to roll other dice'
     dies = tuple(roll(int(v), d) for v in n.vals)
     result = RV.from_rvs(rvs=dies, weights=n.probs)
-    assert not isinstance(result, BlankRV), 'should never happen!'
+    assert not isinstance(result, blackrv.BlankRV), 'should never happen!'
     result.set_source(1, d)
     return result
   return _roll_int_rv(n, d)
@@ -839,59 +838,3 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   rv.probs = tuple(p // normalizing_const for p in rv.probs)
   rv._get_sum_probs(force=True)  # force update sum
   return rv
-
-
-def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None, print_=True, print_fn=None, cdf_cut=0):
-  if isinstance(rv, Seq) and len(rv) == 0:  # empty sequence plotted as empty
-    rv = BlankRV()
-  if isinstance(rv, int) or isinstance(rv, Iterable) or isinstance(rv, bool):
-    rv = RV.from_seq([rv])
-  if blocks_width is None:
-    blocks_width = SETTINGS['DEFAULT_OUTPUT_WIDTH']
-
-  result = ''
-  if named is not None:
-    result += named + ' '
-
-  if rv is None or isinstance(rv, BlankRV):
-    result += '\n' + '-' * (blocks_width + 8)
-    if print_:
-      if print_fn is None:
-        SETTINGS['DEFAULT_PRINT_FN'](result)
-      else:
-        print_fn(result)
-      return
-    else:
-      return result
-  assert isinstance(rv, RV), f'rv must be a RV {rv}'
-
-  mean = rv.mean()
-  mean = round(mean, 2) if mean is not None else None
-  std = rv.std()
-  std = round(std, 2) if std is not None else None
-  result += f'{mean} ± {std}'
-  if show_pdf:
-    vp = rv.get_vals_probs(cdf_cut / 100)
-    max_val_len = max(len(str(v)) for v, _ in vp)
-    blocks = max(0, blocks_width - max_val_len)
-    for v, p in vp:
-      result += '\n' + f"{v:>{max_val_len}}: {100 * p:>5.2f}  " + ('█' * round(p * blocks))
-    result += '\n' + '-' * (blocks_width + 8)
-  if print_:
-    if print_fn is None:
-      SETTINGS['DEFAULT_PRINT_FN'](result)
-    else:
-      print_fn(result)
-    return
-  else:
-    return result
-
-
-def roller(rv: T_isr, count: Union[int, None] = None):
-  if isinstance(rv, int) or isinstance(rv, Iterable) or isinstance(rv, bool):
-    rv = RV.from_seq([rv])
-  assert isinstance(rv, RV), 'rv must be a RV'
-  # roll using random.choices
-  if count is None:
-    return random.choices(rv.vals, rv.probs)[0]
-  return tuple(random.choices(rv.vals, rv.probs)[0] for _ in range(count))

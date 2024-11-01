@@ -2,6 +2,7 @@ from typing import Iterable
 
 from . import randvar as rv
 from .typings import T_ifs, T_is, T_ifsr
+from . import output
 
 
 class BlankRV:
@@ -15,7 +16,7 @@ class BlankRV:
     return 0
 
   def output(self, *args, **kwargs):
-    return rv.output(self, *args, **kwargs)
+    return output.output(self, *args, **kwargs)
 
   def __matmul__(self, other: T_ifs):
     # ( self:RV @ other ) thus not allowed,
@@ -170,4 +171,4 @@ class BlankRV:
     return 'd{}'
 
   def __repr__(self):
-    return rv.output(self, print_=False)
+    return output.output(self, print_=False)

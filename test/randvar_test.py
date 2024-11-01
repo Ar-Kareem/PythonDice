@@ -1,8 +1,7 @@
 import pytest
 import math
 
-from dice_calc import randvar
-from dice_calc.randvar import RV, BlankRV, Seq, roll, output
+from dice_calc import randvar, roll, output, RV, Seq, BlankRV
 
 
 @pytest.fixture(autouse=True)
