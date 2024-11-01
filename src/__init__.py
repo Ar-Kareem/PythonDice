@@ -1,4 +1,4 @@
-__version__ = '0.3.0.dev3'
+__version__ = '0.3.1'
 
 # core classes
 from .randvar import RV, Seq
