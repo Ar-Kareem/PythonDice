@@ -1,4 +1,4 @@
-name: Python Test
+name: Python Build
 
 on:
   pull_request:
@@ -23,6 +23,6 @@ jobs:
         run: |
           python -m build --sdist --wheel && python -m twine upload --repository pypi dist/*
       - name: Upload package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: dist
