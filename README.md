@@ -1,4 +1,7 @@
 # PythonDice
+
+Try it online: https://ar-kareem.github.io/PythonDiceWeb/
+
 This is a python package that includes a simple to use and powerful dice probability engine. 
 
 This package offers features and capabilities to calculate probabilities of arbitrary dice scripts including full capabilities of `anydice.com`. 
