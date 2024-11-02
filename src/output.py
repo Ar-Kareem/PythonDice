@@ -31,11 +31,15 @@ def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None,
       return result
   assert isinstance(rv, randvar.RV), f'rv must be a RV {rv}'
 
-  mean = rv.mean()
-  mean = round(mean, 2) if mean is not None else None
-  std = rv.std()
-  std = round(std, 2) if std is not None else None
-  result += f'{mean} ± {std}'
+  try:
+    mean = rv.mean()
+    mean = round(mean, 2) if mean is not None else None
+    std = rv.std()
+    std = round(std, 2) if std is not None else None
+    result += f'{mean} ± {std}'
+  except Exception:
+    result += 'NaN ± NaN'
+
   if show_pdf:
     vp = rv.get_vals_probs(cdf_cut / 100)
     max_val_len = max(len(str(v)) for v, _ in vp)

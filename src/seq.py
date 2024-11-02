@@ -17,9 +17,10 @@ def get_seq(*source: T_ifsr) -> 'Seq':
   flat_rv_vals = [v for rv in flat_rvs for v in rv.vals]
   flat_else: list[T_if] = [x for x in flat if not isinstance(x, (randvar.RV, blackrv.BlankRV))]
   res = tuple(flat_else + flat_rv_vals)
-  if any(isinstance(x, str) for x in flat_else):
-    from string_rvs import StringSeq
+  if any(isinstance(x, str) for x in res):
+    from .string_rvs import StringSeq
     return StringSeq(res)
+  assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs. Seq:' + str(flat_else)
   return Seq(_INTERNAL_SEQ_VALUE=res)
 
 

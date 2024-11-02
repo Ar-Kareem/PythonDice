@@ -46,7 +46,7 @@ def _get_lib():
   import random
   import functools
   from ..randvar import RV
-  from ..seq import Seq
+  from ..seq import Seq, get_seq
   from ..settings import settings_set
   from ..decorators import anydice_casting, max_func_depth
   from ..output import output
@@ -57,7 +57,7 @@ def _get_lib():
   from ..funclib import maximum_of as maximum_of_X, reverse as reverse_X, sort as sort_X
   rv_lib_dict = {
     'math': math, 'itertools': itertools, 'random': random, 'functools': functools,
-    'RV': RV, 'Seq': Seq, 'anydice_casting': anydice_casting, 'max_func_depth': max_func_depth, 'roll': roll, 'myrange': myrange, 'settings_set': settings_set, 'output': output,
+    'RV': RV, 'Seq': Seq, 'get_seq': get_seq, 'anydice_casting': anydice_casting, 'max_func_depth': max_func_depth, 'roll': roll, 'myrange': myrange, 'settings_set': settings_set, 'output': output,
     'absolute_X': absolute_X, 'X_contains_X': X_contains_X, 'count_X_in_X': count_X_in_X, 'explode_X': explode_X, 'highest_X_of_X': highest_X_of_X,
     'lowest_X_of_X': lowest_X_of_X, 'middle_X_of_X': middle_X_of_X, 'highest_of_X_and_X': highest_of_X_and_X, 'lowest_of_X_and_X': lowest_of_X_and_X,
     'maximum_of_X': maximum_of_X, 'reverse_X': reverse_X, 'sort_X': sort_X,

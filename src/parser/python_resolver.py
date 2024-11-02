@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 CONST = {
   'output': 'output',
-  'seq': 'Seq',
+  'seq': 'get_seq',
   'roll': 'roll',
   'range': 'myrange',
   # 'func_decorator': '@anydice_casting()',  # without func depth limit

@@ -16,6 +16,7 @@ from .decorators import anydice_casting, max_func_depth
 # helpful functions
 from .settings import settings_reset
 from .roller import roll, roller
+from .string_rvs import StringSeq
 
 # function library
 from .funclib import absolute as absolute_X, contains as X_contains_X, count_in as count_X_in_X, explode as explode_X, highest_N_of_D as highest_X_of_X
@@ -28,7 +29,7 @@ from .utils import mymatmul as myMatmul, mylen as myLen, myinvert as myInvert, m
 
 __all__ = [
   'RV', 'Seq', 'anydice_casting', 'BlankRV', 'max_func_depth', 'output', 'roll', 'settings_set', 'myrange',
-  'roller', 'settings_reset',
+  'roller', 'settings_reset', 'StringSeq',
   'absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X',
   'myMatmul', 'myLen', 'myInvert', 'myAnd', 'myOr'
 ]
