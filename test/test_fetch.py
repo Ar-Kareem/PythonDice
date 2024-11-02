@@ -6,7 +6,7 @@ from pathlib import Path
 import copy
 
 import dice_calc.randvar
-from dice_calc.randvar import RV, Seq, settings_reset, BlankRV
+from dice_calc import RV, Seq, settings_reset, BlankRV
 from dice_calc.parser import parse_and_exec
 
 
@@ -114,7 +114,7 @@ def check(inp: Union[RV, Seq, int], expected, i):
 @pytest.fixture(autouse=True)
 def fixture_settings_reset():
     settings_reset()
-    dice_calc.randvar._MEMOIZED_ROLLS = {}
+    dice_calc.roller._MEMOIZED_ROLLS = {}
 
 
 @pytest.mark.parametrize("i", range(len(code_resp_pairs)))

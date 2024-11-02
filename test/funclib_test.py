@@ -1,13 +1,12 @@
 
 import pytest
 
-import dice_calc.randvar as randvar
-from dice_calc.randvar import RV, Seq, roll, anydice_casting
+from dice_calc import anydice_casting, roll, RV, Seq, settings_reset
 
 
 @pytest.fixture(autouse=True)
-def settings_reset():
-    randvar.settings_reset()
+def settings_reset_fixture():
+    settings_reset()
 
 
 from dice_calc.funclib import absolute

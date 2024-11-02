@@ -1,8 +1,12 @@
 # recreations of functions in https://anydice.com/docs/function-library/
-from .randvar import Seq, RV, roll, anydice_casting, SETTINGS
-
+from .randvar import RV
+from .seq import Seq
+from .settings import SETTINGS
+from .roller import roll
+from .decorators import anydice_casting
 
 # BASE FUNCTIONS
+
 
 @anydice_casting()
 def absolute(NUMBER: int, *args, **kwargs):

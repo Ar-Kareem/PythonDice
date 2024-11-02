@@ -1,13 +1,12 @@
 from typing import Iterable
 import pytest
 
-from dice_calc import randvar
-from dice_calc.randvar import Seq, RV, roll
+from dice_calc import RV, Seq, roll, settings_reset
 
 
 @pytest.fixture(autouse=True)
-def settings_reset():
-    randvar.settings_reset()
+def settings_reset_fixture():
+    settings_reset()
 
 
 def test_at_num():

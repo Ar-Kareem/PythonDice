@@ -1,16 +1,21 @@
-__version__ = '0.3.1'
+__version__ = '0.3.1.dev1'
 
 # core classes
-from .randvar import RV, Seq
-
-# core decorators
-from .randvar import anydice_casting, max_func_depth
+from .randvar import RV
+from .seq import Seq
 
 # core functions
-from .randvar import output, roll, settings_set, myrange
+from .roller import myrange
+from .settings import settings_set
+from .output import output
+from .blackrv import BlankRV
+
+# core decorators
+from .decorators import anydice_casting, max_func_depth
 
 # helpful functions
-from .randvar import roller, settings_reset
+from .settings import settings_reset
+from .roller import roll, roller
 
 # function library
 from .funclib import absolute as absolute_X, contains as X_contains_X, count_in as count_X_in_X, explode as explode_X, highest_N_of_D as highest_X_of_X
@@ -22,7 +27,7 @@ from .utils import mymatmul as myMatmul, mylen as myLen, myinvert as myInvert, m
 
 
 __all__ = [
-  'RV', 'Seq', 'anydice_casting', 'max_func_depth', 'output', 'roll', 'settings_set', 'myrange',
+  'RV', 'Seq', 'anydice_casting', 'BlankRV', 'max_func_depth', 'output', 'roll', 'settings_set', 'myrange',
   'roller', 'settings_reset',
   'absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X',
   'myMatmul', 'myLen', 'myInvert', 'myAnd', 'myOr'

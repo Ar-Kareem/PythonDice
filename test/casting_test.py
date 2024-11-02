@@ -1,14 +1,12 @@
 from typing import Union
 import pytest
 
-import dice_calc.randvar as randvar
-from dice_calc.randvar import RV, Seq, roll, anydice_casting
-
+from dice_calc import anydice_casting, roll, RV, Seq, settings_reset
 
 
 @pytest.fixture(autouse=True)
-def settings_reset():
-    randvar.settings_reset()
+def settings_reset_fixture():
+    settings_reset()
 
 
 
@@ -135,7 +133,7 @@ def test_cast_dice_to_seq_more(rv, vals, probs):
     assert (a.vals, a.probs) == (vals, probs)  # type: ignore
 
 def test_cast_then_matmul():
-    @randvar.anydice_casting()
+    @anydice_casting()
     def count(V, SEQUENCE:Seq, *args):
         return V@SEQUENCE
     assert RV.dices_are_equal(count(1, roll(2, 4)), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'  # type: ignore
@@ -160,7 +158,7 @@ def test_cast_return_None():
 @pytest.mark.run(order=-1)
 @pytest.mark.timeout(2)
 def test_time():
-    @randvar.anydice_casting()
+    @anydice_casting()
     def a(n:int):
         return 0
     a(roll(1_000))  # type: ignore
