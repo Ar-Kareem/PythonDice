@@ -1,12 +1,12 @@
 import pytest
 import math
 
-from dice_calc import randvar, roll, output, RV, Seq, BlankRV
+from dice_calc import roll, output, RV, Seq, BlankRV, settings_reset, settings_set
 
 
 @pytest.fixture(autouse=True)
-def settings_reset():
-    randvar.settings_reset()
+def settings_reset_fixture():
+    settings_reset()
 
 
 @pytest.mark.parametrize("vals,probs", [
@@ -49,10 +49,10 @@ def test_RV_init_empty():
     assert isinstance(f, BlankRV)
 
 def test_probability_zero_RV():
-    randvar.settings_set('RV_IGNORE_ZERO_PROBS', 'true')
+    settings_set('RV_IGNORE_ZERO_PROBS', 'true')
     a = RV((1, 2, 777), (1, 1, 0))
     assert (a.vals, a.probs) == ((1, 2), (1, 1))
-    randvar.settings_set('RV_IGNORE_ZERO_PROBS', 'false')
+    settings_set('RV_IGNORE_ZERO_PROBS', 'false')
     a = RV((1, 2, 777), (1, 1, 0))
     assert (a.vals, a.probs) == ((1, 2, 777), (1, 1, 0))
 
@@ -82,7 +82,7 @@ def test_RV_equality(v, p, gv, gp):
     ('false', (3, 1, 3, 1, 5), (2, 6, 2, 4, 0), (1, 3, 5), (5, 2, 0)),
 ])
 def test_RV_equality_SET_ZERO_PROB(setting, v, p, gv, gp):
-    randvar.settings_set('RV_IGNORE_ZERO_PROBS', setting)
+    settings_set('RV_IGNORE_ZERO_PROBS', setting)
     a = RV(v, p)
     assert (a.vals, a.probs) == (gv, gp)
     assert RV.dices_are_equal(a, RV(gv, gp))
@@ -381,12 +381,12 @@ def test_FAIL_die_matmul(rhs):
 
 
 def test_truncate():
-    randvar.settings_set('RV_TRUNC', 'false')
+    settings_set('RV_TRUNC', 'false')
     a = roll(6) / roll(6)
     assert isinstance(a, RV)
     b = RV(a.vals, a.probs, truncate=False)
     c = RV(a.vals, a.probs, truncate=True)
-    randvar.settings_set('RV_TRUNC', 'true')
+    settings_set('RV_TRUNC', 'true')
     d = roll(6) / roll(6)
     assert RV.dices_are_equal(a, b)
     assert RV.dices_are_equal(c, d)

@@ -1,6 +1,6 @@
 import pytest
 
-from dice_calc.randvar import RV, settings_set
+from dice_calc import RV, settings_set
 from dice_calc.parser import parse_and_exec
 
 import logging

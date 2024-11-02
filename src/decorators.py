@@ -5,6 +5,7 @@ from itertools import product
 from typing import Iterable, Union
 
 from .typings import T_ifsr
+from .settings import SETTINGS
 from . import randvar as rv
 from . import blackrv
 
@@ -137,16 +138,16 @@ def max_func_depth():
   # decorator to limit the depth of the function calls
   def decorator(func):
     def wrapper(*args, **kwargs):
-      if rv.SETTINGS['INTERNAL_CURR_DEPTH'] >= rv.SETTINGS['maximum function depth']:
+      if SETTINGS['INTERNAL_CURR_DEPTH'] >= SETTINGS['maximum function depth']:
         msg = 'The maximum function depth was exceeded, results are truncated.'
-        if not rv.SETTINGS['INTERNAL_CURR_DEPTH_WARNING_PRINTED']:
+        if not SETTINGS['INTERNAL_CURR_DEPTH_WARNING_PRINTED']:
           logger.warning(msg)
           print(msg)
-          rv.SETTINGS['INTERNAL_CURR_DEPTH_WARNING_PRINTED'] = True
+          SETTINGS['INTERNAL_CURR_DEPTH_WARNING_PRINTED'] = True
         return blackrv.BlankRV()
-      rv.SETTINGS['INTERNAL_CURR_DEPTH'] += 1
+      SETTINGS['INTERNAL_CURR_DEPTH'] += 1
       res = func(*args, **kwargs)
-      rv.SETTINGS['INTERNAL_CURR_DEPTH'] -= 1
+      SETTINGS['INTERNAL_CURR_DEPTH'] -= 1
       return res if res is not None else blackrv.BlankRV()
     return wrapper
   return decorator

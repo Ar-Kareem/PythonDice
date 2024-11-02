@@ -1,8 +1,9 @@
 from typing import Union, Iterable
 
+from .typings import T_isr
+from .settings import SETTINGS
 from . import randvar
 from . import blackrv
-from .typings import T_isr
 
 
 def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None, print_=True, print_fn=None, cdf_cut=0):
@@ -11,7 +12,7 @@ def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None,
   if isinstance(rv, int) or isinstance(rv, Iterable) or isinstance(rv, bool):
     rv = randvar.RV.from_seq([rv])
   if blocks_width is None:
-    blocks_width = randvar.SETTINGS['DEFAULT_OUTPUT_WIDTH']
+    blocks_width = SETTINGS['DEFAULT_OUTPUT_WIDTH']
 
   result = ''
   if named is not None:
@@ -21,7 +22,7 @@ def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None,
     result += '\n' + '-' * (blocks_width + 8)
     if print_:
       if print_fn is None:
-        randvar.SETTINGS['DEFAULT_PRINT_FN'](result)
+        SETTINGS['DEFAULT_PRINT_FN'](result)
       else:
         print_fn(result)
       return
@@ -43,7 +44,7 @@ def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None,
     result += '\n' + '-' * (blocks_width + 8)
   if print_:
     if print_fn is None:
-      randvar.SETTINGS['DEFAULT_PRINT_FN'](result)
+      SETTINGS['DEFAULT_PRINT_FN'](result)
     else:
       print_fn(result)
     return

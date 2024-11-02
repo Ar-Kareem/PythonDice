@@ -1,5 +1,6 @@
 # recreations of functions in https://anydice.com/docs/function-library/
-from .randvar import Seq, RV, SETTINGS
+from .randvar import Seq, RV
+from .settings import SETTINGS
 from .roller import roll
 from .decorators import anydice_casting
 

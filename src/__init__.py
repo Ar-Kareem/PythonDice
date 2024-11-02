@@ -4,7 +4,8 @@ __version__ = '0.3.1'
 from .randvar import RV, Seq
 
 # core functions
-from .randvar import settings_set, myrange
+from .randvar import myrange
+from .settings import settings_set
 from .output import output
 from .blackrv import BlankRV
 
@@ -12,7 +13,7 @@ from .blackrv import BlankRV
 from .decorators import anydice_casting, max_func_depth
 
 # helpful functions
-from .randvar import settings_reset
+from .settings import settings_reset
 from .roller import roll, roller
 
 # function library
