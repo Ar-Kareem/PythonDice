@@ -1,7 +1,7 @@
 from typing import Iterable
 import pytest
 
-from dice_calc import settings_reset, get_seq
+from dice_calc import settings_reset, get_seq, roll, RV
 from dice_calc.string_rvs import StringVal
 
 
@@ -73,3 +73,22 @@ def test_get_seq():
   assert isinstance(a, Iterable), 'get_seq must return an iterable'
   assert a == get_seq(a)
   assert e == get_seq(e)
+
+
+def test_roll():
+  a = get_seq(roll(1, 2), 'fire', 'water')  # {1d2, "water", "fire"}
+  b = roll(2, a)  # 2dA
+  vp = [
+    (2, 1),
+    (3, 2),
+    (4, 1),
+    ((StringVal.from_str('fire') + StringVal.from_const(1)), 2),
+    ((StringVal.from_str('fire') + StringVal.from_const(2)), 2),
+    ((StringVal.from_str('water') + StringVal.from_const(1)), 2),
+    ((StringVal.from_str('water') + StringVal.from_const(2)), 2),
+    ((StringVal.from_str('fire') + StringVal.from_str('water')), 2),
+    ((StringVal.from_str('water') + StringVal.from_str('water')), 1),
+    ((StringVal.from_str('fire') + StringVal.from_str('fire')), 1),
+  ]
+  # assert not sum(b.probs)
+  assert RV.dices_are_equal(b, RV(vals=[x[0] for x in vp], probs=[x[1] for x in vp]))
