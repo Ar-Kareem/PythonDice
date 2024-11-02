@@ -3,12 +3,13 @@
 import operator
 import math
 from typing import Callable, Iterable, Union
-from itertools import zip_longest, combinations_with_replacement, accumulate
+from itertools import combinations_with_replacement, accumulate
 from collections import defaultdict
 import logging
 
-from .typings import T_if, T_ifs, T_is, T_ifr, T_ifsr, T_s
+from .typings import T_if, T_ifs, T_is, T_ifsr, T_s
 from .settings import SETTINGS
+from . import seq
 from . import blackrv
 from . import utils
 from . import output
@@ -63,14 +64,14 @@ class RV:
 
   @staticmethod
   def from_seq(s: T_s):
-    if not isinstance(s, Seq):
-      s = Seq(*s)
+    if not isinstance(s, seq.Seq):
+      s = seq.Seq(*s)
     if len(s) == 0:
       return RV([0], [1])
     return RV(s._seq, [1] * len(s))
 
   @staticmethod
-  def from_rvs(rvs: Iterable[Union['int', 'float', 'Seq', 'RV', 'blackrv.BlankRV', None]], weights: Union[Iterable[int], None] = None) -> Union['RV', 'blackrv.BlankRV']:
+  def from_rvs(rvs: Iterable[Union['int', 'float', 'seq.Seq', 'RV', 'blackrv.BlankRV', None]], weights: Union[Iterable[int], None] = None) -> Union['RV', 'blackrv.BlankRV']:
     rvs = tuple(rvs)
     if weights is None:
       weights = [1] * len(rvs)
@@ -113,8 +114,8 @@ class RV:
     var = EX2 - EX**2  # E[X^2] - E[X]^2
     return math.sqrt(var) if var >= 0 else 0
 
-  def filter(self, seq: T_ifsr):
-    to_filter = set(Seq(seq))
+  def filter(self, obj: T_ifsr):
+    to_filter = set(seq.Seq(obj))
     vp = tuple((v, p) for v, p in zip(self.vals, self.probs) if v not in to_filter)
     if len(vp) == 0:
         return RV.from_const(0)
@@ -150,12 +151,12 @@ class RV:
   def _get_expanded_possible_rolls(self):
     N, D = self._source_roll, self._source_die  # N rolls of D
     if N == 1:  # answer is simple (ALSO cannot use simplified formula for probs and bottom code WILL cause errors)
-      return tuple(Seq(i) for i in D.vals), D.probs
+      return tuple(seq.Seq(i) for i in D.vals), D.probs
     pdf_dict = {v: p for v, p in zip(D.vals, D.probs)}
     vals, probs = [], []
     FACTORIAL_N = utils.factorial(N)
     for roll in combinations_with_replacement(D.vals[::-1], N):
-      vals.append(Seq(_INTERNAL_SEQ_VALUE=roll))
+      vals.append(seq.Seq(_INTERNAL_SEQ_VALUE=roll))
       counts = defaultdict(int)  # fast counts
       cur_roll_probs = 1  # this is p(x_1)*...*p(x_n) where [x_1,...,x_n] is the current roll, if D is a uniform then this = 1 and is not needed.
       comb_with_repl_denominator = 1
@@ -178,8 +179,8 @@ class RV:
     if isinstance(other, blackrv.BlankRV):  # let BlankRV handle the operation
       return NotImplemented
     if isinstance(other, Iterable):
-      if not isinstance(other, Seq):
-        other = Seq(*other)
+      if not isinstance(other, seq.Seq):
+        other = seq.Seq(*other)
       other = other.sum()
     if not isinstance(other, RV):
       return RV([operation(v, other) for v in self.vals], self.probs)
@@ -194,8 +195,8 @@ class RV:
       return NotImplemented
     assert not isinstance(other, RV)
     if isinstance(other, Iterable):
-      if not isinstance(other, Seq):
-        other = Seq(*other)
+      if not isinstance(other, seq.Seq):
+        other = seq.Seq(*other)
       other = other.sum()
     return RV([operation(other, v) for v in self.vals], self.probs)
 
@@ -207,7 +208,7 @@ class RV:
     # ( other @ self:RV )
     # DOCUMENTATION: https://anydice.com/docs/introspection/  look for "Accessing" -> "Collections of dice" and "A single die"
     assert not isinstance(other, RV), 'unsupported operand type(s) for @: RV and RV'
-    other = Seq([other])
+    other = seq.Seq([other])
     assert all(isinstance(i, int) for i in other._seq), 'indices must be integers'
     if len(other) == 1:  # only one index, return the value at that index
       k: int = other._seq[0]  # type: ignore
@@ -375,167 +376,8 @@ class RV:
     return d1.vals == d2.vals and d1.probs == d2.probs
 
 
-class Seq(Iterable):
-  def __init__(self, *source: T_ifsr, _INTERNAL_SEQ_VALUE=None):
-    self._sum = None
-    self._one_indexed = 1
-    if _INTERNAL_SEQ_VALUE is not None:  # used for internal optimization only
-      self._seq: tuple[T_if, ...] = _INTERNAL_SEQ_VALUE  # type: ignore
-      return
-    flat = tuple(utils.flatten(source))
-    flat_rvs = [x for x in flat if isinstance(x, RV) and not isinstance(x, blackrv.BlankRV)]  # expand RVs
-    flat_rv_vals = [v for rv in flat_rvs for v in rv.vals]
-    flat_else: list[T_if] = [x for x in flat if not isinstance(x, (RV, blackrv.BlankRV))]
-    assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs. Seq:' + str(flat_else)
-    self._seq = tuple(flat_else + flat_rv_vals)
-
-  def sum(self):
-    if self._sum is None:
-      self._sum = sum(self._seq)
-    return self._sum
-
-  def set_one_indexed(self, one_indexed: bool):
-    self._one_indexed = 1 if one_indexed else 0
-
-  def __str__(self):
-    return '{?}'
-
-  def __repr__(self):
-    return f'Seq({repr(self._seq)})'
-
-  def __iter__(self):
-    return iter(self._seq)
-
-  def __len__(self):
-    return len(self._seq)
-
-  def __invert__(self):
-    return 1 if self.sum() == 0 else 0
-
-  def __getitem__(self, i: int):
-    return self._seq[i - self._one_indexed] if 0 <= i - self._one_indexed < len(self._seq) else 0
-
-  def __matmul__(self, other: T_ifsr):
-    if isinstance(other, RV):  # ( self:SEQ @ other:RV ) thus RV takes priority
-      return other.__rmatmul__(self)
-    # access at indices in other ( self @ other )
-    if isinstance(other, (int, float)):
-      other = Seq([int(d) for d in str(other)])  # SEQ @ int  thus convert int to sequence using base 10
-    if not isinstance(other, Seq):
-      other = Seq(other)
-    assert all(isinstance(i, int) for i in self._seq), 'indices must be integers'
-    return sum(other[int(i)] for i in self._seq)
-
-  def __rmatmul__(self, other: T_ifs):
-    if isinstance(other, RV):  # ( other:RV @ self:SEQ ) thus not allowed,
-      raise TypeError(f'A position selector must be either a number or a sequence, but you provided "{other}"')
-    # access in my indices ( other @ self )
-    if isinstance(other, (int, float)):
-      return self[int(other)]
-    if not isinstance(other, Seq):
-      other = Seq(other)
-    assert all(isinstance(i, int) for i in other._seq), 'indices must be integers'
-    return sum(self[int(i)] for i in other._seq)
-
-  # operators
-  def __add__(self, other: T_ifs):
-    return operator.add(self.sum(), other)
-
-  def __radd__(self, other: T_ifs):
-    return operator.add(other, self.sum())
-
-  def __sub__(self, other: T_ifs):
-    return operator.sub(self.sum(), other)
-
-  def __rsub__(self, other: T_ifs):
-    return operator.sub(other, self.sum())
-
-  def __mul__(self, other: T_ifs):
-    return operator.mul(self.sum(), other)
-
-  def __rmul__(self, other: T_ifs):
-    return operator.mul(other, self.sum())
-
-  def __floordiv__(self, other: T_ifs):
-    return operator.floordiv(self.sum(), other)
-
-  def __rfloordiv__(self, other: T_ifs):
-    return operator.floordiv(other, self.sum())
-
-  def __truediv__(self, other: T_ifs):
-    return operator.truediv(self.sum(), other)
-
-  def __rtruediv__(self, other: T_ifs):
-    return operator.truediv(other, self.sum())
-
-  def __pow__(self, other: T_ifs):
-    return operator.pow(self.sum(), other)
-
-  def __rpow__(self, other: T_ifs):
-    return operator.pow(other, self.sum())
-
-  def __mod__(self, other: T_ifs):
-    return operator.mod(self.sum(), other)
-
-  def __rmod__(self, other: T_ifs):
-    return operator.mod(other, self.sum())
-
-  # comparison operators
-  def __eq__(self, other: T_ifsr):
-    return self._compare_to(other, operator.eq)
-
-  def __ne__(self, other: T_ifsr):
-    return self._compare_to(other, operator.ne)
-
-  def __lt__(self, other: T_ifsr):
-    return self._compare_to(other, operator.lt)
-
-  def __le__(self, other: T_ifsr):
-    return self._compare_to(other, operator.le)
-
-  def __gt__(self, other: T_ifsr):
-    return self._compare_to(other, operator.gt)
-
-  def __ge__(self, other: T_ifsr):
-    return self._compare_to(other, operator.ge)
-
-  # boolean operators
-  def __or__(self, other: T_ifsr):
-    return int((self.sum() != 0) or (other != 0)) if isinstance(other, (int, float)) else operator.or_(self.sum(), other)
-
-  def __ror__(self, other: T_ifsr):
-    return int((self.sum() != 0) or (other != 0)) if isinstance(other, (int, float)) else operator.or_(other, self.sum())
-
-  def __and__(self, other: T_ifsr):
-    return int((self.sum() != 0) and (other != 0)) if isinstance(other, (int, float)) else operator.and_(self.sum(), other)
-
-  def __rand__(self, other: T_ifsr):
-    return int((self.sum() != 0) and (other != 0)) if isinstance(other, (int, float)) else operator.and_(other, self.sum())
-
-  def _compare_to(self, other: T_ifsr, operation: Callable[[float, T_ifr], bool]):
-    if isinstance(other, RV):
-      return operation(self.sum(), other)
-    if isinstance(other, Iterable):
-      if not isinstance(other, Seq):  # convert to Seq if not already
-        other = Seq(*other)
-      if operation == operator.ne:  # special case for NE, since it is ∃ as opposed to ∀ like the others
-        return not self._compare_to(other, operator.eq)
-      return all(operation(x, y) for x, y in zip_longest(self._seq, other._seq, fillvalue=float('-inf')))
-    # if other is a number
-    return sum(1 for x in self._seq if operation(x, other))
-
-  @staticmethod
-  def seqs_are_equal(s1: T_ifs, s2: T_ifs):
-    assert not isinstance(s1, RV) and not isinstance(s2, RV), 'cannot compare Seq with RV'
-    if not isinstance(s1, Seq):
-      s1 = Seq(s1)
-    if not isinstance(s2, Seq):
-      s2 = Seq(s2)
-    return s1._seq == s2._seq
-
-
 @decorators.anydice_casting()
-def _sum_at(orig: Seq, locs: Seq):
+def _sum_at(orig: seq.Seq, locs: seq.Seq):
   return sum(orig[int(i)] for i in locs)
 
 

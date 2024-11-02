@@ -1,7 +1,8 @@
 __version__ = '0.3.1'
 
 # core classes
-from .randvar import RV, Seq
+from .randvar import RV
+from .seq import Seq
 
 # core functions
 from .randvar import myrange

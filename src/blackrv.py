@@ -1,6 +1,7 @@
 from typing import Iterable
 
 from . import randvar as rv
+from . import seq
 from .typings import T_ifs, T_is, T_ifsr
 from . import output
 
@@ -41,7 +42,7 @@ class BlankRV:
     if self._special_null:
       return self
     if isinstance(other, Iterable):
-      other = rv.Seq(*other).sum()
+      other = seq.Seq(*other).sum()
     return (-other)
 
   def __rsub__(self, other: T_ifsr):

@@ -45,7 +45,8 @@ def _get_lib():
   import itertools
   import random
   import functools
-  from ..randvar import RV, Seq, myrange
+  from ..randvar import RV, myrange
+  from ..seq import Seq
   from ..settings import settings_set
   from ..decorators import anydice_casting, max_func_depth
   from ..output import output

@@ -1,7 +1,8 @@
 from typing import Union, Iterable
 import random
 
-from .randvar import RV, Seq
+from .randvar import RV
+from .seq import Seq
 from . import blackrv
 from .typings import T_isr
 
