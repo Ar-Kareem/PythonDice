@@ -8,31 +8,36 @@ from .seq import Seq
 T_ift = Union[T_if, str, 'StringVal']
 
 
-
 class StringVal:
   def __init__(self, keys: tuple[str, ...], pairs: dict[str, int]):
     self.keys = keys
     self.data = pairs
 
   def __add__(self, other):
-    if isinstance(other, StringVal):
-      newdict = self.data.copy()
-      for key, val in other.data.items():
-        newdict[key] = newdict.get(key, 0) + val
-      keys = tuple(sorted(newdict.keys()))
-      return StringVal(keys, newdict)
-    else:
-      return NotImplemented
+    if not isinstance(other, StringVal):
+      other = StringVal(('', ), {'': other})
+    newdict = self.data.copy()
+    for key, val in other.data.items():
+      newdict[key] = newdict.get(key, 0) + val
+    keys = tuple(sorted(newdict.keys()))
+    return StringVal(keys, newdict)
+
+  def __radd__(self, other):
+    return self.__add__(other)
 
   def __repr__(self):
     r = []
+    last_coeff = ''
     for key in self.keys:
-      if self.data[key] == 1:
+      if key == '':  # empty string represents a number
+        last_coeff = '+' + str(self.data[key])
+        continue
+      elif self.data[key] == 1:  # coefficient 1 is not shown
         n = key
       else:
         n = f'{self.data[key]}*{key}'
       r.append(n)
-    return '+'.join(r)
+    return '+'.join(r) + last_coeff
 
   def __format__(self, format_spec):
     return f'{repr(self):{format_spec}}'
@@ -43,11 +48,23 @@ class StringVal:
   def __lt__(self, other):
     return self._compare_to(other, op.lt)
 
+  def __ge__(self, other):
+    return self._compare_to(other, op.ge)
+
+  def __gt__(self, other):
+    return self._compare_to(other, op.gt)
+
   def __eq__(self, other):
-    return self.keys == other.keys and self.data == other.data
+    if isinstance(other, StringVal):
+      return self.keys == other.keys and self.data == other.data
+    else:
+      return False
 
   def __ne__(self, other):
-    return self.keys != other.keys or self.data != other.data
+    if isinstance(other, StringVal):
+      return self.keys != other.keys or self.data != other.data
+    else:
+      return True
 
   def _compare_to(self, other, operator):
     if isinstance(other, StringVal):
@@ -61,11 +78,10 @@ class StringVal:
           return operator(self.data[self.keys[i]], other.data[other.keys[i]])
         i += 1
     else:
-      return NotImplemented
+      return operator(float('inf'), other)
 
   def __hash__(self):
     return hash((self.keys, tuple(self.data)))
-
 
 
 class StringSeq(Seq):
