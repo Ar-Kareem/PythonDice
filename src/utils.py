@@ -11,7 +11,9 @@ def flatten(items: T_s) -> T_flat:
     """Yield items from any nested iterable; see Reference.  https://stackoverflow.com/a/40857703/6173665"""
     for x in items:
         if isinstance(x, Iterable):
-            assert not isinstance(x, str), "flatten() does not support strings"
+            if isinstance(x, str):
+                yield x
+                continue
             for sub_x in flatten(x):
                 yield sub_x
         else:

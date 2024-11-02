@@ -534,6 +534,7 @@ def p_element(p):
     '''
     element : expression
             | range
+            | str_element
     '''
     p[0] = p[1]
 
@@ -543,8 +544,15 @@ def p_range(p):
     range : expression DOT DOT expression
     '''
     p[0] = Node(NodeType.RANGE, p[1], p[4])
-# Rule for function calls [ ... ]
 
+
+def p_str_element(p):
+    '''
+    str_element : string
+    '''
+    p[0] = p[1]
+
+# Rule for function calls [ ... ]
 
 def p_term_call(p):
     '''

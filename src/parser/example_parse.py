@@ -1,13 +1,13 @@
 import time
 import logging
 
-import dice_calc.parser.parse_and_exec as parse_and_exec  # from "anything else" breaks
-from dice_calc.randvar import output
+from dice_calc.parser import parse_and_exec as parse_and_exec  # from "anything else" breaks
+from dice_calc.output import output
 
 trials = [
   r'''
-function: f {}
-output [f] @ 0
+A: {1d4, "water", "fire"}
+output(2dA)
 '''
 ]
 # flags = {'COMPILER_FLAG_NON_LOCAL_SCOPE': True, 'COMPILER_FLAG_OPERATOR_ON_INT': True}
