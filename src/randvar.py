@@ -138,7 +138,7 @@ class RV:
     '''Get CDF as RV where CDF(x) = P(X <= x)'''
     cdf_vals = self.vals
     cdf_probs = accumulate(self.probs)
-    return RV(cdf_vals, cdf_probs)
+    return type(self)(cdf_vals, cdf_probs)
 
   def output(self, *args, **kwargs):
     return output.output(self, *args, **kwargs)
