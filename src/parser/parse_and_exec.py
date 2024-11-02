@@ -46,7 +46,8 @@ def _get_lib():
   import random
   import functools
   from ..randvar import RV
-  from ..seq import Seq, get_seq
+  from ..seq import Seq
+  from ..factory import get_seq
   from ..settings import settings_set
   from ..decorators import anydice_casting, max_func_depth
   from ..output import output

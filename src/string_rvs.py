@@ -1,26 +1,40 @@
 
-from typing import Union
+from typing import Union, Literal
 import operator as op
 
 from .typings import T_if
-from .seq import Seq
+from . import seq
 
 T_ift = Union[T_if, str, 'StringVal']
 
 
+_CONST_COEF = '_UNIQUE_STRING'
+
+
 class StringVal:
-  def __init__(self, keys: tuple[str, ...], pairs: dict[str, int]):
-    self.keys = keys
+  def __init__(self, keys: tuple[str, ...], pairs: dict[str, T_if]):
+    self.keys = tuple(sorted(keys))
     self.data = pairs
+
+  @staticmethod
+  def from_const(const: T_if):
+    return StringVal((_CONST_COEF, ), {_CONST_COEF: const})
+
+  @staticmethod
+  def from_str(s: str):
+    return StringVal((s, ), {s: 1})
+
+  @staticmethod
+  def from_paris(pairs: dict[str, T_if]):  # TODO rename to from_pairs
+    return StringVal(tuple(pairs.keys()), pairs)
 
   def __add__(self, other):
     if not isinstance(other, StringVal):
-      other = StringVal(('', ), {'': other})
+      other = StringVal.from_const(other)
     newdict = self.data.copy()
     for key, val in other.data.items():
       newdict[key] = newdict.get(key, 0) + val
-    keys = tuple(sorted(newdict.keys()))
-    return StringVal(keys, newdict)
+    return StringVal.from_paris(newdict)
 
   def __radd__(self, other):
     return self.__add__(other)
@@ -29,15 +43,15 @@ class StringVal:
     r = []
     last_coeff = ''
     for key in self.keys:
-      if key == '':  # empty string represents a number
-        last_coeff = '+' + str(self.data[key])
+      if key == _CONST_COEF:  # empty string represents a number
+        last_coeff = ' + ' + str(self.data[key])
         continue
       elif self.data[key] == 1:  # coefficient 1 is not shown
         n = key
       else:
         n = f'{self.data[key]}*{key}'
       r.append(n)
-    return '+'.join(r) + last_coeff
+    return ' + '.join(r) + last_coeff
 
   def __format__(self, format_spec):
     return f'{repr(self):{format_spec}}'
@@ -84,11 +98,14 @@ class StringVal:
     return hash((self.keys, tuple(self.data)))
 
 
-class StringSeq(Seq):
+class StringSeq(seq.Seq):
   def __init__(self, source: tuple[T_ift, ...]):
     # do not call super().__init__ here
     source_lst: list[T_ift] = list(source)
     for i, x in enumerate(source_lst):
       if isinstance(x, str):
-        source_lst[i] = StringVal((x, ), {x: 1})
+        source_lst[i] = StringVal.from_str(x)
     self._seq: tuple[T_ift, ...] = tuple(source_lst)
+
+  def __iter__(self):
+    return iter(self._seq)

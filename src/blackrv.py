@@ -1,3 +1,4 @@
+# TODO rename file to blankrv.py
 from typing import Iterable
 
 from . import randvar as rv
