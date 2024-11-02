@@ -25,7 +25,7 @@ class StringVal:
     return StringVal((s, ), {s: 1})
 
   @staticmethod
-  def from_paris(pairs: dict[str, T_if]):
+  def from_paris(pairs: dict[str, T_if]):  # TODO rename to from_pairs
     return StringVal(tuple(pairs.keys()), pairs)
 
   def __add__(self, other):
