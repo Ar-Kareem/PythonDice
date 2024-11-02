@@ -3,6 +3,7 @@ __version__ = '0.3.2'
 # core classes
 from .randvar import RV
 from .seq import Seq
+from .factory import get_seq
 
 # core functions
 from .roller import myrange
@@ -29,7 +30,7 @@ from .utils import mymatmul as myMatmul, mylen as myLen, myinvert as myInvert, m
 
 __all__ = [
   'RV', 'Seq', 'anydice_casting', 'BlankRV', 'max_func_depth', 'output', 'roll', 'settings_set', 'myrange',
-  'roller', 'settings_reset', 'StringSeq',
+  'roller', 'settings_reset', 'StringSeq', 'get_seq',
   'absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X',
   'myMatmul', 'myLen', 'myInvert', 'myAnd', 'myOr'
 ]
