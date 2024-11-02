@@ -5,7 +5,7 @@ from .randvar import RV
 from .seq import Seq
 
 # core functions
-from .randvar import myrange
+from .roller import myrange
 from .settings import settings_set
 from .output import output
 from .blackrv import BlankRV

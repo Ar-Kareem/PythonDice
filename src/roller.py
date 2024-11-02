@@ -108,3 +108,11 @@ def roller(rv: T_isr, count: Union[int, None] = None):
   if count is None:
     return random.choices(rv.vals, rv.probs)[0]
   return tuple(random.choices(rv.vals, rv.probs)[0] for _ in range(count))
+
+
+def myrange(left, right):
+    if isinstance(left, RV):
+        raise TypeError(f'A sequence range must begin with a number, while you provided "{left}".')
+    if isinstance(right, RV):
+        raise TypeError(f'A sequence range must begin with a number, while you provided "{right}".')
+    return range(left, right + 1)

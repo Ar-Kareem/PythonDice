@@ -381,14 +381,6 @@ def _sum_at(orig: seq.Seq, locs: seq.Seq):
   return sum(orig[int(i)] for i in locs)
 
 
-def myrange(left, right):
-    if isinstance(left, RV):
-        raise TypeError(f'A sequence range must begin with a number, while you provided "{left}".')
-    if isinstance(right, RV):
-        raise TypeError(f'A sequence range must begin with a number, while you provided "{right}".')
-    return range(left, right + 1)
-
-
 def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   sum_ = rv._get_sum_probs()
   if sum_ <= sum_limit:
