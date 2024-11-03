@@ -13,7 +13,7 @@ to run tests:
         `pytest --cov --cov-report=html:coverage_re`
     to add new tests:
         add anydice code in `.\test\autoouts\fetch_in.py`
-        `python .\test\autoouts\fetch.py`
+        `python .\test\autoouts\fetch.py --fetch`
 to build package:
     `conda activate ./env`
     `rm dist/*`
