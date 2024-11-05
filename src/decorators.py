@@ -8,7 +8,6 @@ from .typings import T_ifsr, MetaSeq, MetaRV, T_N, T_S, T_D
 from .factory import get_seq
 from .settings import SETTINGS
 from . import randvar as rv
-# from . import seq
 from . import blackrv
 
 

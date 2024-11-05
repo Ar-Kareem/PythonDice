@@ -7,7 +7,7 @@ from itertools import combinations_with_replacement, accumulate
 from collections import defaultdict
 import logging
 
-from .factory import get_seq
+from . import factory
 from .typings import T_if, T_ifs, T_is, T_ifsr, T_s, MetaRV, MetaSeq, T_S
 from .settings import SETTINGS
 from . import blackrv
@@ -65,7 +65,7 @@ class RV(MetaRV):
   @staticmethod
   def from_seq(s: T_s):
     if not isinstance(s, MetaSeq):
-      s = get_seq(*s)
+      s = factory.get_seq(*s)
     if len(s) == 0:
       return RV([0], [1])
     return RV(s._seq, [1] * len(s))
@@ -115,7 +115,7 @@ class RV(MetaRV):
     return math.sqrt(var) if var >= 0 else 0
 
   def filter(self, obj: T_ifsr):
-    to_filter = set(get_seq(obj))
+    to_filter = set(factory.get_seq(obj))
     vp = tuple((v, p) for v, p in zip(self.vals, self.probs) if v not in to_filter)
     if len(vp) == 0:
         return RV.from_const(0)
@@ -153,12 +153,12 @@ class RV(MetaRV):
   def _get_expanded_possible_rolls(self):
     N, D = self._source_roll, self._source_die  # N rolls of D
     if N == 1:  # answer is simple (ALSO cannot use simplified formula for probs and bottom code WILL cause errors)
-      return tuple(get_seq(i) for i in D.vals), D.probs
+      return tuple(factory.get_seq(i) for i in D.vals), D.probs
     pdf_dict = {v: p for v, p in zip(D.vals, D.probs)}
     vals, probs = [], []
     FACTORIAL_N = utils.factorial(N)
     for roll in combinations_with_replacement(D.vals[::-1], N):
-      vals.append(get_seq(_INTERNAL_SEQ_VALUE=roll))
+      vals.append(factory.get_seq(_INTERNAL_SEQ_VALUE=roll))
       counts = defaultdict(int)  # fast counts
       cur_roll_probs = 1  # this is p(x_1)*...*p(x_n) where [x_1,...,x_n] is the current roll, if D is a uniform then this = 1 and is not needed.
       comb_with_repl_denominator = 1
@@ -182,7 +182,7 @@ class RV(MetaRV):
       return NotImplemented
     if isinstance(other, Iterable):
       if not isinstance(other, MetaSeq):
-        other = get_seq(*other)
+        other = factory.get_seq(*other)
       other = other.sum()
     if not isinstance(other, MetaRV):
       return RV([operation(v, other) for v in self.vals], self.probs)
@@ -198,7 +198,7 @@ class RV(MetaRV):
     assert not isinstance(other, MetaRV)
     if isinstance(other, Iterable):
       if not isinstance(other, MetaSeq):
-        other = get_seq(*other)
+        other = factory.get_seq(*other)
       other = other.sum()
     return RV([operation(other, v) for v in self.vals], self.probs)
 
@@ -210,7 +210,7 @@ class RV(MetaRV):
     # ( other @ self:RV )
     # DOCUMENTATION: https://anydice.com/docs/introspection/  look for "Accessing" -> "Collections of dice" and "A single die"
     assert not isinstance(other, RV), 'unsupported operand type(s) for @: RV and RV'
-    other = get_seq([other])
+    other = factory.get_seq([other])
     assert all(isinstance(i, int) for i in other._seq), 'indices must be integers'
     if len(other) == 1:  # only one index, return the value at that index
       k: int = other._seq[0]  # type: ignore

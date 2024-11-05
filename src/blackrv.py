@@ -2,7 +2,7 @@
 from typing import Iterable
 
 from .typings import T_ifs, T_is, T_ifsr, MetaRV
-from .factory import get_seq
+from . import factory
 from . import output
 
 
@@ -42,7 +42,7 @@ class BlankRV(MetaRV):
     if self._special_null:
       return self
     if isinstance(other, Iterable):
-      other = get_seq(*other).sum()
+      other = factory.get_seq(*other).sum()
     return (-other)
 
   def __rsub__(self, other: T_ifsr):
