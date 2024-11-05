@@ -24,7 +24,7 @@ def f3(inp: T_D):
     assert isinstance(inp, RV)
     return inp
 @anydice_casting()
-def f4(inp:list):
+def f4(inp: list):
     assert isinstance(inp, list)
     return inp
 
