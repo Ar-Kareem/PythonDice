@@ -1,13 +1,12 @@
 # TODO rename file to blankrv.py
 from typing import Iterable
 
-from . import randvar as rv
-from . import seq
-from .typings import T_ifs, T_is, T_ifsr
+from .typings import T_ifs, T_is, T_ifsr, MetaRV
+from . import factory
 from . import output
 
 
-class BlankRV:
+class BlankRV(MetaRV):
   def __init__(self, _special_null=False):
     self._special_null = _special_null  # makes it such that it's _special_null,  in operations like (X**2 + 1) still is blank (X). see https://anydice.com/program/395da
 
@@ -43,7 +42,7 @@ class BlankRV:
     if self._special_null:
       return self
     if isinstance(other, Iterable):
-      other = seq.Seq(*other).sum()
+      other = factory.get_seq(*other).sum()
     return (-other)
 
   def __rsub__(self, other: T_ifsr):

@@ -1,4 +1,4 @@
-__version__ = '0.3.2.dev1'
+__version__ = '0.3.2.dev2'
 
 # core classes
 from .randvar import RV
@@ -13,6 +13,7 @@ from .blackrv import BlankRV
 
 # core decorators
 from .decorators import anydice_casting, max_func_depth
+from .typings import T_N, T_S, T_D
 
 # helpful functions
 from .settings import settings_reset
@@ -30,6 +31,7 @@ from .utils import mymatmul as myMatmul, mylen as myLen, myinvert as myInvert, m
 
 __all__ = [
   'RV', 'Seq', 'anydice_casting', 'BlankRV', 'max_func_depth', 'output', 'roll', 'settings_set', 'myrange',
+  'T_N', 'T_S', 'T_D',
   'roller', 'settings_reset', 'StringSeq', 'get_seq',
   'absolute_X', 'X_contains_X', 'count_X_in_X', 'explode_X', 'highest_X_of_X', 'lowest_X_of_X', 'middle_X_of_X', 'highest_of_X_and_X', 'lowest_of_X_and_X', 'maximum_of_X', 'reverse_X', 'sort_X',
   'myMatmul', 'myLen', 'myInvert', 'myAnd', 'myOr'

@@ -2,8 +2,7 @@ from typing import Iterable, Callable, Union
 from itertools import zip_longest
 import operator
 
-from .typings import T_if, T_ifs, T_ifsr, T_ifr
-from . import randvar
+from .typings import T_if, T_ifs, T_ifsr, T_ifr, MetaRV, MetaSeq
 from . import utils
 from . import blackrv
 
@@ -11,7 +10,7 @@ from . import blackrv
 T_ift = Union[T_if, str]
 
 
-class Seq(Iterable):
+class Seq(Iterable, MetaSeq):
   def __init__(self, *source: T_ifsr, _INTERNAL_SEQ_VALUE=None):
     self._sum = None
     self._one_indexed = 1
@@ -19,9 +18,9 @@ class Seq(Iterable):
       self._seq: tuple[T_if, ...] = _INTERNAL_SEQ_VALUE  # type: ignore
       return
     flat = tuple(utils.flatten(source))
-    flat_rvs = [x for x in flat if isinstance(x, randvar.RV) and not isinstance(x, blackrv.BlankRV)]  # expand RVs
+    flat_rvs = [x for x in flat if isinstance(x, MetaRV) and not isinstance(x, blackrv.BlankRV)]  # expand RVs
     flat_rv_vals = [v for rv in flat_rvs for v in rv.vals]
-    flat_else: list[T_if] = [x for x in flat if not isinstance(x, (randvar.RV, blackrv.BlankRV))]
+    flat_else: list[T_if] = [x for x in flat if not isinstance(x, (MetaRV, blackrv.BlankRV))]
     assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs. Seq:' + str(flat_else)
     self._seq = tuple(flat_else + flat_rv_vals)
 
@@ -52,7 +51,7 @@ class Seq(Iterable):
     return self._seq[i - self._one_indexed] if 0 <= i - self._one_indexed < len(self._seq) else 0
 
   def __matmul__(self, other: T_ifsr):
-    if isinstance(other, randvar.RV):  # ( self:SEQ @ other:RV ) thus RV takes priority
+    if isinstance(other, MetaRV):  # ( self:SEQ @ other:RV ) thus RV takes priority
       return other.__rmatmul__(self)
     # access at indices in other ( self @ other )
     if isinstance(other, (int, float)):
@@ -63,7 +62,7 @@ class Seq(Iterable):
     return sum(other[int(i)] for i in self._seq)
 
   def __rmatmul__(self, other: T_ifs):
-    if isinstance(other, randvar.RV):  # ( other:RV @ self:SEQ ) thus not allowed,
+    if isinstance(other, MetaRV):  # ( other:RV @ self:SEQ ) thus not allowed,
       raise TypeError(f'A position selector must be either a number or a sequence, but you provided "{other}"')
     # access in my indices ( other @ self )
     if isinstance(other, (int, float)):
@@ -149,7 +148,7 @@ class Seq(Iterable):
     return int((self.sum() != 0) and (other != 0)) if isinstance(other, (int, float)) else operator.and_(other, self.sum())
 
   def _compare_to(self, other: T_ifsr, operation: Callable[[float, T_ifr], bool]):
-    if isinstance(other, randvar.RV):
+    if isinstance(other, MetaRV):
       return operation(self.sum(), other)
     if isinstance(other, Iterable):
       if not isinstance(other, Seq):  # convert to Seq if not already
@@ -162,7 +161,7 @@ class Seq(Iterable):
 
   @staticmethod
   def seqs_are_equal(s1: T_ifs, s2: T_ifs):
-    assert not isinstance(s1, randvar.RV) and not isinstance(s2, randvar.RV), 'cannot compare Seq with RV'
+    assert not isinstance(s1, MetaRV) and not isinstance(s2, MetaRV), 'cannot compare Seq with RV'
     if not isinstance(s1, Seq):
       s1 = Seq(s1)
     if not isinstance(s2, Seq):

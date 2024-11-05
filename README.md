@@ -234,7 +234,7 @@ roller(X)  # gets a random value from rolling a d20 with advantage
 
 
 
-    18
+    14
 
 
 
@@ -248,10 +248,12 @@ Let's try calculating the total damage of the following attack on a boss in an R
 
 
 ```python
-from dice_calc import roll, anydice_casting
+from dice_calc import roll, anydice_casting, T_N, T_S, T_D
 
+# In anydice we have (:N, :S, and :D) which are (T_N, T_S, and T_D) in here
+# read: https://anydice.com/docs/functions for more information
 @anydice_casting()
-def calculate(to_hit_roll: int, save_roll: int):  # type hinting as int REQUIRED!!!
+def calculate(to_hit_roll: T_N, save_roll: T_N):  # type hinting as T_N REQUIRED!!!
     if to_hit_roll + 7 < 22:  # miss
         return 0
     is_crit = (to_hit_roll == 20)
@@ -348,14 +350,14 @@ print(code)
 
     @max_func_depth()
     @anydice_casting()
-    def convert_X(SUM: int):
+    def convert_X(SUM: T_N):
       if SUM >= 1000:
         TENSROLLED = SUM // 1000
         return SUM - TENSROLLED * 990 + roll(TENSROLLED, explode_X(roll(10)))
       
       return SUM
     
-    output(convert_X(highest_X_of_X(3, roll(6, Seq([myrange(1, 9), 1000])))), named=f"6k3 exploded after keeping")
+    output(convert_X(highest_X_of_X(3, roll(6, get_seq([myrange(1, 9), 1000])))), named=f"6k3 exploded after keeping")
     
     
 
@@ -367,7 +369,7 @@ from dice_calc import *
 # EXECUTE CODE FROM COMPILE_ANYDICE
 @max_func_depth()
 @anydice_casting()
-def convert_X(SUM: int):
+def convert_X(SUM: T_N):
   if SUM >= 1000:
     TENSROLLED = SUM // 1000
     return SUM - TENSROLLED * 990 + roll(TENSROLLED, explode_X(roll(10)))
@@ -488,7 +490,7 @@ As far as we tested, almost all valid `anydice` code worked perfectly using our 
 
 1. ~~certain operators on ints and nothing else.~~ **Update : #1 has been correctly implemented** (as an optional compiler flag)
 
-2. ~~Limit on global function depth.~~ **Update : #2 has been correctly implemented** (currently permenant but will become an optional compiler flag in the future)
+2. ~~Limit on global function depth.~~ **Update : #2 has been correctly implemented**
 
 3. ~~(very rare) Naming a fucntion as an illegal reserved keywords~~ **Update : #3 been correctly implemented ; automatically turns on when a collision is detected by the compiler**
 

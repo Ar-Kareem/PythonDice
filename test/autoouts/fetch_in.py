@@ -1402,6 +1402,12 @@ output [getone BLANK] named "f(BLANK) => SPECIAL"
 
 ''',
 r'''
+A:d{0,1}
+B:2d{0,1}
+output A|B
+output B|A
+output B|A|A
+output B|A|B|A
 
 ''',
 r'''

@@ -552,8 +552,8 @@ def p_str_element(p):
     '''
     p[0] = p[1]
 
-# Rule for function calls [ ... ]
 
+# Rule for function calls [ ... ]
 def p_term_call(p):
     '''
     term : LBRACKET call_elements RBRACKET

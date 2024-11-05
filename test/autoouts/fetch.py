@@ -105,14 +105,13 @@ def main_fetch():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Fetch anydice outputs')
-    parser.add_argument('--fetch', action='store_true', help='Fetch new outputs')
-    parser.add_argument('--populate', action='store_true', help='Populate new outputs')
+    parser.add_argument('--fetch', action='store_true', help='Fetch results for current progs in fetch_in.py')
+    parser.add_argument('--populate', action='store_true', help='Populate auto inputs by incrementally fetching')
     args = parser.parse_args()
     if args.fetch:
         main_fetch()
     elif args.populate:
         populate_loop()
     else:
-        print('No action specified')
+        parser.print_help()
         sys.exit(1)
-

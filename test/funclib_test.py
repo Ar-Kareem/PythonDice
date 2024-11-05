@@ -1,7 +1,7 @@
 
 import pytest
 
-from dice_calc import anydice_casting, roll, RV, Seq, settings_reset
+from dice_calc import anydice_casting, roll, RV, Seq, settings_reset, T_N, T_S, T_D
 
 
 @pytest.fixture(autouse=True)
@@ -48,13 +48,13 @@ def test_reverse():
 
 def test2_reverse():
     @anydice_casting()
-    def f(DIE:RV):
+    def f(DIE: T_D):
         return reverse(Seq(DIE))+1
     assert f(roll(6)) == 22
 
 def test3_reverse():
     @anydice_casting()
-    def f(DIE:RV):
+    def f(DIE: T_D):
         return 1@reverse(Seq(DIE))
     assert f(roll(6)) == 6
     assert f(roll(4, 6)) == 24
@@ -122,7 +122,7 @@ def test_sort():
 
 def test_double_N_if_above_N():
     @anydice_casting()
-    def double_N_if_above_N(A:int, B:int):
+    def double_N_if_above_N(A: T_N, B: T_N):
         if A > B: 
             return A + A
         return A
@@ -130,6 +130,6 @@ def test_double_N_if_above_N():
 
 def test_S_count_fives_and_above_and_subtract_ones():
     @anydice_casting()
-    def S_count_fives_and_above_and_subtract_ones(ROLL:Seq):
+    def S_count_fives_and_above_and_subtract_ones(ROLL: T_S):
         return (ROLL >= 5) - (ROLL == 1)
     assert RV.dices_are_equal(S_count_fives_and_above_and_subtract_ones(roll(3, 6)), RV(range(-3, 4), (1, 9, 33, 63, 66, 36, 8))), "func [in docs] '-3 .. 3'"  # type: ignore

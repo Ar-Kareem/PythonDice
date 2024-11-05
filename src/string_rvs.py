@@ -1,5 +1,5 @@
 
-from typing import Union, Literal
+from typing import Union
 import operator as op
 
 from .typings import T_if
