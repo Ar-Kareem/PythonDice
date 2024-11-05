@@ -1,7 +1,7 @@
 from typing import Union
 import pytest
 
-from dice_calc import anydice_casting, roll, RV, Seq, settings_reset
+from dice_calc import anydice_casting, roll, RV, Seq, settings_reset, T_N, T_S, T_D
 
 
 @pytest.fixture(autouse=True)
@@ -12,15 +12,15 @@ def settings_reset_fixture():
 
 
 @anydice_casting()
-def f1(inp:int):
+def f1(inp: T_N):
     assert isinstance(inp, int)
     return inp
 @anydice_casting()
-def f2(inp:Seq):
+def f2(inp: T_S):
     assert isinstance(inp, Seq)
     return inp
 @anydice_casting()
-def f3(inp:RV):
+def f3(inp: T_D):
     assert isinstance(inp, RV)
     return inp
 @anydice_casting()
@@ -81,7 +81,7 @@ def test_cast_to_rv(s1, s2):
 
 def test_cast_multiple_to_seq():
     @anydice_casting()
-    def count(VALUES:Seq, SEQUENCE:Seq, *args):
+    def count(VALUES: T_S, SEQUENCE: T_S, *args):
         COUNT = 0
         for P in range(1, len(VALUES)+1):
             COUNT = COUNT + (P@VALUES == SEQUENCE)
@@ -95,7 +95,7 @@ def test_cast_multiple_to_seq():
 
 def test2_cast_to_seq():
     @anydice_casting()
-    def cast(M:Seq):
+    def cast(M: T_S):
         return M+1
     a = cast(roll(2, 2))  # type: ignore
     assert RV.dices_are_equal(a, roll(2, 2)+1), 'casting single dice to sequence'
@@ -103,13 +103,13 @@ def test2_cast_to_seq():
 
 def test_cast_dice_to_seq_then_roll():
     @anydice_casting()
-    def p(SEQUENCE:Seq):
+    def p(SEQUENCE: T_S):
         return roll(3, SEQUENCE)
     assert RV.dices_are_equal(p(roll(2, 3)), RV(range(3, 10), (2, 1, 2, 2, 2, 1, 2))), 'return dice after casting'  # type: ignore
 
 def test_cast_dice_to_seq():
     @anydice_casting()
-    def p(SEQUENCE:Seq):
+    def p(SEQUENCE: T_S):
         return SEQUENCE
     assert RV.dices_are_equal(p(Seq(1, 2, 2, 3)), RV((1, 2, 3), (1, 2, 1)))
     assert RV.dices_are_equal(p(roll(2, 2)), RV((2, 3, 4), (1, 2, 1)))  # type: ignore
@@ -125,7 +125,7 @@ def test_cast_dice_to_seq():
 ])
 def test_cast_dice_to_seq_more(rv, vals, probs):
     @anydice_casting()
-    def b(S:Seq):
+    def b(S: T_S):
         if S == 2:
             return 1
         return 999
@@ -134,14 +134,14 @@ def test_cast_dice_to_seq_more(rv, vals, probs):
 
 def test_cast_then_matmul():
     @anydice_casting()
-    def count(V, SEQUENCE:Seq, *args):
+    def count(V, SEQUENCE: T_S, *args):
         return V@SEQUENCE
     assert RV.dices_are_equal(count(1, roll(2, 4)), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'  # type: ignore
     assert RV.dices_are_equal(1@roll(2, 4), RV((1, 2, 3, 4), (1, 3, 5, 7))), 'NUM @ DICED SEQ'
 
 def test_almost_zero():
     @anydice_casting()
-    def a (N:int):
+    def a (N: T_N):
         if N == 1000:
             return 1
         return 2
@@ -150,7 +150,7 @@ def test_almost_zero():
 
 def test_cast_return_None():
     @anydice_casting()
-    def f(A:int) -> Union[int, None]:
+    def f(A: T_N) -> Union[int, None]:
         if A > 2:
             return A
     assert RV.dices_are_equal( f(roll(2, 2)) , RV((3, 4), (2, 1)) )  # type: ignore
@@ -159,7 +159,7 @@ def test_cast_return_None():
 @pytest.mark.timeout(2)
 def test_time():
     @anydice_casting()
-    def a(n:int):
+    def a(n: T_N):
         return 0
     a(roll(1_000))  # type: ignore
 
@@ -171,7 +171,7 @@ def test_time_memoize():
 
 @pytest.mark.run(order=-1)
 def test_cast_server_error():
-    def f(s:Seq):
+    def f(s: T_S):
         return Seq(1, 2)@s
     a: RV =  f(roll(13, RV.from_seq([1, 1, 1, 2, 2, 3, 10, 11, 12, 13, 14, 15, 16])))  # CAUSES SERVER ERROR ON website  # type: ignore
     assert a.vals == (2,3,4,5,6,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32)

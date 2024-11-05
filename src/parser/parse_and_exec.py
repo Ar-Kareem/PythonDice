@@ -45,6 +45,7 @@ def _get_lib():
   import itertools
   import random
   import functools
+  from ..typings import T_N, T_S, T_D
   from ..randvar import RV
   from ..seq import Seq
   from ..factory import get_seq
@@ -59,6 +60,7 @@ def _get_lib():
   rv_lib_dict = {
     'math': math, 'itertools': itertools, 'random': random, 'functools': functools,
     'RV': RV, 'Seq': Seq, 'get_seq': get_seq, 'anydice_casting': anydice_casting, 'max_func_depth': max_func_depth, 'roll': roll, 'myrange': myrange, 'settings_set': settings_set, 'output': output,
+    'T_N': T_N, 'T_S': T_S, 'T_D': T_D,
     'absolute_X': absolute_X, 'X_contains_X': X_contains_X, 'count_X_in_X': count_X_in_X, 'explode_X': explode_X, 'highest_X_of_X': highest_X_of_X,
     'lowest_X_of_X': lowest_X_of_X, 'middle_X_of_X': middle_X_of_X, 'highest_of_X_and_X': highest_of_X_and_X, 'lowest_of_X_and_X': lowest_of_X_and_X,
     'maximum_of_X': maximum_of_X, 'reverse_X': reverse_X, 'sort_X': sort_X,

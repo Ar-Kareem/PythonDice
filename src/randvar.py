@@ -7,9 +7,9 @@ from itertools import combinations_with_replacement, accumulate
 from collections import defaultdict
 import logging
 
-from .typings import T_if, T_ifs, T_is, T_ifsr, T_s
+from .factory import get_seq
+from .typings import T_if, T_ifs, T_is, T_ifsr, T_s, MetaRV, MetaSeq, T_S
 from .settings import SETTINGS
-from . import seq
 from . import blackrv
 from . import utils
 from . import output
@@ -18,7 +18,7 @@ from . import decorators
 logger = logging.getLogger(__name__)
 
 
-class RV:
+class RV(MetaRV):
   def __init__(self, vals: Iterable[float], probs: Iterable[int], truncate=None):
     vals, probs = list(vals), tuple(probs)
     assert len(vals) == len(probs), 'vals and probs must be the same length'
@@ -64,14 +64,14 @@ class RV:
 
   @staticmethod
   def from_seq(s: T_s):
-    if not isinstance(s, seq.Seq):
-      s = seq.Seq(*s)
+    if not isinstance(s, MetaSeq):
+      s = get_seq(*s)
     if len(s) == 0:
       return RV([0], [1])
     return RV(s._seq, [1] * len(s))
 
   @staticmethod
-  def from_rvs(rvs: Iterable[Union['int', 'float', 'seq.Seq', 'RV', 'blackrv.BlankRV', None]], weights: Union[Iterable[int], None] = None) -> Union['RV', 'blackrv.BlankRV']:
+  def from_rvs(rvs: Iterable[Union['int', 'float', MetaRV, MetaSeq, None]], weights: Union[Iterable[int], None] = None) -> Union['RV', 'blackrv.BlankRV']:
     rvs = tuple(rvs)
     if weights is None:
       weights = [1] * len(rvs)
@@ -115,12 +115,14 @@ class RV:
     return math.sqrt(var) if var >= 0 else 0
 
   def filter(self, obj: T_ifsr):
-    to_filter = set(seq.Seq(obj))
+    to_filter = set(get_seq(obj))
     vp = tuple((v, p) for v, p in zip(self.vals, self.probs) if v not in to_filter)
     if len(vp) == 0:
         return RV.from_const(0)
     vals, probs = zip(*vp)
-    return RV(vals, probs)
+    assert all(isinstance(p, int) for p in probs), 'should not happen'
+    probs_int: tuple[int] = probs  # type: ignore
+    return RV(vals, probs_int)
 
   def get_vals_probs(self, cdf_cut: float = 0):
     '''Get the values and their probabilities, if cdf_cut is given, then remove the maximum bottom n values that sum to less than cdf_cut'''
@@ -151,12 +153,12 @@ class RV:
   def _get_expanded_possible_rolls(self):
     N, D = self._source_roll, self._source_die  # N rolls of D
     if N == 1:  # answer is simple (ALSO cannot use simplified formula for probs and bottom code WILL cause errors)
-      return tuple(seq.Seq(i) for i in D.vals), D.probs
+      return tuple(get_seq(i) for i in D.vals), D.probs
     pdf_dict = {v: p for v, p in zip(D.vals, D.probs)}
     vals, probs = [], []
     FACTORIAL_N = utils.factorial(N)
     for roll in combinations_with_replacement(D.vals[::-1], N):
-      vals.append(seq.Seq(_INTERNAL_SEQ_VALUE=roll))
+      vals.append(get_seq(_INTERNAL_SEQ_VALUE=roll))
       counts = defaultdict(int)  # fast counts
       cur_roll_probs = 1  # this is p(x_1)*...*p(x_n) where [x_1,...,x_n] is the current roll, if D is a uniform then this = 1 and is not needed.
       comb_with_repl_denominator = 1
@@ -179,10 +181,10 @@ class RV:
     if isinstance(other, blackrv.BlankRV):  # let BlankRV handle the operation
       return NotImplemented
     if isinstance(other, Iterable):
-      if not isinstance(other, seq.Seq):
-        other = seq.Seq(*other)
+      if not isinstance(other, MetaSeq):
+        other = get_seq(*other)
       other = other.sum()
-    if not isinstance(other, RV):
+    if not isinstance(other, MetaRV):
       return RV([operation(v, other) for v in self.vals], self.probs)
     new_vals = tuple(operation(v1, v2) for v1 in self.vals for v2 in other.vals)
     new_probs = tuple(p1 * p2 for p1 in self.probs for p2 in other.probs)
@@ -193,10 +195,10 @@ class RV:
   def _rconvolve(self, other: T_ifsr, operation: Callable[[float, float], float]):
     if isinstance(other, blackrv.BlankRV):  # let BlankRV handle the operation
       return NotImplemented
-    assert not isinstance(other, RV)
+    assert not isinstance(other, MetaRV)
     if isinstance(other, Iterable):
-      if not isinstance(other, seq.Seq):
-        other = seq.Seq(*other)
+      if not isinstance(other, MetaSeq):
+        other = get_seq(*other)
       other = other.sum()
     return RV([operation(other, v) for v in self.vals], self.probs)
 
@@ -208,7 +210,7 @@ class RV:
     # ( other @ self:RV )
     # DOCUMENTATION: https://anydice.com/docs/introspection/  look for "Accessing" -> "Collections of dice" and "A single die"
     assert not isinstance(other, RV), 'unsupported operand type(s) for @: RV and RV'
-    other = seq.Seq([other])
+    other = get_seq([other])
     assert all(isinstance(i, int) for i in other._seq), 'indices must be integers'
     if len(other) == 1:  # only one index, return the value at that index
       k: int = other._seq[0]  # type: ignore
@@ -377,7 +379,7 @@ class RV:
 
 
 @decorators.anydice_casting()
-def _sum_at(orig: seq.Seq, locs: seq.Seq):
+def _sum_at(orig: T_S, locs: T_S):
   return sum(orig[int(i)] for i in locs)
 
 

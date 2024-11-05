@@ -1,10 +1,10 @@
 from typing import Union, Iterable
 import random
 
+from .typings import T_isr, MetaRV
 from .randvar import RV
 from .seq import Seq
 from . import blackrv
-from .typings import T_isr
 
 
 def roll(n: Union[T_isr, str], d: Union[T_isr, None] = None) -> Union[RV, blackrv.BlankRV]:
@@ -38,6 +38,10 @@ def roll(n: Union[T_isr, str], d: Union[T_isr, None] = None) -> Union[RV, blackr
     return blackrv.BlankRV(_special_null=True)
   if isinstance(d, Seq) and len(d) == 0:  # SPECIAL CASE: Xd{} => BlankRV
     return blackrv.BlankRV()
+  if isinstance(d, MetaRV):
+    assert isinstance(d, RV), 'd must be a RV if its MetaRV'
+  if isinstance(n, MetaRV):
+    assert isinstance(n, RV), 'n must be a RV if its MetaRV'
   # both arguments are now exactly int|Seq|RV
   result = _roll(n, d)  # ROLL!
   assert not isinstance(result, blackrv.BlankRV), 'should never happen!'

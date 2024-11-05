@@ -163,7 +163,7 @@ class PythonResolver:
                 else:
                     arg_name, arg_dtype = x
                     assert isinstance(arg_dtype, str), f'Expected string for arg_dtype, got {arg_dtype}'
-                    arg_dtype = {'s': 'Seq', 'n': 'int', 'd': 'RV'}.get(arg_dtype, arg_dtype)
+                    arg_dtype = {'s': 'T_S', 'n': 'T_N', 'd': 'T_D'}.get(arg_dtype, arg_dtype)
                     func_args.append(f'{arg_name}: {arg_dtype}')
                     func_arg_names.append(arg_name)
                     func_name.append('X')
