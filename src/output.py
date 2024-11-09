@@ -9,7 +9,7 @@ from . import blackrv
 def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None, print_=True, print_fn=None, cdf_cut=0):
   if isinstance(rv, MetaSeq) and len(rv) == 0:  # empty sequence plotted as empty
     rv = blackrv.BlankRV()
-  if isinstance(rv, int) or isinstance(rv, bool):
+  if isinstance(rv, (int, float, bool)):
     rv = randvar.RV.from_seq([rv])
   elif isinstance(rv, Iterable):
     rv = randvar.RV.from_seq(rv)
