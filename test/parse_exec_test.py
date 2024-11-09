@@ -538,7 +538,12 @@ output(B)
 output(C)
 output(D)
 ''', [1.5, 3.0, Seq(1.5, 3.0), RV([3.0, 4.5, 6.0], [1, 2, 1])]
-),]
+),
+(r'''
+A: {3.5*2.0..4.5*3.0}
+output(1dA)
+''', [RV([7, 8, 9, 10, 11, 12, 13], [1, 1, 1, 1, 1, 1, 1])])
+]
 @pytest.mark.parametrize("code,res", lst)
 def test_floats(code, res):
     i = 0
