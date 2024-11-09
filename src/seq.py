@@ -1,4 +1,4 @@
-from typing import Iterable, Callable, Union
+from typing import Iterable, Callable, Optional, Union
 from itertools import zip_longest
 import operator
 
@@ -11,11 +11,11 @@ T_ift = Union[T_if, str]
 
 
 class Seq(Iterable, MetaSeq):
-  def __init__(self, *source: T_ifsr, _INTERNAL_SEQ_VALUE=None):
+  def __init__(self, *source: T_ifsr, _INTERNAL_SEQ_VALUE: Optional[tuple[T_if, ...]] = None):
     self._sum = None
     self._one_indexed = 1
     if _INTERNAL_SEQ_VALUE is not None:  # used for internal optimization only
-      self._seq: tuple[T_if, ...] = _INTERNAL_SEQ_VALUE  # type: ignore
+      self._seq: tuple[T_if, ...] = _INTERNAL_SEQ_VALUE
       return
     flat = tuple(utils.flatten(source))
     flat_rvs = [x for x in flat if isinstance(x, MetaRV) and not isinstance(x, blackrv.BlankRV)]  # expand RVs
