@@ -99,7 +99,7 @@ class PythonResolver:
 
     def resolve_node(self, node: Union['Node', 'str']) -> str:  # noqa: C901
         assert node is not None, 'Got None'
-        assert not isinstance(node, str), f'resolver error, not sure what to do with a string: {node}. All strings should be a Node ("string", str|strvar...)'
+        assert not isinstance(node, str), f'resolver error, not sure what to do with a string [{node}]. All strings should be a Node ("string", str|strvar...)'
 
         if node.type == NodeType.MULTILINE_CODE:
             return '\n'.join([self.resolve_node(x) for x in node]) if len(node) > 0 else 'pass'

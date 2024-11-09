@@ -7,8 +7,8 @@ from .python_resolver import PythonResolver
 logger = logging.getLogger(__name__)
 
 
-def build_lex_yacc():
-  lexer, yaccer = myparser.build_lex_yacc()
+def build_lex_yacc(debug=False):
+  lexer, yaccer = myparser.build_lex_yacc(debug=debug)
   lexer.LEX_ILLEGAL_CHARS = []
   lexer.YACC_ILLEGALs = []
   return lexer, yaccer

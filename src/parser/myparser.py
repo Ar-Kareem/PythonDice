@@ -623,7 +623,7 @@ def p_error(p):
 
 # BUILD
 
-def build_lex_yacc():
-    lexer = lex()
-    yaccer = yacc()
+def build_lex_yacc(debug=False):
+    lexer = lex(debug=debug)
+    yaccer = yacc(debug=debug)
     return lexer, yaccer
