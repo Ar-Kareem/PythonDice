@@ -6,6 +6,11 @@ from dice_calc.output import output
 
 trials = [
   r'''
+A: {2*1..3}
+output(1dA)
+A: {(3.0*2.0)/1..(4.0*3.0)/1}
+output(1dA)
+
 A: {1d4, "water", "fire"}
 output(2dA)
 '''
@@ -30,7 +35,7 @@ def main(trials=trials):
       if to_parse is None or to_parse.strip() == '':
         logger.debug('Empty string')
         continue
-      lexer, yaccer = parse_and_exec.build_lex_yacc()
+      lexer, yaccer = parse_and_exec.build_lex_yacc(debug=False)
       parse_and_exec.do_lex(to_parse, lexer)
       if lexer.LEX_ILLEGAL_CHARS:
         logger.debug('Lex Illegal characters found: ' + str(lexer.LEX_ILLEGAL_CHARS))

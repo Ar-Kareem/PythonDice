@@ -11,6 +11,9 @@ to run tests:
     `python -m pytest`
     to generate test coverage:
         `pytest --cov --cov-report=html:coverage_re`
+    to test specific file/test:
+        `python -m pytest .\test\parse_exec_test.py -k test_running`
+    to show cli outputs: add `-o log_cli=true`
     to add new tests:
         add anydice code in `.\test\autoouts\fetch_in.py`
         `python .\test\autoouts\fetch.py --fetch`
