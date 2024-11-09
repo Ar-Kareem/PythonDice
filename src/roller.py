@@ -119,4 +119,4 @@ def myrange(left, right):
         raise TypeError(f'A sequence range must begin with a number, while you provided "{left}".')
     if isinstance(right, RV):
         raise TypeError(f'A sequence range must begin with a number, while you provided "{right}".')
-    return range(left, right + 1)
+    return range(int(left), int(right) + 1)
