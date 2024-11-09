@@ -120,6 +120,10 @@ class PythonResolver:
         elif node.type == NodeType.NUMBER:  # number in an expression
             assert isinstance(node.val, str), f'Expected str of a number, got {node.val}  type: {type(node.val)}'
             return str(node.val)
+        elif node.type == NodeType.NUMBER_DECIMAL:  # number in an expression
+            val1, val2 = node
+            assert isinstance(val1, str) and isinstance(val2, str), f'Expected str of a number, got {val1} and {val2}'
+            return f'{val1}.{val2}'
         elif node.type == NodeType.VAR:  # variable inside an expression
             assert isinstance(node.val, str), f'Expected str of a variable, got {node.val}'
             if self._COMPILER_FLAG_NON_LOCAL_SCOPE:

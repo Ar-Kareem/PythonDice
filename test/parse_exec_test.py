@@ -2,6 +2,7 @@ import pytest
 
 from dice_calc import RV, settings_set
 from dice_calc.parser import parse_and_exec
+from dice_calc.seq import Seq
 
 import logging
 
@@ -522,3 +523,38 @@ def test_unbound_var_code_success():
         i += 1
     pipeline(unbound_var_code[0], version=2, global_vars={'output': lambda x: check_res(x)})
     assert i == len(unbound_var_code[1])
+
+
+
+
+lst = [
+(r'''
+A: 1.5
+B: A*2
+C: {A, B}
+D: 2dC
+output(A)
+output(B)
+output(C)
+output(D)
+''', [1.5, 3.0, Seq(1.5, 3.0), RV([3.0, 4.5, 6.0], [1, 2, 1])]
+),]
+@pytest.mark.parametrize("code,res", lst)
+def test_floats(code, res):
+    i = 0
+    def check_res(x):
+        nonlocal i
+        check(x, res[i])
+        i += 1
+    pipeline(code, version=1, global_vars={'output': lambda x: check_res(x)})
+    assert i == len(res)
+
+@pytest.mark.parametrize("code,res", lst)
+def test_floatsv2(code, res):
+    i = 0
+    def check_res(x):
+        nonlocal i
+        check(x, res[i])
+        i += 1
+    pipeline(code, version=2, global_vars={'output': lambda x: check_res(x)})
+    assert i == len(res)

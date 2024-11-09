@@ -165,6 +165,7 @@ class NodeType(Enum):
     HASH = 'hash'
     GROUP = 'group'
     NUMBER = 'number'
+    NUMBER_DECIMAL = 'number_decimal'
     VAR = 'var'
     SEQ = 'seq'
     RANGE = 'range'
@@ -497,6 +498,13 @@ def p_term_number(p):
     term : NUMBER
     '''
     p[0] = Node(NodeType.NUMBER, p[1])
+
+
+def p_term_number_decimal(p):
+    '''
+    term : NUMBER DOT NUMBER
+    '''
+    p[0] = Node(NodeType.NUMBER_DECIMAL, p[1], p[3])
 
 
 def p_term_name(p):
