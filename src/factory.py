@@ -1,4 +1,4 @@
-from typing import Union, TYPE_CHECKING
+from typing import Union
 
 from .typings import T_if, T_ifsr, MetaRV
 from . import utils

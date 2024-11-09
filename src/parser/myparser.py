@@ -24,7 +24,7 @@ reserved = {k: k.upper() for k in _reserved}
 tokens = ['PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
           'COLON', 'LESS', 'GREATER', 'EQUALS', 'NOTEQUALS', 'AT',
           'HASH', 'OR', 'AND', 'EXCLAMATION',
-          'DOT', 'COMMA',
+          'DOT', 'DOUBLE_DOT', 'COMMA',
           'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE', 'LBRACKET', 'RBRACKET',
           'LOWERNAME', 'UPPERNAME', 'NUMBER',
           'D_OP',
@@ -55,6 +55,7 @@ t_OR = r'\|'
 t_AND = r'&'
 t_EXCLAMATION = r'!'
 
+t_DOUBLE_DOT = r'\.\.'
 t_DOT = r'\.'
 t_COMMA = r','
 
@@ -165,6 +166,7 @@ class NodeType(Enum):
     HASH = 'hash'
     GROUP = 'group'
     NUMBER = 'number'
+    NUMBER_DECIMAL = 'number_decimal'
     VAR = 'var'
     SEQ = 'seq'
     RANGE = 'range'
@@ -418,6 +420,7 @@ precedence = (
   ('right', 'HASH_OP'),  # 'HASH' (unary #) operator precedence
   ('right', 'EXCLAMATION'),  # Unary NOT operator (!) precedence
   ('right', 'UMINUS', 'UPLUS'),  # Unary minus and plus have the highest precedence
+  ('left', 'DOT'),  # Decimal point
 )
 
 
@@ -499,6 +502,13 @@ def p_term_number(p):
     p[0] = Node(NodeType.NUMBER, p[1])
 
 
+def p_term_number_decimal(p):
+    '''
+    term : NUMBER DOT NUMBER
+    '''
+    p[0] = Node(NodeType.NUMBER_DECIMAL, p[1], p[3])
+
+
 def p_term_name(p):
     '''
     term : var_name
@@ -541,9 +551,9 @@ def p_element(p):
 
 def p_range(p):
     '''
-    range : expression DOT DOT expression
+    range : expression DOUBLE_DOT expression
     '''
-    p[0] = Node(NodeType.RANGE, p[1], p[4])
+    p[0] = Node(NodeType.RANGE, p[1], p[3])
 
 
 def p_str_element(p):
@@ -615,7 +625,7 @@ def p_error(p):
 
 # BUILD
 
-def build_lex_yacc():
-    lexer = lex()
-    yaccer = yacc()
+def build_lex_yacc(debug=False):
+    lexer = lex(debug=debug)
+    yaccer = yacc(debug=debug)
     return lexer, yaccer

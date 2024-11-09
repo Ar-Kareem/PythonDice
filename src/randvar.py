@@ -121,7 +121,7 @@ class RV(MetaRV):
         return RV.from_const(0)
     vals, probs = zip(*vp)
     assert all(isinstance(p, int) for p in probs), 'should not happen'
-    probs_int: tuple[int] = probs  # type: ignore
+    probs_int: tuple[int] = probs  # type: ignore  assertion above
     return RV(vals, probs_int)
 
   def get_vals_probs(self, cdf_cut: float = 0):
@@ -213,9 +213,10 @@ class RV(MetaRV):
     other = factory.get_seq([other])
     assert all(isinstance(i, int) for i in other._seq), 'indices must be integers'
     if len(other) == 1:  # only one index, return the value at that index
-      k: int = other._seq[0]  # type: ignore
+      k: T_if = other._seq[0]
+      assert isinstance(k, int), 'unsupported operand type(s) for @: float and RV'
       return self._source_die._get_kth_order_statistic(self._source_roll, k)
-    return _sum_at(self, other)  # type: ignore
+    return _sum_at(self, other)  # type: ignore  anydice_casting
 
   def _get_kth_order_statistic(self, draws: int, k: int):
     '''Get the k-th smallest value of n draws: k@RV where RV is n rolls of a die'''

@@ -99,7 +99,7 @@ class PythonResolver:
 
     def resolve_node(self, node: Union['Node', 'str']) -> str:  # noqa: C901
         assert node is not None, 'Got None'
-        assert not isinstance(node, str), f'resolver error, not sure what to do with a string: {node}. All strings should be a Node ("string", str|strvar...)'
+        assert not isinstance(node, str), f'resolver error, not sure what to do with a string [{node}]. All strings should be a Node ("string", str|strvar...)'
 
         if node.type == NodeType.MULTILINE_CODE:
             return '\n'.join([self.resolve_node(x) for x in node]) if len(node) > 0 else 'pass'
@@ -120,6 +120,10 @@ class PythonResolver:
         elif node.type == NodeType.NUMBER:  # number in an expression
             assert isinstance(node.val, str), f'Expected str of a number, got {node.val}  type: {type(node.val)}'
             return str(node.val)
+        elif node.type == NodeType.NUMBER_DECIMAL:  # number in an expression
+            val1, val2 = node
+            assert isinstance(val1, str) and isinstance(val2, str), f'Expected str of a number, got {val1} and {val2}'
+            return f'{val1}.{val2}'
         elif node.type == NodeType.VAR:  # variable inside an expression
             assert isinstance(node.val, str), f'Expected str of a variable, got {node.val}'
             if self._COMPILER_FLAG_NON_LOCAL_SCOPE:
