@@ -36,3 +36,7 @@ def get_rv(source: T_ifsr) -> 'randvar.RV':
 
 def is_blank_rv(rv) -> bool:
   return isinstance(rv, blackrv.BlankRV)
+
+
+def is_rv(rv) -> bool:
+  return isinstance(rv, randvar.RV)

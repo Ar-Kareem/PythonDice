@@ -47,6 +47,9 @@ class MetaRV(ABC):
     # could change type to "T_is = Union[int, Iterable['T_is']]" to make floats invalid
     raise NotImplementedError
 
+  def set_source(self, roll: int, die: 'MetaRV'):
+    raise NotImplementedError
+
 
 class MetaSeq(ABC):
   _seq: tuple[T_if, ...]

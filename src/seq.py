@@ -4,7 +4,7 @@ import operator
 
 from .typings import T_if, T_ifs, T_ifsr, MetaRV, MetaSeq
 from . import utils
-from . import blackrv
+from . import factory
 
 
 class Seq(Iterable, MetaSeq):
@@ -15,7 +15,7 @@ class Seq(Iterable, MetaSeq):
       self._seq: tuple[T_if, ...] = _INTERNAL_SEQ_VALUE
       return
     flat = tuple(utils.flatten(source))
-    flat_rvs = [x for x in flat if isinstance(x, MetaRV) and not isinstance(x, blackrv.BlankRV)]  # expand RVs
+    flat_rvs = [x for x in flat if factory.is_rv(x)]  # expand RVs
     flat_rv_vals = [v for rv in flat_rvs for v in rv.vals]
     flat_else: list[T_if] = [x for x in flat if not isinstance(x, MetaRV)]
     assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs. Seq:' + str(flat_else)
