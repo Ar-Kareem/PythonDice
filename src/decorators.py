@@ -5,9 +5,8 @@ from itertools import product
 from typing import Iterable, Union
 
 from .typings import T_ifsr, MetaSeq, MetaRV, T_N, T_S, T_D
-from .factory import get_seq
+from .factory import get_seq, get_rv, merge_rvs
 from .settings import SETTINGS
-from . import randvar as rv
 from . import blackrv
 
 
@@ -75,10 +74,10 @@ def anydice_casting(verbose=False):  # noqa: C901
           if verbose:
             logger.debug(f'EXPL {k}')
           continue
-        elif expected_type == T_D and isinstance(arg_val, int):
-          new_val = rv.RV.from_const(arg_val)
+        elif expected_type == T_D and isinstance(arg_val, (int, float, bool)):
+          new_val = get_rv(arg_val)
         elif expected_type == T_D and isinstance(arg_val, MetaSeq):
-          new_val = rv.RV.from_seq(arg_val)
+          new_val = get_rv(arg_val)
         elif not casted_iter_to_seq:  # no cast made and one of the two types is not known, no casting needed
           if verbose:
             logger.debug(f'no cast, {k}, {expected_type}, {type(arg_val)}')
@@ -129,7 +128,7 @@ def anydice_casting(verbose=False):  # noqa: C901
           logger.debug(f'val {val} prob {prob}')
         res_vals.append(val)
         res_probs.append(prob)
-      return rv.RV.from_rvs(rvs=res_vals, weights=res_probs)
+      return merge_rvs(rvs=res_vals, weights=res_probs)
     return wrapper
   return decorator
 

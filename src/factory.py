@@ -1,6 +1,6 @@
 from typing import Iterable, Union
 
-from .typings import T_if, T_ifsr, MetaRV
+from .typings import T_if, T_ifsr, MetaRV, MetaSeq
 from . import utils
 from . import seq
 from . import string_rvs
@@ -27,11 +27,15 @@ def get_seq(*source: T_ifsrt, _INTERNAL_SEQ_VALUE=None) -> 'seq.Seq':
 
 def get_rv(source: T_ifsr) -> 'randvar.RV':
   if isinstance(source, (int, float, bool)):
-    source = randvar.RV.from_seq([source])
+    source = randvar.RV.from_const(source)
   elif isinstance(source, Iterable):
     source = randvar.RV.from_seq(source)
   assert isinstance(source, randvar.RV), f'source must be a RV {source}'
   return source
+
+
+def merge_rvs(rvs: Iterable[Union['int', 'float', MetaRV, MetaSeq, None]], weights: Union[Iterable[int], None] = None) -> MetaRV:
+  return randvar.RV.from_rvs(rvs=rvs, weights=weights)
 
 
 def is_blank_rv(rv) -> bool:

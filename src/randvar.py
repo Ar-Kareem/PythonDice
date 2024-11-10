@@ -71,7 +71,7 @@ class RV(MetaRV):
     return RV(s._seq, [1] * len(s))
 
   @staticmethod
-  def from_rvs(rvs: Iterable[Union['int', 'float', MetaRV, MetaSeq, None]], weights: Union[Iterable[int], None] = None) -> Union['RV', 'blackrv.BlankRV']:
+  def from_rvs(rvs: Iterable[Union['int', 'float', MetaRV, MetaSeq, None]], weights: Union[Iterable[int], None] = None) -> MetaRV:
     rvs = tuple(rvs)
     if weights is None:
       weights = [1] * len(rvs)
