@@ -554,12 +554,24 @@ def test_floats(code, res):
     pipeline(code, version=1, global_vars={'output': lambda x: check_res(x)})
     assert i == len(res)
 
+
+lst = [
+(r'''
+HALF: 0.5
+QUARTER: 0.25
+output(1d2 * HALF)
+output(1d4 * QUARTER)
+output([true div 1d2 2])
+output(1d2 / 2)
+''', [RV([0.5, 1], [1, 1]), RV([0.25, 0.5, 0.75, 1], [1, 1, 1, 1]), RV([0.5, 1], [1, 1]), RV([0, 1], [1, 1])]
+),
+]
 @pytest.mark.parametrize("code,res", lst)
-def test_floatsv2(code, res):
+def test_div(code, res):
     i = 0
     def check_res(x):
         nonlocal i
         check(x, res[i])
         i += 1
-    pipeline(code, version=2, global_vars={'output': lambda x: check_res(x)})
+    pipeline(code, version=1, global_vars={'output': lambda x: check_res(x)})
     assert i == len(res)
