@@ -7,11 +7,11 @@ from dice_calc.output import output
 trials = [
   r'''
   \
-output 
+output
 (10+1d10+24+3d8+4d10+1d8 + 1d10+7+2d10)*5 +
-(10+1d10+24+3d8+6d10+1d8 + 1d10+7+3d10)*10 + 
-(10+1d10+24+3d8+8d10+1d8 + 1d10+7+4d10)*9 + 
-(10+1d10+24+3d8+8d10+1d8 + 10+1d10+24+8d10 + 1d10+7+4d10)*1 + 
+(10+1d10+24+3d8+6d10+1d8 + 1d10+7+3d10)*10 +
+(10+1d10+24+3d8+8d10+1d8 + 1d10+7+4d10)*9 +
+(10+1d10+24+3d8+8d10+1d8 + 10+1d10+24+8d10 + 1d10+7+4d10)*1 +
 (10+24)*5 + 41d8+15 + 6d8+6 + 2d6+5d6
 \
 output 0
@@ -23,14 +23,9 @@ flags = {}
 
 def run_dicecode():
   start = time.time()
-  from dice_calc import roll, output
-  a = roll('40d10')
-  b = roll('40d10')
-  c = a + b + a + b + a + b + a + b + a + b  # type: ignore
-  output(c > 40*5.5*10)
-  output(len(c.vals))
 
   print('Time taken to run dicecode:', f'{time.time() - start:.2f}s')
+
 
 def setup_logger(filename):
     logging.basicConfig(filename=filename, level=logging.DEBUG, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
