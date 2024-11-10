@@ -1,7 +1,7 @@
 from typing import Iterable
 import pytest
 
-from dice_calc import settings_reset, get_seq, roll, RV
+from dice_calc import factory, settings_reset, get_seq, roll, RV
 from dice_calc.string_rvs import StringVal
 
 
@@ -92,3 +92,12 @@ def test_roll():
   ]
   # assert not sum(b.probs)
   assert RV.dices_are_equal(b, RV(vals=[x[0] for x in vp], probs=[x[1] for x in vp]))
+
+
+def test_output():
+  A = get_seq('2.2', 1.1*2, 'hello')
+  o = factory.get_rv(A).get_vals_probs()
+  assert len(o) == 3
+  assert o[0] == (2.2, 1/3)
+  assert o[1] == ('"2.2"', 1/3)
+  assert o[2] == ('hello', 1/3)

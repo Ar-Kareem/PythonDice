@@ -58,3 +58,7 @@ def myor(a, b):
     if isinstance(a, int) and isinstance(b, int):
         return 1 if (a or b) else 0
     return a | b
+
+
+def true_div(a, b):
+    return a / b

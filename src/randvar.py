@@ -8,7 +8,7 @@ from collections import defaultdict
 import logging
 
 from . import factory
-from .typings import T_if, T_ifs, T_ifsr, MetaRV, MetaSeq, T_S
+from .typings import MetaStr, T_if, T_ifs, T_ifsr, MetaRV, MetaSeq, T_S
 from .settings import SETTINGS
 from . import blackrv
 from . import utils
@@ -145,13 +145,17 @@ class RV(MetaRV):
     '''Get the values and their probabilities, if cdf_cut is given, then remove the maximum bottom n values that sum to less than cdf_cut'''
     assert 0 <= cdf_cut < 1, 'cdf_cut must be in [0, 1)'
     s = self._get_sum_probs()
-    vals_probs = tuple((v, p / s) for v, p in zip(self.vals, self.probs))
+    vals_probs: list[tuple[Union[float, str], float]] = list((v, p / s) for v, p in zip(self.vals, self.probs))
+    # convert strings representing numbers as "string"
+    for i, (v, p) in enumerate(vals_probs):
+      if isinstance(v, MetaStr):
+        vals_probs[i] = (f'"{v}"', p) if v.is_number() else (f'{v}', p)
     if cdf_cut > 0:  # cut the bottom vals/probs and when stop total cut probs is less than cdf_cut
       sorted_vals_probs = sorted(vals_probs, key=lambda x: x[1])
       accumelated_probs = tuple(accumulate(sorted_vals_probs, lambda x, y: (y[0], x[1] + y[1]), initial=(0, 0)))
       vals_to_cut = set(v for v, p in accumelated_probs if p < cdf_cut)
-      vals_probs = tuple((v, p) for v, p in vals_probs if v not in vals_to_cut)
-    return vals_probs
+      vals_probs = list((v, p) for v, p in vals_probs if v not in vals_to_cut)
+    return tuple(vals_probs)
 
   def get_cdf(self):
     '''Get CDF as RV where CDF(x) = P(X <= x)'''
@@ -395,7 +399,7 @@ class RV(MetaRV):
     return d1.vals == d2.vals and d1.probs == d2.probs
 
 
-@decorators.anydice_casting()
+@decorators.anydice_type_casting()
 def _sum_at(orig: T_S, locs: T_S):
   return sum(orig[int(i)] for i in locs)
 

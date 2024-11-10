@@ -7,7 +7,8 @@ from . import string_rvs
 from . import randvar
 from . import blackrv
 
-T_ifsrt = Union[T_ifsr, str]
+T_ifsrt_single = Union[T_ifsr, str]
+T_ifsrt = Union[T_ifsrt_single, Iterable['T_ifsrt']]
 
 
 def get_seq(*source: T_ifsrt, _INTERNAL_SEQ_VALUE=None) -> 'seq.Seq':
