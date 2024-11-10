@@ -21,3 +21,5 @@ dist
 build/  
 
 *.secret
+
+temp.dat
