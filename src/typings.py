@@ -8,7 +8,7 @@ T_ifs = Union[T_if, Iterable['T_ifs']]  # recursive type
 T_ifsr = Union[T_ifs, 'MetaRV']
 
 # define T_N, T_S, T_D to be unique types used in casting
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # for type-checking, tell IDE what type it is but avoid circular imports at runtime
   from .randvar import RV
   from .seq import Seq
   T_N = int
