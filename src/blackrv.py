@@ -1,7 +1,7 @@
 # TODO rename file to blankrv.py
 from typing import Iterable
 
-from .typings import T_ifs, T_is, T_ifsr, MetaRV
+from .typings import T_ifs, T_ifsr, MetaRV
 from . import factory
 from . import output
 
@@ -23,7 +23,7 @@ class BlankRV(MetaRV):
     # ( self:RV @ other ) thus not allowed,
     raise TypeError(f'A position selector must be either a number or a sequence, but you provided "{other}"')
 
-  def __rmatmul__(self, other: T_is):
+  def __rmatmul__(self, other):
     if self._special_null:
       return 0 if other != 1 else self
     return self

@@ -8,7 +8,7 @@ from collections import defaultdict
 import logging
 
 from . import factory
-from .typings import T_if, T_ifs, T_is, T_ifsr, MetaRV, MetaSeq, T_S
+from .typings import T_if, T_ifs, T_ifsr, MetaRV, MetaSeq, T_S
 from .settings import SETTINGS
 from . import blackrv
 from . import utils
@@ -206,14 +206,14 @@ class RV(MetaRV):
     # ( self:RV @ other ) thus not allowed,
     raise TypeError(f'A position selector must be either a number or a sequence, but you provided "{other}"')
 
-  def __rmatmul__(self, other: T_is):
+  def __rmatmul__(self, other):
     # ( other @ self:RV )
     # DOCUMENTATION: https://anydice.com/docs/introspection/  look for "Accessing" -> "Collections of dice" and "A single die"
     assert not isinstance(other, RV), 'unsupported operand type(s) for @: RV and RV'
     other = factory.get_seq([other])
     assert all(isinstance(i, int) for i in other._seq), 'indices must be integers'
     if len(other) == 1:  # only one index, return the value at that index
-      k: T_if = other._seq[0]
+      k = other._seq[0]
       assert isinstance(k, int), 'unsupported operand type(s) for @: float and RV'
       return self._source_die._get_kth_order_statistic(self._source_roll, k)
     return _sum_at(self, other)  # type: ignore  anydice_casting

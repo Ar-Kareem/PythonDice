@@ -7,9 +7,6 @@ from . import utils
 from . import blackrv
 
 
-T_ift = Union[T_if, str]
-
-
 class Seq(Iterable, MetaSeq):
   def __init__(self, *source: T_ifsr, _INTERNAL_SEQ_VALUE: Optional[tuple[T_if, ...]] = None):
     self._sum = None
