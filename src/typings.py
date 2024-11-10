@@ -9,8 +9,6 @@ T_is = Union[int, Iterable['T_is']]  # recursive type, only used randvar.__rmatm
 
 T_ifsr = Union[T_ifs, 'MetaRV']
 
-T_s = Iterable['T_ifs']  # same as T_ifs but excludes int and float (not iterable)
-
 # define T_N, T_S, T_D to be unique types used in casting
 if TYPE_CHECKING:
   from .randvar import RV

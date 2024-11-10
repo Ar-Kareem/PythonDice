@@ -8,7 +8,7 @@ from collections import defaultdict
 import logging
 
 from . import factory
-from .typings import T_if, T_ifs, T_is, T_ifsr, T_s, MetaRV, MetaSeq, T_S
+from .typings import T_if, T_ifs, T_is, T_ifsr, MetaRV, MetaSeq, T_S
 from .settings import SETTINGS
 from . import blackrv
 from . import utils
@@ -63,7 +63,7 @@ class RV(MetaRV):
     return RV([val], [1])
 
   @staticmethod
-  def from_seq(s: T_s):
+  def from_seq(s: Iterable[T_ifs]):
     if not isinstance(s, MetaSeq):
       s = factory.get_seq(*s)
     if len(s) == 0:
