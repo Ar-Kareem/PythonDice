@@ -13,7 +13,13 @@ from . import blackrv
 logger = logging.getLogger(__name__)
 
 
-def anydice_casting(verbose=False):  # noqa: C901
+def anydice_casting():
+  def wrapper(func):
+    return max_func_depth()(anydice_type_casting()(func))
+  return wrapper
+
+
+def anydice_type_casting(verbose=False):  # noqa: C901
   # verbose = True
   # in the documenation of the anydice language https://anydice.com/docs/functions
   # it states that "The behavior of a function depends on what type of value it expects and what type of value it actually receives."
