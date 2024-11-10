@@ -1,9 +1,8 @@
-from typing import Union, Iterable
+from typing import Union
 
 from .typings import T_ifsr, MetaSeq
 from .settings import SETTINGS
-from . import randvar
-from . import blackrv
+from . import factory
 
 
 def output(rv: Union[T_ifsr, None], named=None, show_pdf=True, blocks_width=None, print_=True, print_fn=None, cdf_cut=0):
@@ -12,17 +11,13 @@ def output(rv: Union[T_ifsr, None], named=None, show_pdf=True, blocks_width=None
 
   if isinstance(rv, MetaSeq) and len(rv) == 0:  # empty sequence plotted as empty
     return _output_blank(named, blocks_width, print_, print_fn)
-  if rv is None or isinstance(rv, blackrv.BlankRV):
+  if rv is None or factory.is_blank_rv(rv):
     return _output_blank(named, blocks_width, print_, print_fn)
-  if isinstance(rv, (int, float, bool)):
-    rv = randvar.RV.from_seq([rv])
-  elif isinstance(rv, Iterable):
-    rv = randvar.RV.from_seq(rv)
+  rv = factory.get_rv(rv)
 
   result = ''
   if named is not None:
     result += named + ' '
-  assert isinstance(rv, randvar.RV), f'rv must be a RV {rv}'
 
   try:
     mean = rv.mean()

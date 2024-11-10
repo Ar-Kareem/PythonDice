@@ -17,7 +17,7 @@ class Seq(Iterable, MetaSeq):
     flat = tuple(utils.flatten(source))
     flat_rvs = [x for x in flat if isinstance(x, MetaRV) and not isinstance(x, blackrv.BlankRV)]  # expand RVs
     flat_rv_vals = [v for rv in flat_rvs for v in rv.vals]
-    flat_else: list[T_if] = [x for x in flat if not isinstance(x, (MetaRV, blackrv.BlankRV))]
+    flat_else: list[T_if] = [x for x in flat if not isinstance(x, MetaRV)]
     assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs. Seq:' + str(flat_else)
     self._seq = tuple(flat_else + flat_rv_vals)
 

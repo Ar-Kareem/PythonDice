@@ -1,9 +1,10 @@
-from typing import Union
+from typing import Iterable, Union
 
 from .typings import T_if, T_ifsr, MetaRV
 from . import utils
 from . import seq
 from . import string_rvs
+from . import randvar
 from . import blackrv
 
 T_ifsrt = Union[T_ifsr, str]
@@ -22,3 +23,16 @@ def get_seq(*source: T_ifsrt, _INTERNAL_SEQ_VALUE=None) -> 'seq.Seq':
     return string_rvs.StringSeq(res)
   assert all(isinstance(x, (int, float)) for x in res), 'Seq must be made of numbers and RVs. Seq:' + str(res)
   return seq.Seq(_INTERNAL_SEQ_VALUE=res)
+
+
+def get_rv(source: T_ifsr) -> 'randvar.RV':
+  if isinstance(source, (int, float, bool)):
+    source = randvar.RV.from_seq([source])
+  elif isinstance(source, Iterable):
+    source = randvar.RV.from_seq(source)
+  assert isinstance(source, randvar.RV), f'source must be a RV {source}'
+  return source
+
+
+def is_blank_rv(rv) -> bool:
+  return isinstance(rv, blackrv.BlankRV)
