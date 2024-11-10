@@ -8,7 +8,7 @@ from .randvar import RV
 from . import blackrv
 
 
-def roll(n: Union[T_ifsr, str], d: Union[T_ifsr, None] = None) -> MetaRV:
+def roll(n: Union[T_ifsr, str], d: Union[T_ifsr, str, None] = None) -> MetaRV:
   """Roll n dice of d sides
 
   Args:
@@ -21,6 +21,8 @@ def roll(n: Union[T_ifsr, str], d: Union[T_ifsr, None] = None) -> MetaRV:
   if isinstance(n, str):  # either rolL('ndm') or roll('dm')
     assert d is None, 'if n is a string, then d must be None'
     n, d = _parse_from_str(n)
+  if isinstance(d, str):
+    d = factory.get_seq([d])
 
   if d is None:  # if only one argument, then roll it as a dice once
     n, d = 1, n
