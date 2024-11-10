@@ -1411,7 +1411,8 @@ output B|A|B|A
 
 ''',
 r'''
-
+A_B: 123
+output A_B named "[A_B]"
 ''',
 r'''
 

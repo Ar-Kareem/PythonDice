@@ -17,7 +17,11 @@ to run tests:
     to add new tests:
         add anydice code in `.\test\autoouts\fetch_in.py`
         `python .\test\autoouts\fetch.py --fetch`
-to build package:
+to build package (new):
+    update __version__ in __init__.py
+    commit and push changes
+    create pull request to master and approve
+to build package (OLD):
     `conda activate ./env`
     `rm dist/*`
     `python -m build --sdist`

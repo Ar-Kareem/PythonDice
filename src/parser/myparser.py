@@ -97,7 +97,7 @@ def t_begin_instring(t):
     t.lexer.begin('instring')  # Starts 'instring' state
 
 
-t_instring_INSTRING_VAR = r'\[[A-Z]+\]'
+t_instring_INSTRING_VAR = r'\[[A-Z_]+\]'
 strbody = r'[^\n"[]'
 t_instring_INSTRING_NONVAR = rf'\[{strbody}*'
 t_instring_INSTRING_ANY = rf'{strbody}+'

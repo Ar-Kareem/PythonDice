@@ -2,12 +2,9 @@ from typing import Iterable, Callable, Optional, Union
 from itertools import zip_longest
 import operator
 
-from .typings import T_if, T_ifs, T_ifsr, T_ifr, MetaRV, MetaSeq
+from .typings import T_if, T_ifs, T_ifsr, MetaRV, MetaSeq
 from . import utils
-from . import blackrv
-
-
-T_ift = Union[T_if, str]
+from . import factory
 
 
 class Seq(Iterable, MetaSeq):
@@ -18,9 +15,9 @@ class Seq(Iterable, MetaSeq):
       self._seq: tuple[T_if, ...] = _INTERNAL_SEQ_VALUE
       return
     flat = tuple(utils.flatten(source))
-    flat_rvs = [x for x in flat if isinstance(x, MetaRV) and not isinstance(x, blackrv.BlankRV)]  # expand RVs
+    flat_rvs = [x for x in flat if factory.is_rv(x)]  # expand RVs
     flat_rv_vals = [v for rv in flat_rvs for v in rv.vals]
-    flat_else: list[T_if] = [x for x in flat if not isinstance(x, (MetaRV, blackrv.BlankRV))]
+    flat_else: list[T_if] = [x for x in flat if not isinstance(x, MetaRV)]
     assert all(isinstance(x, (int, float)) for x in flat_else), 'Seq must be made of numbers and RVs. Seq:' + str(flat_else)
     self._seq = tuple(flat_else + flat_rv_vals)
 
@@ -147,7 +144,7 @@ class Seq(Iterable, MetaSeq):
   def __rand__(self, other: T_ifsr):
     return int((self.sum() != 0) and (other != 0)) if isinstance(other, (int, float)) else operator.and_(other, self.sum())
 
-  def _compare_to(self, other: T_ifsr, operation: Callable[[float, T_ifr], bool]):
+  def _compare_to(self, other: T_ifsr, operation: Callable[[float, Union[T_if, MetaRV]], bool]):
     if isinstance(other, MetaRV):
       return operation(self.sum(), other)
     if isinstance(other, Iterable):
