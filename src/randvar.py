@@ -41,15 +41,32 @@ class RV(MetaRV):
   @staticmethod
   def _sort_and_group(vals: Iterable[float], probs: Iterable[int], skip_zero_probs, normalize):
     assert all(isinstance(p, int) and p >= 0 for p in probs), 'probs must be non-negative integers'
-    zipped = sorted(zip(vals, probs), reverse=True)
+    zipped = RV._get_zip(vals, probs)
+    # print('before', len(zipped))
+    newzipped = RV._get_new_zipped(zipped, skip_zero_probs)
+    # print('after', len(newzipped))
+    return RV._get_normalized(newzipped, normalize)
+
+  @staticmethod
+  def _get_zip(v, p):
+    return sorted(zip(v, p), reverse=True)
+
+  @staticmethod
+  def _get_new_zipped(zipped, skip_zero_probs):
     newzipped: list[tuple[float, int]] = []
-    for i in range(len(zipped) - 1, -1, -1):
-      if skip_zero_probs and zipped[i][1] == 0:
-        continue
-      if i > 0 and zipped[i][0] == zipped[i - 1][0]:  # add the two probs, go to next
+    for i in range(len(zipped) - 1, 0, -1):
+      if zipped[i][0] == zipped[i - 1][0]:  # add the two probs, go to next
         zipped[i - 1] = (zipped[i - 1][0], zipped[i - 1][1] + zipped[i][1])
       else:
         newzipped.append(zipped[i])
+    if len(zipped) > 0:
+      newzipped.append(zipped[0])
+    if skip_zero_probs:
+      newzipped = [v for v in newzipped if v[1] != 0]
+    return newzipped
+
+  @staticmethod
+  def _get_normalized(newzipped, normalize):
     vals = tuple(v[0] for v in newzipped)
     probs = tuple(v[1] for v in newzipped)
     if normalize:
@@ -186,8 +203,7 @@ class RV(MetaRV):
       other = other.sum()
     if not isinstance(other, MetaRV):
       return RV([operation(v, other) for v in self.vals], self.probs)
-    new_vals = tuple(operation(v1, v2) for v1 in self.vals for v2 in other.vals)
-    new_probs = tuple(p1 * p2 for p1 in self.probs for p2 in other.probs)
+    new_vals, new_probs = _rdict.fast_convolve((self.vals, self.probs), (other.vals, other.probs), operation)
     res = RV(new_vals, new_probs)
     res = _INTERNAL_PROB_LIMIT_VALS(res)
     return res
@@ -384,11 +400,51 @@ def _sum_at(orig: T_S, locs: T_S):
   return sum(orig[int(i)] for i in locs)
 
 
+class _rdict:
+  def __init__(self):
+    self.d = {}
+
+  def __setitem__(self, key, value):
+    # in below comparisons, __setitem__ is called 6 million times
+    # without using _rdict | 8.35 s
+    # super().__setitem__(key, self.get(key, 0) + value)  # slowest code, self is subclass of dict | 4.43 s
+    # self.d[key] = self.d.get(key, 0) + value  # slow code | 3.15 s
+    # fastest code | 2.08 s
+    if key in self.d:
+      self.d[key] += value
+    else:
+      self.d[key] = value
+
+  def to_tuples(self):
+    sorted_items = sorted(self.d.items())
+    keys, values = zip(*sorted_items) if sorted_items else ((), ())
+    return keys, values
+
+  @staticmethod
+  def fast_convolve(items1: tuple[tuple, tuple], items2: tuple[tuple, tuple], operation: Callable[[float, float], float]):
+    if operation == operator.add:
+      return _rdict.__fast_convolve_op_add(items1, items2)
+    d = _rdict()
+    for k1, v1 in zip(*items1):
+      for k2, v2 in zip(*items2):
+        d[operation(k1, k2)] = v1 * v2
+    return d.to_tuples()
+
+  @staticmethod
+  def __fast_convolve_op_add(items1, items2):
+    """Since 'add' is the most common operation, we can optimize it by not calling operation() every iter of the N^2 algorithm"""
+    d = _rdict()
+    for k1, v1 in zip(*items1):
+      for k2, v2 in zip(*items2):
+        d[k1 + k2] = v1 * v2
+    return d.to_tuples()
+
+
 def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   sum_ = rv._get_sum_probs()
   if sum_ <= sum_limit:
     return rv
-  normalizing_const = int(10e10 * sum_ // sum_limit)
+  normalizing_const = int(10e10 * (sum_ // sum_limit))
   logger.warning(f'WARNING reducing probabilities | sum limit {sum_limit}, sum{sum_:.1g}, NORMALIZING BY {normalizing_const:.1g} | from my calc, abs err <= {1 / (sum_ / normalizing_const - 1)}')
   # napkin math for the error. int(x) = x - x_ϵ where x_ϵ∈[0,1) is for the rounding error. Don't quote me on this math, not 100% sure.
   # P(x_i )=p_i/(∑p_i )  before normalization (p_i is an integer probability unbounded)

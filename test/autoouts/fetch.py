@@ -94,7 +94,7 @@ def main_fetch():
     for (key, inp) in new_inps:
         resp = get_anydice_resp(inp, C)
         print('GOT', resp.text)
-        fetch_out['data'].append({'inp': inp, 'out': resp.text, 'key': key, 'time': datetime.now().isoformat()})
+        fetch_out['data'].append({'inp': inp, 'out': resp.text, 'key': key, 'time': datetime.now().isoformat(), 'i': len(fetch_out['data'])})
         with open(cur_dir / 'fetch_out.json', 'w') as f:
             json.dump(fetch_out, f, indent=2)
         time.sleep(1 + random.random() * 5)  # sleep for 1-6 seconds
