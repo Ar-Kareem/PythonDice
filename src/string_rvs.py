@@ -2,7 +2,7 @@
 from typing import Union
 import operator as op
 
-from .typings import T_if
+from .typings import MetaStr, T_if
 from . import seq
 
 T_ift = Union[T_if, str, 'StringVal']
@@ -11,7 +11,7 @@ T_ift = Union[T_if, str, 'StringVal']
 _CONST_COEF = '_UNIQUE_STRING'
 
 
-class StringVal:
+class StringVal(MetaStr):
   def __init__(self, keys: tuple[str, ...], pairs: dict[str, T_if]):
     self.keys = tuple(sorted(keys))
     self.data = pairs
@@ -27,6 +27,10 @@ class StringVal:
   @staticmethod
   def from_paris(pairs: dict[str, T_if]):  # TODO rename to from_pairs
     return StringVal(tuple(pairs.keys()), pairs)
+
+  def is_number(self):
+    import re  # noqa
+    return len(self.keys) == 1 and re.match(r'^-?\d+(\.\d+)?$', self.keys[0])
 
   def __add__(self, other):
     if not isinstance(other, StringVal):

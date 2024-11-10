@@ -65,3 +65,8 @@ class MetaSeq(ABC):
 
   def __iter__(self) -> Iterator[T_if]:
     raise NotImplementedError
+
+
+class MetaStr(ABC):
+  def is_number(self) -> bool:
+    raise NotImplementedError
