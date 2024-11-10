@@ -41,15 +41,32 @@ class RV(MetaRV):
   @staticmethod
   def _sort_and_group(vals: Iterable[float], probs: Iterable[int], skip_zero_probs, normalize):
     assert all(isinstance(p, int) and p >= 0 for p in probs), 'probs must be non-negative integers'
-    zipped = sorted(zip(vals, probs), reverse=True)
+    zipped = RV._get_zip(vals, probs)
+    # print('before', len(zipped))
+    newzipped = RV._get_new_zipped(zipped, skip_zero_probs)
+    # print('after', len(newzipped))
+    return RV._get_normalized(newzipped, normalize)
+
+  @staticmethod
+  def _get_zip(v, p):
+    return sorted(zip(v, p), reverse=True)
+
+  @staticmethod
+  def _get_new_zipped(zipped, skip_zero_probs):
     newzipped: list[tuple[float, int]] = []
-    for i in range(len(zipped) - 1, -1, -1):
-      if skip_zero_probs and zipped[i][1] == 0:
-        continue
-      if i > 0 and zipped[i][0] == zipped[i - 1][0]:  # add the two probs, go to next
+    for i in range(len(zipped) - 1, 0, -1):
+      if zipped[i][0] == zipped[i - 1][0]:  # add the two probs, go to next
         zipped[i - 1] = (zipped[i - 1][0], zipped[i - 1][1] + zipped[i][1])
       else:
         newzipped.append(zipped[i])
+    if len(zipped) > 0:
+      newzipped.append(zipped[0])
+    if skip_zero_probs:
+      newzipped = [v for v in newzipped if v[1] != 0]
+    return newzipped
+
+  @staticmethod
+  def _get_normalized(newzipped, normalize):
     vals = tuple(v[0] for v in newzipped)
     probs = tuple(v[1] for v in newzipped)
     if normalize:
@@ -388,7 +405,7 @@ def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
   sum_ = rv._get_sum_probs()
   if sum_ <= sum_limit:
     return rv
-  normalizing_const = int(10e10 * sum_ // sum_limit)
+  normalizing_const = int(10e10 * (sum_ // sum_limit))
   logger.warning(f'WARNING reducing probabilities | sum limit {sum_limit}, sum{sum_:.1g}, NORMALIZING BY {normalizing_const:.1g} | from my calc, abs err <= {1 / (sum_ / normalizing_const - 1)}')
   # napkin math for the error. int(x) = x - x_ϵ where x_ϵ∈[0,1) is for the rounding error. Don't quote me on this math, not 100% sure.
   # P(x_i )=p_i/(∑p_i )  before normalization (p_i is an integer probability unbounded)
