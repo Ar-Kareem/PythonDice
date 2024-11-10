@@ -544,7 +544,6 @@ def p_element(p):
     '''
     element : expression
             | range
-            | str_element
     '''
     p[0] = p[1]
 
@@ -558,7 +557,7 @@ def p_range(p):
 
 def p_str_element(p):
     '''
-    str_element : string
+    term : string
     '''
     p[0] = p[1]
 
