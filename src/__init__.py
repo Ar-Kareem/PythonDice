@@ -1,4 +1,4 @@
-__version__ = '0.3.4.dev1'
+__version__ = '0.3.4.dev2'
 
 # core classes
 from .randvar import RV
