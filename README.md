@@ -234,7 +234,7 @@ roller(X)  # gets a random value from rolling a d20 with advantage
 
 
 
-    14
+    19
 
 
 
@@ -348,7 +348,6 @@ code = compile_anydice(EXAMPLE_CODE)
 print(code)
 ```
 
-    @max_func_depth()
     @anydice_casting()
     def convert_X(SUM: T_N):
       if SUM >= 1000:
@@ -367,7 +366,6 @@ print(code)
 from dice_calc import *
 
 # EXECUTE CODE FROM COMPILE_ANYDICE
-@max_func_depth()
 @anydice_casting()
 def convert_X(SUM: T_N):
   if SUM >= 1000:
@@ -496,6 +494,6 @@ As far as we tested, almost all valid `anydice` code worked perfectly using our 
 
 4. **(very rare) MAX_INT is higher in python than in JavaScript**: This is a very rare issue when a number is larger than $2^{53}$. See example we made here: https://anydice.com/program/39567
 
-Note: that in certain cases our **`compile_anydice` code runs while `anydice` crashes**. This is because our compiler allows certain pieces of code (like defining functions within functions or outputs inside of functions) to execute perfectly while `anydice` crashes for the same input. We do not consider this as a failiure since our goal is to make any code that runs on `anydice` to also run using our package, the reverse of that is of no concern. In fact, the descrepancy is considered a positive for us as it means we handle more pieces of code than `anydice`.
+Note: that in some cases our **`compile_anydice` code runs while `anydice` crashes**. This is because our compiler allows certain pieces of code (like defining functions within functions or outputs inside of functions) to execute perfectly while `anydice` crashes. We do not consider this as a failiure since our goal is to make any code that runs on `anydice` to also run using our package, the reverse of that is of no concern. In fact, the descrepancy is considered a positive for us as it means we handle more pieces of code than `anydice`.
 
 If you discover any code that behaves differently when run on `anydice.com` then please report it to us as an issue so we can keep improving this package.

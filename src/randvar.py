@@ -399,7 +399,7 @@ class RV(MetaRV):
     return d1.vals == d2.vals and d1.probs == d2.probs
 
 
-@decorators.anydice_casting()
+@decorators.anydice_type_casting()
 def _sum_at(orig: T_S, locs: T_S):
   return sum(orig[int(i)] for i in locs)
 

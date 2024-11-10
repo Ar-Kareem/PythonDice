@@ -50,7 +50,7 @@ def _get_lib():
   from ..seq import Seq
   from ..factory import get_seq
   from ..settings import settings_set
-  from ..decorators import anydice_casting, max_func_depth
+  from ..decorators import anydice_casting
   from ..output import output
   from ..roller import roll, myrange
   from ..utils import mymatmul as myMatmul, mylen as myLen, myinvert as myInvert, myand as myAnd, myor as myOr, true_div as true_div_X_X
@@ -61,7 +61,7 @@ def _get_lib():
     # useful modules
     'math': math, 'itertools': itertools, 'random': random, 'functools': functools,
     # core
-    'RV': RV, 'Seq': Seq, 'get_seq': get_seq, 'anydice_casting': anydice_casting, 'max_func_depth': max_func_depth, 'roll': roll, 'myrange': myrange, 'settings_set': settings_set, 'output': output,
+    'RV': RV, 'Seq': Seq, 'get_seq': get_seq, 'anydice_casting': anydice_casting, 'roll': roll, 'myrange': myrange, 'settings_set': settings_set, 'output': output,
     # typings
     'T_N': T_N, 'T_S': T_S, 'T_D': T_D,
     # funclib
