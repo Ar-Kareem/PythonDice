@@ -2,7 +2,7 @@ from typing import Iterable, Callable, Optional, Union
 from itertools import zip_longest
 import operator
 
-from .typings import T_if, T_ifs, T_ifsr, T_ifr, MetaRV, MetaSeq
+from .typings import T_if, T_ifs, T_ifsr, MetaRV, MetaSeq
 from . import utils
 from . import blackrv
 
@@ -147,7 +147,7 @@ class Seq(Iterable, MetaSeq):
   def __rand__(self, other: T_ifsr):
     return int((self.sum() != 0) and (other != 0)) if isinstance(other, (int, float)) else operator.and_(other, self.sum())
 
-  def _compare_to(self, other: T_ifsr, operation: Callable[[float, T_ifr], bool]):
+  def _compare_to(self, other: T_ifsr, operation: Callable[[float, Union[T_if, MetaRV]], bool]):
     if isinstance(other, MetaRV):
       return operation(self.sum(), other)
     if isinstance(other, Iterable):

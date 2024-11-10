@@ -1,12 +1,12 @@
 from typing import Union, Iterable
 
-from .typings import T_isr, MetaSeq
+from .typings import T_ifsr, MetaSeq
 from .settings import SETTINGS
 from . import randvar
 from . import blackrv
 
 
-def output(rv: Union[T_isr, None], named=None, show_pdf=True, blocks_width=None, print_=True, print_fn=None, cdf_cut=0):
+def output(rv: Union[T_ifsr, None], named=None, show_pdf=True, blocks_width=None, print_=True, print_fn=None, cdf_cut=0):
   if blocks_width is None:
     blocks_width = SETTINGS['DEFAULT_OUTPUT_WIDTH']
 

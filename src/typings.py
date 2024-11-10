@@ -5,10 +5,8 @@ from abc import ABC
 # TYPE DEFINITIONS
 T_if = Union[int, float]
 T_ifs = Union[T_if, Iterable['T_ifs']]  # recursive type
-T_is = Union[int, Iterable['T_is']]  # recursive type
+T_is = Union[int, Iterable['T_is']]  # recursive type, only used randvar.__rmatmul__
 
-T_isr = Union[T_is, 'MetaRV']
-T_ifr = Union[T_if, 'MetaRV']
 T_ifsr = Union[T_ifs, 'MetaRV']
 
 T_s = Iterable['T_ifs']  # same as T_ifs but excludes int and float (not iterable)
@@ -29,6 +27,7 @@ else:
 class MetaRV(ABC):
   vals: tuple[float, ...]
   probs: tuple[int, ...]
+  _str_LHS_RHS: tuple[T_if, Union[T_if, str]]
 
   def _get_expanded_possible_rolls(self):
     raise NotImplementedError
