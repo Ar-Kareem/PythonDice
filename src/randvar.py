@@ -203,8 +203,7 @@ class RV(MetaRV):
       other = other.sum()
     if not isinstance(other, MetaRV):
       return RV([operation(v, other) for v in self.vals], self.probs)
-    new_vals = tuple(operation(v1, v2) for v1 in self.vals for v2 in other.vals)
-    new_probs = tuple(p1 * p2 for p1 in self.probs for p2 in other.probs)
+    new_vals, new_probs = _rdict.fast_convolve((self.vals, self.probs), (other.vals, other.probs), operation)
     res = RV(new_vals, new_probs)
     res = _INTERNAL_PROB_LIMIT_VALS(res)
     return res
@@ -399,6 +398,46 @@ class RV(MetaRV):
 @decorators.anydice_casting()
 def _sum_at(orig: T_S, locs: T_S):
   return sum(orig[int(i)] for i in locs)
+
+
+class _rdict:
+  def __init__(self):
+    self.d = {}
+
+  def __setitem__(self, key, value):
+    # in below comparisons, __setitem__ is called 6 million times
+    # without using _rdict | 8.35 s
+    # super().__setitem__(key, self.get(key, 0) + value)  # slowest code, self is subclass of dict | 4.43 s
+    # self.d[key] = self.d.get(key, 0) + value  # slow code | 3.15 s
+    # fastest code | 2.08 s
+    if key in self.d:
+      self.d[key] += value
+    else:
+      self.d[key] = value
+
+  def to_tuples(self):
+    sorted_items = sorted(self.d.items())
+    keys, values = zip(*sorted_items) if sorted_items else ((), ())
+    return keys, values
+
+  @staticmethod
+  def fast_convolve(items1: tuple[tuple, tuple], items2: tuple[tuple, tuple], operation: Callable[[float, float], float]):
+    if operation == operator.add:
+      return _rdict.__fast_convolve_op_add(items1, items2)
+    d = _rdict()
+    for k1, v1 in zip(*items1):
+      for k2, v2 in zip(*items2):
+        d[operation(k1, k2)] = v1 * v2
+    return d.to_tuples()
+
+  @staticmethod
+  def __fast_convolve_op_add(items1, items2):
+    """Since 'add' is the most common operation, we can optimize it by not calling operation() every iter of the N^2 algorithm"""
+    d = _rdict()
+    for k1, v1 in zip(*items1):
+      for k2, v2 in zip(*items2):
+        d[k1 + k2] = v1 * v2
+    return d.to_tuples()
 
 
 def _INTERNAL_PROB_LIMIT_VALS(rv: RV, sum_limit: float = 10e30):
