@@ -282,9 +282,9 @@ plt.bar(vals, probs); plt.xlabel('Damage'); plt.ylabel('Probability');
 
 Notice how we used the decorator `@anydice_casting` to use `if` conditions on dice inside of a custom function. Typehinting the input to `int` is required, the engine knows that you want to calculate the function many times based on all possible combinations of the input random variable.
 
-The three valid typehints that the decorator `@anydice_casting` looks for are `: int`, `: Seq`, `: RV` which are equivelant to the 3 types `:n`, `:s`, and `:d` respectively in `anydice`. The casting done by `@anydice_casting` is exactly how casting is done in the `anydice` language. For more info on that please read the [documentation `functions -> Parameter types` in the `anydice` docs](https://anydice.com/docs/functions/) .
+The three valid typehints that the decorator `@anydice_casting` looks for are `: T_N`, `: T_S`, `: T_D` which are equivelant to the 3 types `:n`, `:s`, and `:d` respectively in `anydice`. The casting done by `@anydice_casting` is exactly how casting is done in the `anydice` language. For more info on that please read the [documentation `functions -> Parameter types` in the `anydice` docs](https://anydice.com/docs/functions/) .
 
-Note: `Seq` and `RV` are imported from `dice_calc.randvar`
+Note: import ``T_N`, `T_S`, and `T_D` from the base package `dice_calc`
 
 # Getting probabilities as dict 
 
